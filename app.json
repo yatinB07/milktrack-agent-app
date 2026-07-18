@@ -8,6 +8,7 @@
     "scheme": "milktrack-agent",
     "userInterfaceStyle": "automatic",
     "ios": {
+      "icon": "./assets/expo.icon",
       "supportsTablet": false,
       "bundleIdentifier": "com.milktrack.agent"
     },
