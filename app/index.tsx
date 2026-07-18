@@ -1,7 +1,3 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Redirect } from 'expo-router';
 
-export default function Index() {
-  return <View style={styles.screen}><Text>MilkTrack Agent</Text></View>;
-}
-
-const styles = StyleSheet.create({ screen: { flex: 1, alignItems: 'center', justifyContent: 'center' } });
+export default function Index() { return <Redirect href="/(auth)/phone" />; }
