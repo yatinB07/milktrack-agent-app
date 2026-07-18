@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "sourceRepository": "milktrack-backend",
+  "sourceCommit": "336ede14fe97cf963373e35f718d72c416372b4d",
+  "apiVersion": "1.0",
+  "openapiVersion": "3.0.0",
+  "sha256": "06781660a0468cc89f035af15eb500eda164ea6faa185b8f5202eeb656a37eaf"
+}
