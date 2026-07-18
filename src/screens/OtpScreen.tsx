@@ -6,7 +6,7 @@ import { Field } from '@/components/Field';
 import { Screen } from '@/components/Screen';
 import { colors, spacing } from '@/theme/tokens';
 
-export function OtpScreen({ onVerify, maskedPhone = '+91 ••••••3210', onChangeNumber }: { onVerify: (code: string) => void; maskedPhone?: string; onChangeNumber?: () => void }) {
+export function OtpScreen({ onVerify, maskedPhone = 'your phone', onChangeNumber }: { onVerify: (code: string) => void; maskedPhone?: string; onChangeNumber?: () => void }) {
   const [code, setCode] = useState('');
   const [error, setError] = useState<string>();
   const submit = () => {
