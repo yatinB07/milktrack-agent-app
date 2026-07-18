@@ -30,3 +30,8 @@ it('does not create a session from presentation-only OTP validation', async () =
   await fireEvent.press(screen.getByRole('button', { name: 'Verify' }));
   expect(mockReplace).not.toHaveBeenCalled();
 });
+
+it('does not announce placeholder Help as an interactive link', async () => {
+  await render(<PhoneRoute />);
+  expect(screen.queryByRole('link', { name: 'Help' })).toBeNull();
+});
