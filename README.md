@@ -17,7 +17,7 @@ cp .env.example .env
 docker compose --env-file .env up --build
 ```
 
-Open the shown `exp://<LAN-IP>:8081` URL in Expo Go, or connect a simulator. Use `docker compose --env-file .env down` to stop Metro.
+Open the shown `exp://<LAN-IP>:8082` URL in Expo Go, or connect a simulator. Use `docker compose --env-file .env down` to stop Metro.
 
 The backend URL depends on the runtime:
 
