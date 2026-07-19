@@ -1,16 +1,16 @@
 # Architecture
 
-## Phase 0 shape
+## Phase 1 shape
 
-Expo Router owns a root authentication stack and an authenticated tab shell with exactly Today's Route, Sync, and Account. The root redirects to phone entry until a later phase provides real session state. Components and design tokens are local to this repository; no source is linked across MilkTrack repositories.
+Expo Router owns a guarded authentication stack and an authenticated tab shell with exactly Today's Route, Sync, and Account. `AuthProvider` keeps the access credential in memory, stores only the device identifier and refresh credential with SecureStore, rotates sessions through the generated backend contract, and clears invalid or logged-out sessions. OTP challenges stay in provider memory rather than route parameters.
 
-`AppProviders` owns the TanStack Query client. Route and Sync use NetInfo plus the generated `openapi-fetch` client to query backend `GET /v1/health`. The backend remains authoritative, and the committed OpenAPI artifact records its backend commit and SHA-256 provenance.
+`AppProviders` owns the TanStack Query client and authentication provider. Authenticated state comes from `GET /v1/auth/me`; only an active delivery-agent membership establishes an assignment. Wrong-role sessions receive a permission state. Missing, inactive, and suspended assignments share security-safe access-unavailable copy because phone authentication intentionally does not disclose inactive membership state. Route and Sync use NetInfo for connectivity presentation. The backend remains authoritative, and the committed OpenAPI artifact records its backend commit and SHA-256 provenance.
 
 `EXPO_PUBLIC_API_BASE_URL` is the sole public runtime setting. It accepts only an absolute, credential-free HTTP(S) origin.
 
 ## Deliberate deferrals
 
-This foundation has no SQLite database, cached route projection, writable delivery flow, durable action queue, idempotency key, GPS, notification, or background synchronization. The Sync screen therefore states that no offline actions are stored.
+Phase 1 has no SQLite database, cached route projection, writable delivery flow, durable action queue, idempotency key, GPS, notification, or background synchronization. The Sync screen reports that no delivery actions are pending without claiming an offline queue exists.
 
 The approved offline phase will add SQLite and an explicit action state machine. It must preserve unsynchronized actions, reuse each action's idempotency key for retries, expose conflicts without silent overwrite or deletion, and never depend on opportunistic background execution for correctness.
 

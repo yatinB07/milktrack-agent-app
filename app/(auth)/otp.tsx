@@ -1,4 +1,9 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { Redirect, router } from 'expo-router';
+import { useAuth } from '@/auth/AuthProvider';
 import { OtpScreen } from '@/screens/OtpScreen';
 
-export default function OtpRoute() { const { phone } = useLocalSearchParams<{ phone?: string }>(); return <OtpScreen maskedPhone={phone ? `+91 ••••••${phone.slice(-4)}` : undefined} onVerify={() => undefined} onChangeNumber={() => router.back()} />; }
+export default function OtpRoute() {
+  const { challenge, requestCode, verifyCode } = useAuth();
+  if (!challenge) return <Redirect href="/(auth)/phone" />;
+  return <OtpScreen maskedPhone={`+91 ••••••${challenge.phone.slice(-4)}`} expiresAt={challenge.expiresAt} onVerify={async (code) => { await verifyCode(code); router.replace('/(tabs)'); }} onResend={() => requestCode(challenge.phone)} onChangeNumber={() => router.back()} />;
+}

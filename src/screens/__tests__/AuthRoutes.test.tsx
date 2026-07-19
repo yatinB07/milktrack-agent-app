@@ -4,6 +4,12 @@ import PhoneRoute from '../../../app/(auth)/phone';
 
 const mockPush = jest.fn();
 const mockReplace = jest.fn();
+const mockRequestCode = jest.fn();
+const mockVerifyCode = jest.fn();
+
+jest.mock('@/auth/AuthProvider', () => ({
+  useAuth: () => ({ challenge: { phone: '9876543219' }, requestCode: mockRequestCode, verifyCode: mockVerifyCode }),
+}));
 
 jest.mock('expo-router', () => ({
   router: { back: jest.fn(), push: (...args: unknown[]) => mockPush(...args), replace: (...args: unknown[]) => mockReplace(...args) },
@@ -12,11 +18,12 @@ jest.mock('expo-router', () => ({
 
 beforeEach(() => jest.clearAllMocks());
 
-it('carries the submitted phone to OTP verification', async () => {
+it('requests a challenge before opening OTP verification', async () => {
   await render(<PhoneRoute />);
   await fireEvent.changeText(screen.getByLabelText('Phone number'), '9876543219');
   await fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
-  expect(mockPush).toHaveBeenCalledWith({ pathname: '/(auth)/otp', params: { phone: '9876543219' } });
+  expect(mockRequestCode).toHaveBeenCalledWith('9876543219');
+  expect(mockPush).toHaveBeenCalledWith('/(auth)/otp');
 });
 
 it('shows the submitted phone masked on OTP verification', async () => {
@@ -24,11 +31,12 @@ it('shows the submitted phone masked on OTP verification', async () => {
   expect(screen.getByText('Enter the code for +91 ••••••3219.')).toBeTruthy();
 });
 
-it('does not create a session from presentation-only OTP validation', async () => {
+it('verifies OTP and opens the authenticated route', async () => {
   await render(<OtpRoute />);
   await fireEvent.changeText(screen.getByLabelText('Six-digit code'), '123456');
   await fireEvent.press(screen.getByRole('button', { name: 'Verify' }));
-  expect(mockReplace).not.toHaveBeenCalled();
+  expect(mockVerifyCode).toHaveBeenCalledWith('123456');
+  expect(mockReplace).toHaveBeenCalledWith('/(tabs)');
 });
 
 it('does not announce placeholder Help as an interactive link', async () => {

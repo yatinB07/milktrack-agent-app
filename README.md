@@ -1,6 +1,6 @@
 # MilkTrack Agent
 
-Expo SDK 57 delivery-agent application. Phase 0 provides phone-authentication and authenticated navigation shells plus backend health/connectivity status. It does not store routes or delivery actions.
+Expo SDK 57 delivery-agent application. Phase 1 provides backend-connected phone OTP, encrypted refresh-token storage, session rotation/expiry/logout, authenticated identity, assignment access states, and empty route/synchronization states. Route data and delivery actions begin in later phases.
 
 ## Prerequisites
 
@@ -26,6 +26,8 @@ The backend URL depends on the runtime:
 - Physical device: `http://<computer-LAN-IP>:3000`
 
 The device and computer must be able to reach each other. Production and remote development URLs must use HTTPS.
+
+In local development, request an OTP in the app and read the development-only code from the backend container log. Non-development environments require a real OTP provider.
 
 ## Verify
 

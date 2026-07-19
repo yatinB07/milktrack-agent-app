@@ -6,3 +6,5 @@
 - Added accessible phone/OTP and route, sync, and account shells.
 - Added generated backend health-contract consumption and connectivity states.
 - Added Docker-only development, verification, and CI gates.
+- Added backend-connected phone OTP, secure refresh rotation, session expiry, and resilient logout.
+- Added authenticated agent/vendor identity, assignment denial, empty-route, and synchronization states.
