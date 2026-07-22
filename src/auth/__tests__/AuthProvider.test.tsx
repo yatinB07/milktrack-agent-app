@@ -16,7 +16,7 @@ const actor = { userId: 'user', displayName: 'Agent A', platformRoles: [], membe
 
 function Probe() {
   const auth = useAuth();
-  return <View><Text>{auth.status}</Text><Text>{auth.challenge?.phone}</Text><Text>{auth.actor?.displayName}</Text><Button title="request" onPress={() => void auth.requestCode('9876543210')} /><Button title="verify" onPress={() => void auth.verifyCode('123456')} /><Button title="retry" onPress={() => void auth.retrySession()} /><Button title="logout" onPress={() => void auth.signOut()} /></View>;
+  return <View><Text>{auth.status}</Text><Text>{auth.challenge?.phone}</Text><Text>{auth.actor?.displayName}</Text><Text>{auth.accessToken}</Text><Button title="request" onPress={() => void auth.requestCode('9876543210')} /><Button title="verify" onPress={() => void auth.verifyCode('123456')} /><Button title="retry" onPress={() => void auth.retrySession()} /><Button title="logout" onPress={() => void auth.signOut()} /></View>;
 }
 
 function renderAuth() {
@@ -45,6 +45,7 @@ it('requests and verifies OTP without putting the challenge in route state', asy
   expect(authApi.verifyOtp).toHaveBeenCalledWith('challenge', '123456', 'agent-device');
   expect(storage.saveRefreshToken).toHaveBeenCalledWith('refresh');
   expect(view.getByText('Agent A')).toBeTruthy();
+  expect(view.getByText('access')).toBeTruthy();
 });
 
 it('restores a rotated session and marks an unassigned user unavailable', async () => {

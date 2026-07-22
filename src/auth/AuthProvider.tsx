@@ -7,6 +7,7 @@ type Challenge = Readonly<{ phone: string; token: string; expiresAt: string }>;
 type AuthValue = Readonly<{
   status: Status;
   actor?: Actor;
+  accessToken?: string;
   challenge?: Challenge;
   requestCode(phone: string): Promise<void>;
   verifyCode(code: string): Promise<void>;
@@ -132,7 +133,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return signOutFlight.current;
   }, [access]);
 
-  return <AuthContext.Provider value={{ status, actor, challenge, requestCode, verifyCode, retrySession, signOut }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ status, actor, accessToken: access?.accessToken, challenge, requestCode, verifyCode, retrySession, signOut }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth(): AuthValue {

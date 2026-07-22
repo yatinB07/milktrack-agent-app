@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { ComponentType } from 'react';
 import { AccountScreen } from '../AccountScreen';
 import { RouteScreen } from '../RouteScreen';
@@ -11,11 +11,19 @@ let mockAuth = {
   retrySession: jest.fn(),
   signOut: jest.fn(),
 };
+const mockAgentWorkspaceProvider = jest.fn(({ children }: { children: React.ReactNode }) => children);
+const mockPush = jest.fn();
+let mockWorkspace = { status: 'ready' as const, vendors: [{ vendorId: 'vendor', vendorName: 'Vendor A' }], activeVendor: { vendorId: 'vendor', vendorName: 'Vendor A' }, selectVendor: jest.fn(), clearVendor: jest.fn() };
 
 jest.mock('@/auth/AuthProvider', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => children,
   useAuth: () => mockAuth,
 }));
+jest.mock('@/agent/AgentWorkspaceProvider', () => ({
+  AgentWorkspaceProvider: (props: { children: React.ReactNode }) => mockAgentWorkspaceProvider(props),
+  useAgentWorkspace: () => mockWorkspace,
+}));
+jest.mock('expo-router', () => ({ router: { push: (...args: unknown[]) => mockPush(...args) } }));
 
 jest.mock('@/api/health', () => ({ getHealth: jest.fn() }));
 jest.mock('@react-native-community/netinfo', () => ({ useNetInfo: () => ({ isConnected: null }) }));
@@ -36,6 +44,20 @@ it('displays authenticated agent and vendor identity', async () => {
   await renderScreen(AccountScreen);
   expect(screen.getByText('Agent A')).toBeTruthy();
   expect(screen.getByText('Vendor A')).toBeTruthy();
+});
+
+it('composes agent workspace state inside the application providers', async () => {
+  await renderScreen(AccountScreen);
+  expect(mockAgentWorkspaceProvider).toHaveBeenCalled();
+});
+
+it('opens workspace selection from Account when multiple vendors are available', async () => {
+  mockWorkspace = { ...mockWorkspace, vendors: [mockWorkspace.vendors[0]!, { vendorId: 'vendor-b', vendorName: 'Vendor B' }] };
+  await renderScreen(AccountScreen);
+
+  await fireEvent.press(screen.getByRole('button', { name: 'Switch workspace' }));
+
+  expect(mockPush).toHaveBeenCalledWith('/agent-workspace');
 });
 
 it('shows an explicit no-assignment state with retry', async () => {

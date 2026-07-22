@@ -1,5 +1,13 @@
 import * as SecureStore from 'expo-secure-store';
-import { clearRefreshToken, getOrCreateDeviceId, loadRefreshToken, saveRefreshToken } from '../storage';
+import {
+  clearActiveVendorId,
+  clearRefreshToken,
+  getOrCreateDeviceId,
+  loadActiveVendorId,
+  loadRefreshToken,
+  saveActiveVendorId,
+  saveRefreshToken,
+} from '../storage';
 
 jest.mock('expo-secure-store', () => ({
   deleteItemAsync: jest.fn(),
@@ -29,4 +37,15 @@ it('loads and clears the refresh credential', async () => {
   await expect(loadRefreshToken()).resolves.toBe('refresh-value');
   await clearRefreshToken();
   expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith('milktrack.agent.refresh');
+});
+
+it('persists only the non-secret active vendor identifier', async () => {
+  getItem.mockResolvedValueOnce('vendor-a');
+  await expect(loadActiveVendorId()).resolves.toBe('vendor-a');
+  await saveActiveVendorId('vendor-b');
+  await clearActiveVendorId();
+
+  expect(getItem).toHaveBeenCalledWith('milktrack.agent.vendor');
+  expect(setItem).toHaveBeenCalledWith('milktrack.agent.vendor', 'vendor-b');
+  expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith('milktrack.agent.vendor');
 });
