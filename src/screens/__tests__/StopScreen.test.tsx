@@ -6,9 +6,10 @@ import { StopScreen } from '../StopScreen';
 const mockBack = jest.fn();
 const loadMore = jest.fn();
 const refresh = jest.fn();
+const mockClearVendor = jest.fn();
 let mockParams: Record<string, string | string[]> = { routeStopId: 'stop-a' };
 let mockAuth = { accessToken: 'access-token', status: 'authenticated' };
-let mockWorkspace = { status: 'ready', activeVendor: { vendorId: 'vendor-1', vendorName: 'Vendor One' } };
+let mockWorkspace = { status: 'ready', activeVendor: { vendorId: 'vendor-1', vendorName: 'Vendor One' }, clearVendor: mockClearVendor };
 
 const stop = {
   routeStopId: 'stop-a',
@@ -50,9 +51,10 @@ jest.mock('@/agent/useTodayRoute', () => ({ useTodayRoute: () => mockRoute }));
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockClearVendor.mockResolvedValue(undefined);
   mockParams = { routeStopId: 'stop-a' };
   mockAuth = { accessToken: 'access-token', status: 'authenticated' };
-  mockWorkspace = { status: 'ready', activeVendor: { vendorId: 'vendor-1', vendorName: 'Vendor One' } };
+  mockWorkspace = { status: 'ready', activeVendor: { vendorId: 'vendor-1', vendorName: 'Vendor One' }, clearVendor: mockClearVendor };
   mockRoute = {
     status: 'success', loading: false, errorKind: undefined, serviceDate: '2026-07-22', model: {} as object | undefined,
     refresh, loadMore, canLoadMore: false, isLoadingMore: false, paginationError: undefined,
@@ -150,6 +152,18 @@ it.each(['authentication', 'forbidden'])('hides cached stop PII for %s paginatio
 
   expect(screen.getByRole('header', { name: 'Delivery access restricted' })).toBeTruthy();
   expect(screen.queryByText('12 Milk Road, Near Central Park, Shivajinagar, Pune, Maharashtra, 411001, IN')).toBeNull();
+});
+
+it.each([
+  ['refresh', { errorKind: 'forbidden', paginationError: undefined }],
+  ['pagination', { errorKind: undefined, paginationError: 'forbidden' }],
+])('clears the cached workspace once for a forbidden %s response', async (_source, failure) => {
+  mockRoute = { ...mockRoute, status: 'success', ...failure };
+  await render(<StopScreen routeStopId="stop-a" />);
+
+  await waitFor(() => expect(mockClearVendor).toHaveBeenCalledTimes(1));
+  expect(screen.getByRole('header', { name: 'Delivery access restricted' })).toBeTruthy();
+  expect(screen.queryByText('Sharma Household')).toBeNull();
 });
 
 it('passes only routeStopId from the route and ignores injected PII parameters', async () => {

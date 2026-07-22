@@ -1,6 +1,6 @@
 import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useAgentWorkspace } from '@/agent/AgentWorkspaceProvider';
 import { useTodayRoute } from '@/agent/useTodayRoute';
@@ -25,13 +25,14 @@ export function StopScreen({ routeStopId }: Readonly<{ routeStopId: string }>) {
     return <StopState title="Delivery workspace unavailable" body="Choose an active delivery workspace before viewing this stop." />;
   }
 
-  return <ReadyStopScreen routeStopId={routeStopId} vendorId={workspace.activeVendor.vendorId} accessToken={auth.accessToken} />;
+  return <ReadyStopScreen routeStopId={routeStopId} vendorId={workspace.activeVendor.vendorId} accessToken={auth.accessToken} clearVendor={workspace.clearVendor} />;
 }
 
-function ReadyStopScreen({ routeStopId, vendorId, accessToken }: Readonly<{
+function ReadyStopScreen({ routeStopId, vendorId, accessToken, clearVendor }: Readonly<{
   routeStopId: string;
   vendorId: string;
   accessToken: string;
+  clearVendor(): Promise<void>;
 }>) {
   const route = useTodayRoute({ vendorId, accessToken });
   const stop = route.findStop(routeStopId);
@@ -39,6 +40,11 @@ function ReadyStopScreen({ routeStopId, vendorId, accessToken }: Readonly<{
   const [openingMaps, setOpeningMaps] = useState(false);
   const protectedError = route.errorKind === 'authentication' || route.errorKind === 'forbidden'
     || route.paginationError === 'authentication' || route.paginationError === 'forbidden';
+  const forbidden = route.errorKind === 'forbidden' || route.paginationError === 'forbidden';
+
+  useEffect(() => {
+    if (forbidden) void clearVendor().catch(() => {});
+  }, [clearVendor, forbidden]);
 
   if (protectedError) {
     return <StopState title="Delivery access restricted" body="This stop cannot be shown with the current delivery-agent access." />;
