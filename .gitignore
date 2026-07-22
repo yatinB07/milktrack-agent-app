@@ -37,6 +37,9 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# isolated feature worktrees
+.worktrees/
+
 # generated native folders
 /ios
 /android
