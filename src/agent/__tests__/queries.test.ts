@@ -8,8 +8,9 @@ jest.mock('../api', () => ({
 
 const request = { vendorId: 'vendor-1', accessToken: 'access-token' };
 
-it('creates a vendor-scoped assignment infinite query that pins continuation dates', async () => {
+it('creates a vendor-scoped assignment infinite query that pins every continuation to the first date', async () => {
   const first = { serviceDate: '2026-07-22', items: [], nextCursor: 'next' };
+  const conflictingSecond = { serviceDate: '2026-07-23', items: [], nextCursor: 'last' };
   jest.mocked(agentApi.fetchAgentRouteAssignmentPage).mockResolvedValue(first);
   const options = agentRouteAssignmentsQuery(request);
 
@@ -20,6 +21,16 @@ it('creates a vendor-scoped assignment infinite query that pins continuation dat
 
   await options.queryFn?.({ pageParam: { cursor: 'next', serviceDate: '2026-07-22' } } as never);
   expect(agentApi.fetchAgentRouteAssignmentPage).toHaveBeenLastCalledWith({ ...request, cursor: 'next', serviceDate: '2026-07-22' });
+
+  const lastPageParam = options.getNextPageParam?.(
+    conflictingSecond,
+    [first, conflictingSecond],
+    { cursor: 'next', serviceDate: '2026-07-22' },
+    [undefined, { cursor: 'next', serviceDate: '2026-07-22' }],
+  );
+  expect(lastPageParam).toEqual({ cursor: 'last', serviceDate: '2026-07-22' });
+  await options.queryFn?.({ pageParam: lastPageParam } as never);
+  expect(agentApi.fetchAgentRouteAssignmentPage).toHaveBeenLastCalledWith({ ...request, cursor: 'last', serviceDate: '2026-07-22' });
 });
 
 it('creates a date-scoped scheduled-delivery infinite query', async () => {

@@ -13,7 +13,7 @@ export function agentRouteAssignmentsQuery(request: AgentDataRequest) {
     queryKey: ['agent', request.vendorId, 'route-assignments'] as const,
     initialPageParam: undefined as AssignmentPageParam,
     queryFn: ({ pageParam }) => fetchAgentRouteAssignmentPage(pageParam ? { ...request, ...pageParam } : request),
-    getNextPageParam: (page) => page.nextCursor ? { cursor: page.nextCursor, serviceDate: page.serviceDate } : undefined,
+    getNextPageParam: (page, pages) => page.nextCursor ? { cursor: page.nextCursor, serviceDate: pages[0]?.serviceDate ?? page.serviceDate } : undefined,
   });
 }
 
