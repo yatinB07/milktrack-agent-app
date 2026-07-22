@@ -282,3 +282,26 @@ it('loads one page batch and supports pull to refresh', async () => {
   await act(async () => list.props.refreshControl.props.onRefresh());
   expect(refresh).toHaveBeenCalledTimes(1);
 });
+
+it('keeps a warm route render bounded and records route interaction timing', async () => {
+  const renderStartedAt = performance.now();
+  await render(<RouteScreen />);
+  const initialRenderMs = performance.now() - renderStartedAt;
+
+  const list = screen.getByTestId('today-route-list');
+  expect(list).toHaveProp('initialNumToRender', 10);
+  expect(list).toHaveProp('maxToRenderPerBatch', 10);
+  expect(list).toHaveProp('windowSize', 7);
+
+  const interactionStartedAt = performance.now();
+  await fireEvent.press(screen.getByRole('button', { name: /Stop 2, Mehta Home/ }));
+  const interactionMs = performance.now() - interactionStartedAt;
+
+  if (process.env.REPORT_PERFORMANCE === '1') {
+    console.info(JSON.stringify({ initialRenderMs, interactionMs }));
+  }
+
+  // These generous CI budgets catch large regressions; physical-device budgets are a Phase 7 gate.
+  expect(initialRenderMs).toBeLessThan(1_000);
+  expect(interactionMs).toBeLessThan(250);
+});

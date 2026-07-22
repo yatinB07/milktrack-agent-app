@@ -111,6 +111,9 @@ function ActiveRouteScreen({ accessToken, agentName, vendorId, vendorName, clear
     testID="today-route-list"
     sections={sections}
     keyExtractor={(stop) => stop.routeStopId}
+    initialNumToRender={10}
+    maxToRenderPerBatch={10}
+    windowSize={7}
     contentContainerStyle={styles.content}
     ListHeaderComponent={<View style={styles.header}>
       <AppText accessibilityRole="header" variant="h1">Today&apos;s route</AppText>

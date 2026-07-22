@@ -1,0 +1,11 @@
+appId: com.milktrack.agent
+---
+- launchApp:
+    clearState: false
+- assertVisible: "Today's route"
+- assertVisible: "Service date:.*"
+- tapOn:
+    text: "Stop .*"
+- assertVisible: "Stop .* · .*"
+- back
+- assertVisible: "Today's route"
