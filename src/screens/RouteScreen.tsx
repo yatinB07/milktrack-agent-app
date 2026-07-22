@@ -53,26 +53,39 @@ function ActiveRouteScreen({ accessToken, agentName, vendorId, vendorName, clear
   })) ?? [];
   const stopCount = sections.reduce((count, section) => count + section.data.length, 0);
   const offline = netInfo.isConnected === false;
+  const errors = [route.errorKind, route.paginationError];
+  const accessError = errors.includes('forbidden')
+    ? 'forbidden'
+    : errors.includes('authentication') ? 'authentication' : undefined;
 
   useEffect(() => {
-    if (!route.model && route.status === 'error' && route.errorKind === 'forbidden') void clearVendor();
-  }, [clearVendor, route.errorKind, route.model, route.status]);
+    if (accessError === 'forbidden') void clearVendor();
+  }, [accessError, clearVendor]);
 
   const refresh = async () => {
     setRefreshing(true);
     try { await route.refresh(); } finally { setRefreshing(false); }
   };
 
+  if (accessError) {
+    const authentication = accessError === 'authentication';
+    return <Screen>
+      <AppText accessibilityRole="header" variant="h1">Today&apos;s route</AppText>
+      <ConnectivityBanner />
+      <StateMessage
+        title={authentication ? 'Session expired' : 'Route access restricted'}
+        body={authentication ? 'Refresh your session to continue.' : 'This vendor workspace is no longer available.'}
+        {...(authentication ? { actionLabel: 'Sign in again', onAction: () => void retrySession() } : {})}
+      />
+    </Screen>;
+  }
+
   if (!route.model) {
     const state: { title: string; body: string; actionLabel?: string; onAction?: () => Promise<void> } = offline
       ? { title: 'No connection', body: 'Connect to the internet to load today’s route.' }
       : route.status === 'loading'
         ? { title: 'Loading today’s route', body: 'Checking today’s route and scheduled stops.' }
-        : route.errorKind === 'authentication'
-          ? { title: 'Session expired', body: 'Refresh your session to continue.', actionLabel: 'Sign in again', onAction: retrySession }
-          : route.errorKind === 'forbidden'
-            ? { title: 'Route access restricted', body: 'This vendor workspace is no longer available.' }
-            : { title: 'Route unavailable', body: 'Today’s route could not be loaded.', actionLabel: 'Retry', onAction: route.refresh };
+        : { title: 'Route unavailable', body: 'Today’s route could not be loaded.', actionLabel: 'Retry', onAction: route.refresh };
     return <Screen>
       <AppText accessibilityRole="header" variant="h1">Today&apos;s route</AppText>
       <AppText>{agentName} · {vendorName}</AppText>
@@ -82,12 +95,12 @@ function ActiveRouteScreen({ accessToken, agentName, vendorId, vendorName, clear
     </Screen>;
   }
 
-  const emptyState: { title: string; body: string; actionLabel?: string; onAction?: () => Promise<void> } | undefined = sections.length === 0
-    ? { title: 'No route assigned today', body: 'There is no route assignment for this service date.', actionLabel: 'Check for route', onAction: route.refresh }
-    : stopCount === 0 && !route.canLoadMore
-      ? { title: 'No scheduled stops today', body: 'The assigned route has no scheduled deliveries.' }
+  const emptyState: { title: string; body: string; actionLabel?: string; onAction?: () => Promise<void> } | undefined = stopCount === 0 && route.canLoadMore
+    ? { title: 'More route data available', body: 'Load the next page to check for scheduled stops.' }
+    : sections.length === 0
+      ? { title: 'No route assigned today', body: 'There is no route assignment for this service date.', actionLabel: 'Check for route', onAction: route.refresh }
       : stopCount === 0
-        ? { title: 'More route data available', body: 'Load the next page to check for scheduled stops.' }
+        ? { title: 'No scheduled stops today', body: 'The assigned route has no scheduled deliveries.' }
         : undefined;
 
   return <SafeAreaView style={styles.safe}><SectionList
@@ -125,13 +138,15 @@ function AssignmentHeader({ group: { assignment } }: Readonly<{ group: TodayRout
 function StopRow({ stop }: Readonly<{ stop: TodayRouteStop }>) {
   const first = stop.products[0];
   if (!first) return null;
-  const label = `Stop ${stop.sequence}, ${first.householdName}, ${first.householdAccountNumber}`;
   const address = [first.addressLine1, first.addressLine2, first.locality, first.city].filter(Boolean).join(', ');
+  const products = stop.products.map((product) => `${product.plannedQuantity} ${product.unitName}, ${product.productName}`).join('. ');
+  const label = [`Stop ${stop.sequence}, ${first.householdName}, ${first.householdAccountNumber}`, address, products].filter(Boolean).join('. ') + '.';
 
   return <Pressable
     accessible
     accessibilityRole="button"
     accessibilityLabel={label}
+    accessibilityHint="Opens stop details"
     onPress={() => router.push(`/stops/${stop.routeStopId}`)}
     style={styles.stop}
   >

@@ -137,7 +137,11 @@ it('renders backend-ordered assignment sections and navigates with only the stop
   expect(screen.getByText('2 Market Road, Pune')).toBeTruthy();
   expect(screen.getByText('1.25 Litre · Cow Milk')).toBeTruthy();
 
-  await fireEvent.press(screen.getByRole('button', { name: 'Stop 2, Mehta Home, H-stop-beta' }));
+  const stopButton = screen.getByRole('button', {
+    name: 'Stop 2, Mehta Home, H-stop-beta. 2 Market Road, Pune. 1.25 Litre, Cow Milk.',
+  });
+  expect(stopButton).toHaveProp('accessibilityHint', 'Opens stop details');
+  await fireEvent.press(stopButton);
 
   expect(router.push).toHaveBeenCalledWith('/stops/stop-beta');
 });
@@ -145,6 +149,7 @@ it('renders backend-ordered assignment sections and navigates with only the stop
 it.each([
   [{ status: 'loading', loading: true, model: undefined }, 'Loading today’s route'],
   [{ status: 'success', loading: false, model: { ...successRoute.model, assignments: [] } }, 'No route assigned today'],
+  [{ status: 'success', loading: false, canLoadMore: true, model: { ...successRoute.model, assignments: [] } }, 'More route data available'],
   [{ status: 'success', loading: false, model: { ...successRoute.model, assignments: [{ assignment: beta, stops: [] }] } }, 'No scheduled stops today'],
   [{ status: 'success', loading: false, canLoadMore: true, model: { ...successRoute.model, assignments: [{ assignment: beta, stops: [] }] } }, 'More route data available'],
 ] as const)('renders the stable route state %#', async (routeState, title) => {
@@ -185,9 +190,29 @@ it('keeps cached stops visible with refresh and pagination errors', async () => 
   jest.mocked(useTodayRoute).mockReturnValue({ ...successRoute, errorKind: 'unavailable', paginationError: 'unavailable' });
   await render(<RouteScreen />);
 
-  expect(screen.getByRole('button', { name: 'Stop 2, Mehta Home, H-stop-beta' })).toBeTruthy();
+  expect(screen.getByRole('button', { name: /Stop 2, Mehta Home/ })).toBeTruthy();
   expect(screen.getByText('Could not refresh the route. Showing saved route data.')).toBeTruthy();
   expect(screen.getByText('Could not load more route data.')).toBeTruthy();
+});
+
+it.each([
+  ['refresh authentication', { errorKind: 'authentication' as const }, 'Session expired', false],
+  ['pagination authentication', { paginationError: 'authentication' as const }, 'Session expired', false],
+  ['refresh forbidden', { errorKind: 'forbidden' as const }, 'Route access restricted', true],
+  ['pagination forbidden', { paginationError: 'forbidden' as const }, 'Route access restricted', true],
+])('hides cached PII after a %s error', async (_case, routeError, title, clearsWorkspace) => {
+  jest.mocked(useTodayRoute).mockReturnValue({ ...successRoute, ...routeError });
+
+  await render(<RouteScreen />);
+
+  expect(screen.getByText(title)).toBeTruthy();
+  expect(screen.queryByText('Agent A · Vendor A')).toBeNull();
+  expect(screen.queryByText('Service date: 2026-07-22')).toBeNull();
+  expect(screen.queryByText('2. Mehta Home · H-stop-beta')).toBeNull();
+  expect(screen.queryByText('2 Market Road, Pune')).toBeNull();
+  expect(screen.queryByText('1.25 Litre · Cow Milk')).toBeNull();
+  if (clearsWorkspace) await waitFor(() => expect(clearVendor).toHaveBeenCalledTimes(1));
+  else expect(clearVendor).not.toHaveBeenCalled();
 });
 
 it('distinguishes offline cached data from an offline route with no cache', async () => {
