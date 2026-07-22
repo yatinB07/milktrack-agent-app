@@ -7,6 +7,7 @@ import { AppProviders } from '@/providers/AppProviders';
 
 let mockAuth = {
   status: 'authenticated',
+  accessToken: 'access-token',
   actor: { displayName: 'Agent A', memberships: [{ vendorName: 'Vendor A', role: 'delivery_agent', status: 'active' }] },
   retrySession: jest.fn(),
   signOut: jest.fn(),
@@ -22,6 +23,22 @@ jest.mock('@/auth/AuthProvider', () => ({
 jest.mock('@/agent/AgentWorkspaceProvider', () => ({
   AgentWorkspaceProvider: (props: { children: React.ReactNode }) => mockAgentWorkspaceProvider(props),
   useAgentWorkspace: () => mockWorkspace,
+}));
+jest.mock('@/agent/useTodayRoute', () => ({
+  useTodayRoute: () => ({
+    status: 'success',
+    loading: false,
+    errorKind: undefined,
+    serviceDate: '2026-07-22',
+    model: { serviceDate: '2026-07-22', assignments: [], unmatchedDeliveryIds: [], hasMoreAssignments: false, hasMoreDeliveries: false },
+    refresh: jest.fn(),
+    loadMore: jest.fn(),
+    canLoadMore: false,
+    isLoadingMore: false,
+    paginationError: undefined,
+    lastRefreshedAt: undefined,
+    findStop: jest.fn(),
+  }),
 }));
 jest.mock('expo-router', () => ({ router: { push: (...args: unknown[]) => mockPush(...args) } }));
 
