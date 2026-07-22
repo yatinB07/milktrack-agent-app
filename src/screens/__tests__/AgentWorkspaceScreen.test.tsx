@@ -25,7 +25,7 @@ beforeEach(() => {
 it('selects an authorized vendor and returns to the agent tabs', async () => {
   await render(<AgentWorkspaceScreen />);
 
-  expect(screen.getByText('Choose workspace')).toBeTruthy();
+  expect(screen.getByRole('header', { name: 'Choose workspace' })).toBeTruthy();
   await fireEvent.press(screen.getByRole('button', { name: 'Vendor B' }));
 
   await waitFor(() => expect(selectVendor).toHaveBeenCalledWith('vendor-b'));
@@ -58,4 +58,19 @@ it('shows an explicit unavailable state without an empty selector', async () => 
 
   expect(screen.getByText('No delivery workspace')).toBeTruthy();
   expect(screen.queryByText('Choose workspace')).toBeNull();
+});
+
+it('stays on the selector with an alert and allows retry after selection fails', async () => {
+  selectVendor.mockRejectedValueOnce(new Error('storage unavailable')).mockResolvedValueOnce(undefined);
+  await render(<AgentWorkspaceScreen />);
+
+  await fireEvent.press(screen.getByRole('button', { name: 'Vendor B' }));
+
+  await waitFor(() => expect(screen.getByRole('alert')).toBeTruthy());
+  expect(screen.getByText('Workspace selection failed. Try again.')).toBeTruthy();
+  expect(router.replace).not.toHaveBeenCalled();
+
+  await fireEvent.press(screen.getByRole('button', { name: 'Vendor B' }));
+  await waitFor(() => expect(selectVendor).toHaveBeenCalledTimes(2));
+  expect(router.replace).toHaveBeenCalledWith('/(tabs)');
 });

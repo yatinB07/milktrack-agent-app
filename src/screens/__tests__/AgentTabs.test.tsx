@@ -42,6 +42,7 @@ it.each([
 
 it('displays authenticated agent and vendor identity', async () => {
   await renderScreen(AccountScreen);
+  expect(screen.getByRole('header', { name: 'Account' })).toBeTruthy();
   expect(screen.getByText('Agent A')).toBeTruthy();
   expect(screen.getByText('Vendor A')).toBeTruthy();
 });
