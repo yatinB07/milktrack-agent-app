@@ -182,6 +182,7 @@ it('refreshes from assignment page one and atomically rolls delivery data to its
   await waitFor(() => expect(result.current.model?.assignments[0]?.stops[0]?.products[0]?.id).toBe('new-milk'));
   await waitFor(() => expect(agentApi.fetchAgentScheduledDeliveryPage).toHaveBeenCalledTimes(3));
   await act(async () => { revalidation.resolve(newDeliveries); });
+  await act(async () => { await new Promise((resolve) => setTimeout(resolve, 0)); });
 
   expect(agentApi.fetchAgentRouteAssignmentPage).toHaveBeenNthCalledWith(2, request);
   expect(agentApi.fetchAgentScheduledDeliveryPage).toHaveBeenLastCalledWith({ ...request, serviceDate: '2026-07-23' });
@@ -189,7 +190,7 @@ it('refreshes from assignment page one and atomically rolls delivery data to its
   expect(client.getQueryData(agentScheduledDeliveriesQuery({ ...request, serviceDate: '2026-07-22' }).queryKey)).toBeUndefined();
 });
 
-it('never combines assignment and delivery pages that report different service dates', async () => {
+it('reports an unavailable error when first assignment and delivery pages disagree', async () => {
   const assignments = assignmentPage('2026-07-22', ['a']);
   const mismatchedDeliveries = deliveryPage('2026-07-23', [['milk', 'a', 'stop-a', 1]]);
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity, gcTime: Infinity } } });
@@ -203,8 +204,62 @@ it('never combines assignment and delivery pages that report different service d
 
   await waitFor(() => {
     expect(result.current.model).toBeUndefined();
-    expect(result.current.status).toBe('loading');
+    expect(result.current.status).toBe('error');
+    expect(result.current.errorKind).toBe('unavailable');
   });
+});
+
+it('rejects a mismatched assignment continuation without projecting it', async () => {
+  jest.mocked(agentApi.fetchAgentRouteAssignmentPage)
+    .mockResolvedValueOnce(assignmentPage('2026-07-22', ['a'], 'assign-2'))
+    .mockResolvedValueOnce(assignmentPage('2026-07-23', ['b']));
+  jest.mocked(agentApi.fetchAgentScheduledDeliveryPage).mockResolvedValue(
+    deliveryPage('2026-07-22', [['milk', 'a', 'stop-a', 1]]),
+  );
+  const { result } = await setup();
+  await waitFor(() => expect(result.current.status).toBe('success'));
+
+  await act(() => result.current.loadMore());
+
+  expect(result.current.status).toBe('error');
+  expect(result.current.errorKind).toBe('unavailable');
+  expect(result.current.model?.assignments.map(({ assignment }) => assignment.id)).toEqual(['a']);
+});
+
+it('rejects a mismatched delivery continuation without projecting it', async () => {
+  jest.mocked(agentApi.fetchAgentRouteAssignmentPage).mockResolvedValue(
+    assignmentPage('2026-07-22', ['a']),
+  );
+  jest.mocked(agentApi.fetchAgentScheduledDeliveryPage)
+    .mockResolvedValueOnce(deliveryPage('2026-07-22', [['milk', 'a', 'stop-a', 1]], 'delivery-2'))
+    .mockResolvedValueOnce(deliveryPage('2026-07-23', [['other', 'a', 'stop-a', 1]]));
+  const { result } = await setup();
+  await waitFor(() => expect(result.current.status).toBe('success'));
+
+  await act(() => result.current.loadMore());
+
+  expect(result.current.status).toBe('error');
+  expect(result.current.errorKind).toBe('unavailable');
+  expect(result.current.model?.assignments[0]?.stops[0]?.products.map(({ id }) => id)).toEqual(['milk']);
+});
+
+it('keeps the prior cache when refresh delivery data reports another date', async () => {
+  jest.mocked(agentApi.fetchAgentRouteAssignmentPage)
+    .mockResolvedValueOnce(assignmentPage('2026-07-22', ['old']))
+    .mockResolvedValueOnce(assignmentPage('2026-07-23', ['new']));
+  jest.mocked(agentApi.fetchAgentScheduledDeliveryPage)
+    .mockResolvedValueOnce(deliveryPage('2026-07-22', [['old-milk', 'old', 'old-stop', 1]]))
+    .mockResolvedValueOnce(deliveryPage('2026-07-24', [['wrong-milk', 'new', 'new-stop', 1]]));
+  const { client, result } = await setup();
+  await waitFor(() => expect(result.current.status).toBe('success'));
+
+  await act(() => result.current.refresh());
+
+  expect(result.current.status).toBe('success');
+  expect(result.current.errorKind).toBe('unavailable');
+  expect(result.current.serviceDate).toBe('2026-07-22');
+  expect(result.current.model?.assignments[0]?.stops[0]?.products[0]?.id).toBe('old-milk');
+  expect(client.getQueryData(agentScheduledDeliveriesQuery({ ...request, serviceDate: '2026-07-23' }).queryKey)).toBeUndefined();
 });
 
 it('keeps cached route data when refresh fails', async () => {

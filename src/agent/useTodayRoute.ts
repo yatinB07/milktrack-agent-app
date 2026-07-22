@@ -22,7 +22,6 @@ export function useTodayRoute(request: AgentDataRequest) {
   const serviceDate = assignments.data?.pages[0]?.serviceDate;
   const deliveryOptions = agentScheduledDeliveriesQuery({ ...request, serviceDate: serviceDate ?? '' });
   const deliveries = useInfiniteQuery({ ...deliveryOptions, enabled: serviceDate !== undefined });
-  const deliveryServiceDate = deliveries.data?.pages[0]?.serviceDate;
   const {
     fetchNextPage: fetchNextAssignmentPage,
     hasNextPage: hasMoreAssignments,
@@ -45,17 +44,30 @@ export function useTodayRoute(request: AgentDataRequest) {
     }
   }, [queryClient, request, serviceDate]);
 
-  const model = useMemo(() => assignments.data && deliveries.data && serviceDate === deliveryServiceDate
-    ? projectTodayRoute({ assignmentPages: assignments.data.pages, deliveryPages: deliveries.data.pages })
-    : undefined, [assignments.data, deliveries.data, deliveryServiceDate, serviceDate]);
-  const status: TodayRouteStatus = model
-    ? 'success'
-    : assignments.isError || deliveries.isError
+  const dateMismatch = serviceDate !== undefined && Boolean(
+    assignments.data?.pages.some((page) => page.serviceDate !== serviceDate)
+    || deliveries.data?.pages.some((page) => page.serviceDate !== serviceDate),
+  );
+  const model = useMemo(() => {
+    if (!assignments.data || !deliveries.data || !serviceDate) return undefined;
+    const assignmentPages = matchingPrefix(assignments.data.pages, serviceDate);
+    const deliveryPages = matchingPrefix(deliveries.data.pages, serviceDate);
+    return assignmentPages.length && deliveryPages.length
+      ? projectTodayRoute({ assignmentPages, deliveryPages })
+      : undefined;
+  }, [assignments.data, deliveries.data, serviceDate]);
+  const status: TodayRouteStatus = dateMismatch
+    ? 'error'
+    : model
+      ? 'success'
+      : assignments.isError || deliveries.isError
       ? 'error'
       : 'loading';
-  const errorKind = refreshError ?? (status === 'error'
-    ? kind(assignments.error ?? deliveries.error)
-    : undefined);
+  const errorKind = refreshError ?? (dateMismatch
+    ? 'unavailable'
+    : status === 'error'
+      ? kind(assignments.error ?? deliveries.error)
+      : undefined);
 
   const loadMore = useCallback(async () => {
     setPaginationError(undefined);
@@ -78,6 +90,7 @@ export function useTodayRoute(request: AgentDataRequest) {
       const nextAssignments = await fetchAgentRouteAssignmentPage(request);
       const nextServiceDate = nextAssignments.serviceDate;
       const nextDeliveries = await fetchAgentScheduledDeliveryPage({ ...request, serviceDate: nextServiceDate });
+      if (nextDeliveries.serviceDate !== nextServiceDate) throw new AgentDataError('unavailable');
       const nextDeliveryOptions = agentScheduledDeliveriesQuery({ ...request, serviceDate: nextServiceDate });
 
       queryClient.setQueryData(nextDeliveryOptions.queryKey, { pages: [nextDeliveries], pageParams: [undefined] });
@@ -111,4 +124,9 @@ export function useTodayRoute(request: AgentDataRequest) {
 
 function kind(error: unknown): AgentDataErrorKind {
   return error instanceof AgentDataError ? error.kind : 'unavailable';
+}
+
+function matchingPrefix<T extends Readonly<{ serviceDate: string }>>(pages: readonly T[], serviceDate: string) {
+  const mismatch = pages.findIndex((page) => page.serviceDate !== serviceDate);
+  return mismatch === -1 ? pages : pages.slice(0, mismatch);
 }
