@@ -18,7 +18,7 @@ const stop = {
       id: 'delivery-1', routeStopId: 'stop-a', sequence: 7, routeAssignmentId: 'assignment-1', routeId: 'route-1', serviceDate: '2026-07-22',
       subscriptionId: 'subscription-1', householdId: 'household-1', productId: 'product-1', unitId: 'unit-1', deliverySlotId: 'slot-1',
       plannedQuantity: '1.250', routeCode: 'NORTH-1', routeName: 'North Route', householdAccountNumber: 'H-100', householdName: 'Sharma Household',
-      addressLine1: '12 Milk Road', addressLine2: 'Near Central Park', city: 'Pune', region: 'Maharashtra', postalCode: '411001', countryCode: 'IN',
+      addressLine1: '12 Milk Road', addressLine2: 'Near Central Park', locality: 'Shivajinagar', city: 'Pune', region: 'Maharashtra', postalCode: '411001', countryCode: 'IN',
       productCode: 'MILK', productName: 'Full Cream Milk', unitCode: 'L', unitName: 'Litre', deliverySlotName: 'Morning',
       deliverySlotStartLocalTime: '06:00', deliverySlotEndLocalTime: '09:00',
     },
@@ -26,7 +26,7 @@ const stop = {
       id: 'delivery-2', routeStopId: 'stop-a', sequence: 7, routeAssignmentId: 'assignment-1', routeId: 'route-1', serviceDate: '2026-07-22',
       subscriptionId: 'subscription-2', householdId: 'household-1', productId: 'product-2', unitId: 'unit-2', deliverySlotId: 'slot-1',
       plannedQuantity: '0.500', routeCode: 'NORTH-1', routeName: 'North Route', householdAccountNumber: 'H-100', householdName: 'Sharma Household',
-      addressLine1: '12 Milk Road', addressLine2: 'Near Central Park', city: 'Pune', region: 'Maharashtra', postalCode: '411001', countryCode: 'IN',
+      addressLine1: '12 Milk Road', addressLine2: 'Near Central Park', locality: 'Shivajinagar', city: 'Pune', region: 'Maharashtra', postalCode: '411001', countryCode: 'IN',
       productCode: 'CURD', productName: 'Fresh Curd', unitCode: 'KG', unitName: 'Kilogram', deliverySlotName: 'Morning',
       deliverySlotStartLocalTime: '06:00', deliverySlotEndLocalTime: '09:00',
     },
@@ -67,7 +67,7 @@ it('shows the full stop, exact planned products, accessible controls, and map ad
 
   expect(screen.getByRole('header', { name: 'Stop 7 · Sharma Household' })).toBeTruthy();
   expect(screen.getByText('Account H-100')).toBeTruthy();
-  expect(screen.getByText('12 Milk Road, Near Central Park, Pune, Maharashtra, 411001, IN')).toBeTruthy();
+  expect(screen.getByText('12 Milk Road, Near Central Park, Shivajinagar, Pune, Maharashtra, 411001, IN')).toBeTruthy();
   expect(screen.getByText('North Route (NORTH-1)')).toBeTruthy();
   expect(screen.getByText('Morning · 06:00–09:00')).toBeTruthy();
   expect(screen.getByText('Full Cream Milk')).toBeTruthy();
@@ -76,9 +76,11 @@ it('shows the full stop, exact planned products, accessible controls, and map ad
   expect(screen.getByText('0.500 Kilogram')).toBeTruthy();
   expect(screen.getByRole('button', { name: 'Back' })).toBeTruthy();
 
-  await fireEvent.press(screen.getByRole('button', { name: 'Open in maps' }));
+  const mapsButton = screen.getByRole('button', { name: 'Open in maps' });
+  expect(mapsButton.props.accessibilityHint).toBe('Opens the address in another app.');
+  await fireEvent.press(mapsButton);
 
-  const address = '12 Milk Road, Near Central Park, Pune, Maharashtra, 411001, IN';
+  const address = '12 Milk Road, Near Central Park, Shivajinagar, Pune, Maharashtra, 411001, IN';
   const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
   expect(Linking.canOpenURL).toHaveBeenCalledWith(url);
   expect(Linking.openURL).toHaveBeenCalledWith(url);
@@ -91,7 +93,7 @@ it('keeps the address visible and exposes an alert when maps cannot open', async
   await fireEvent.press(screen.getByRole('button', { name: 'Open in maps' }));
 
   await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Maps could not be opened. Try again.'));
-  expect(screen.getByText('12 Milk Road, Near Central Park, Pune, Maharashtra, 411001, IN')).toBeTruthy();
+  expect(screen.getByText('12 Milk Road, Near Central Park, Shivajinagar, Pune, Maharashtra, 411001, IN')).toBeTruthy();
   expect(Linking.openURL).not.toHaveBeenCalled();
 });
 
@@ -139,7 +141,15 @@ it('hides stop PII for authentication and permission errors', async () => {
   await render(<StopScreen routeStopId="stop-a" />);
 
   expect(screen.getByRole('header', { name: 'Delivery access restricted' })).toBeTruthy();
-  expect(screen.queryByText('12 Milk Road, Near Central Park, Pune, Maharashtra, 411001, IN')).toBeNull();
+  expect(screen.queryByText('12 Milk Road, Near Central Park, Shivajinagar, Pune, Maharashtra, 411001, IN')).toBeNull();
+});
+
+it.each(['authentication', 'forbidden'])('hides cached stop PII for %s pagination failures', async (paginationError) => {
+  mockRoute = { ...mockRoute, status: 'success', errorKind: undefined, paginationError };
+  await render(<StopScreen routeStopId="stop-a" />);
+
+  expect(screen.getByRole('header', { name: 'Delivery access restricted' })).toBeTruthy();
+  expect(screen.queryByText('12 Milk Road, Near Central Park, Shivajinagar, Pune, Maharashtra, 411001, IN')).toBeNull();
 });
 
 it('passes only routeStopId from the route and ignores injected PII parameters', async () => {

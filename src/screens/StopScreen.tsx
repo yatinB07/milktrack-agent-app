@@ -1,7 +1,7 @@
 import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { useAgentWorkspace } from '@/agent/AgentWorkspaceProvider';
 import { useTodayRoute } from '@/agent/useTodayRoute';
 import { useAuth } from '@/auth/AuthProvider';
@@ -37,8 +37,10 @@ function ReadyStopScreen({ routeStopId, vendorId, accessToken }: Readonly<{
   const stop = route.findStop(routeStopId);
   const [mapsFailed, setMapsFailed] = useState(false);
   const [openingMaps, setOpeningMaps] = useState(false);
+  const protectedError = route.errorKind === 'authentication' || route.errorKind === 'forbidden'
+    || route.paginationError === 'authentication' || route.paginationError === 'forbidden';
 
-  if (route.status === 'error' && (route.errorKind === 'authentication' || route.errorKind === 'forbidden')) {
+  if (protectedError) {
     return <StopState title="Delivery access restricted" body="This stop cannot be shown with the current delivery-agent access." />;
   }
   if (!stop && route.loading) {
@@ -61,7 +63,7 @@ function ReadyStopScreen({ routeStopId, vendorId, accessToken }: Readonly<{
   }
 
   const first = stop.products[0]!;
-  const address = [first.addressLine1, first.addressLine2, first.city, first.region, first.postalCode, first.countryCode]
+  const address = [first.addressLine1, first.addressLine2, first.locality, first.city, first.region, first.postalCode, first.countryCode]
     .filter((part): part is string => Boolean(part))
     .join(', ');
   const openMaps = async () => {
@@ -89,7 +91,16 @@ function ReadyStopScreen({ routeStopId, vendorId, accessToken }: Readonly<{
       <AppText accessibilityRole="header" variant="h2">Address</AppText>
       <AppText style={styles.wrapping}>{address}</AppText>
       {mapsFailed ? <Banner tone="error" text="Maps could not be opened. Try again." /> : null}
-      <Button label="Open in maps" disabled={openingMaps} onPress={() => void openMaps()} />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityHint="Opens the address in another app."
+        accessibilityState={{ disabled: openingMaps }}
+        disabled={openingMaps}
+        onPress={() => void openMaps()}
+        style={({ pressed }) => [styles.mapButton, pressed && styles.mapButtonPressed, openingMaps && styles.disabled]}
+      >
+        <AppText variant="action" style={styles.mapButtonLabel}>Open in maps</AppText>
+      </Pressable>
     </View>
     <View style={styles.panel}>
       <AppText accessibilityRole="header" variant="h2">Route and slot</AppText>
@@ -128,5 +139,9 @@ const styles = StyleSheet.create({
   panel: { gap: spacing.md, borderWidth: 1, borderColor: colors.border, borderRadius: radii.panel, backgroundColor: colors.surface, padding: spacing.lg },
   section: { gap: spacing.md },
   product: { gap: spacing.xs, borderWidth: 1, borderColor: colors.border, borderRadius: radii.panel, backgroundColor: colors.surface, padding: spacing.lg },
+  mapButton: { minHeight: 48, minWidth: 48, alignItems: 'center', justifyContent: 'center', borderRadius: radii.control, backgroundColor: colors.primary, paddingHorizontal: spacing.xl, paddingVertical: spacing.md },
+  mapButtonPressed: { backgroundColor: colors.primaryPressed },
+  mapButtonLabel: { color: colors.surface },
+  disabled: { opacity: 0.5 },
   wrapping: { flexShrink: 1 },
 });
