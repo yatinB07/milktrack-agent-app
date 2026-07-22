@@ -149,9 +149,9 @@ it('renders backend-ordered assignment sections and navigates with only the stop
 it.each([
   [{ status: 'loading', loading: true, model: undefined }, 'Loading today’s route'],
   [{ status: 'success', loading: false, model: { ...successRoute.model, assignments: [] } }, 'No route assigned today'],
-  [{ status: 'success', loading: false, canLoadMore: true, model: { ...successRoute.model, assignments: [] } }, 'More route data available'],
+  [{ status: 'success', loading: false, canLoadMore: true, model: { ...successRoute.model, assignments: [], hasMoreAssignments: true } }, 'More route data available'],
   [{ status: 'success', loading: false, model: { ...successRoute.model, assignments: [{ assignment: beta, stops: [] }] } }, 'No scheduled stops today'],
-  [{ status: 'success', loading: false, canLoadMore: true, model: { ...successRoute.model, assignments: [{ assignment: beta, stops: [] }] } }, 'More route data available'],
+  [{ status: 'success', loading: false, canLoadMore: true, model: { ...successRoute.model, assignments: [{ assignment: beta, stops: [] }], hasMoreAssignments: true } }, 'More route data available'],
 ] as const)('renders the stable route state %#', async (routeState, title) => {
   jest.mocked(useTodayRoute).mockReturnValue({ ...successRoute, ...routeState } as ReturnType<typeof useTodayRoute>);
 
@@ -213,6 +213,50 @@ it.each([
   expect(screen.queryByText('1.25 Litre · Cow Milk')).toBeNull();
   if (clearsWorkspace) await waitFor(() => expect(clearVendor).toHaveBeenCalledTimes(1));
   else expect(clearVendor).not.toHaveBeenCalled();
+});
+
+it('surfaces exhausted unmatched deliveries as retryable changed route data', async () => {
+  jest.mocked(useTodayRoute).mockReturnValue({
+    ...successRoute,
+    model: {
+      ...successRoute.model,
+      assignments: [{ assignment: beta, stops: [] }],
+      unmatchedDeliveryIds: ['delivery-orphan'],
+      hasMoreAssignments: false,
+      hasMoreDeliveries: false,
+    },
+  });
+
+  await render(<RouteScreen />);
+
+  expect(screen.getByRole('alert')).toHaveTextContent('Route data changed');
+  expect(screen.queryByText('No scheduled stops today')).toBeNull();
+  expect(screen.queryByText('No route assigned today')).toBeNull();
+  await fireEvent.press(screen.getByRole('button', { name: 'Retry' }));
+  expect(refresh).toHaveBeenCalledTimes(1);
+});
+
+it.each([
+  ['assignment', true, false],
+  ['delivery', false, true],
+])('defers unmatched deliveries while the %s cursor remains', async (_cursor, hasMoreAssignments, hasMoreDeliveries) => {
+  jest.mocked(useTodayRoute).mockReturnValue({
+    ...successRoute,
+    canLoadMore: true,
+    model: {
+      ...successRoute.model,
+      assignments: [],
+      unmatchedDeliveryIds: ['delivery-orphan'],
+      hasMoreAssignments,
+      hasMoreDeliveries,
+    },
+  });
+
+  await render(<RouteScreen />);
+
+  expect(screen.getByText('More route data available')).toBeTruthy();
+  expect(screen.queryByText('Route data changed')).toBeNull();
+  expect(screen.queryByText('delivery-orphan')).toBeNull();
 });
 
 it('distinguishes offline cached data from an offline route with no cache', async () => {

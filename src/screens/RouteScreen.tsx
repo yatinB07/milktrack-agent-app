@@ -95,7 +95,11 @@ function ActiveRouteScreen({ accessToken, agentName, vendorId, vendorName, clear
     </Screen>;
   }
 
-  const emptyState: { title: string; body: string; actionLabel?: string; onAction?: () => Promise<void> } | undefined = stopCount === 0 && route.canLoadMore
+  const hasMoreRouteData = route.model.hasMoreAssignments || route.model.hasMoreDeliveries;
+  const routeDataChanged = route.model.unmatchedDeliveryIds.length > 0 && !hasMoreRouteData;
+  const emptyState: { title: string; body: string; actionLabel?: string; onAction?: () => Promise<void> } | undefined = routeDataChanged
+    ? undefined
+    : stopCount === 0 && hasMoreRouteData
     ? { title: 'More route data available', body: 'Load the next page to check for scheduled stops.' }
     : sections.length === 0
       ? { title: 'No route assigned today', body: 'There is no route assignment for this service date.', actionLabel: 'Check for route', onAction: route.refresh }
@@ -116,10 +120,12 @@ function ActiveRouteScreen({ accessToken, agentName, vendorId, vendorName, clear
       {offline ? <Banner tone="warning" text="Offline. Showing saved route data." /> : null}
       {route.errorKind ? <Banner tone="warning" text="Could not refresh the route. Showing saved route data." /> : null}
       {route.paginationError ? <Banner tone="warning" text="Could not load more route data." /> : null}
+      {routeDataChanged ? <Banner tone="error" text="Route data changed" /> : null}
       {route.lastRefreshedAt ? <AppText accessibilityLiveRegion="polite">Last refreshed: {new Date(route.lastRefreshedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</AppText> : null}
     </View>}
     ListFooterComponent={<View style={styles.footer}>
       {emptyState ? <StateMessage title={emptyState.title} body={emptyState.body} actionLabel={emptyState.actionLabel} onAction={emptyState.onAction ? () => void emptyState.onAction?.() : undefined} /> : null}
+      {routeDataChanged ? <Button label="Retry" onPress={() => void route.refresh()} /> : null}
       {route.canLoadMore ? <Button label={route.isLoadingMore ? 'Loading more…' : 'Load more'} disabled={route.isLoadingMore} onPress={() => void route.loadMore()} /> : null}
     </View>}
     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} />}
