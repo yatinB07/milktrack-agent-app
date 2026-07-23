@@ -254,7 +254,7 @@ it.each([
   expect(screen.queryByRole('button', { name: 'Record delivered' })).toBeNull();
 });
 
-it('refetches instead of resubmitting after an ambiguous response', async () => {
+it('keeps authoritative recovery locked when refresh produces no new snapshot', async () => {
   mockOutcome = {
     ...mockOutcome,
     error: new StopOutcomeError('ambiguous'),
@@ -267,6 +267,25 @@ it('refetches instead of resubmitting after an ambiguous response', async () => 
 
   expect(refresh).toHaveBeenCalledTimes(1);
   expect(submitOutcome).not.toHaveBeenCalled();
+  expect(resetOutcome).not.toHaveBeenCalled();
+  expect(screen.getByRole('button', { name: 'Check authoritative outcome' })).toBeEnabled();
+  expect(screen.queryByRole('button', { name: 'Record delivered' })).toBeNull();
+});
+
+it('unlocks authoritative recovery only after a newer successful route snapshot', async () => {
+  mockOutcome = {
+    ...mockOutcome,
+    error: new StopOutcomeError('conflict', 'STALE_VERSION'),
+    requiresAuthoritativeRefetch: true,
+  };
+  const view = await render(<StopScreen routeStopId="stop-a" />);
+
+  await fireEvent.press(screen.getByRole('button', { name: 'Check authoritative outcome' }));
+  expect(resetOutcome).not.toHaveBeenCalled();
+
+  mockRoute = { ...mockRoute, status: 'success', errorKind: undefined, lastRefreshedAt: 2_000 };
+  await view.rerender(<StopScreen routeStopId="stop-a" />);
+
   await waitFor(() => expect(resetOutcome).toHaveBeenCalledTimes(1));
 });
 

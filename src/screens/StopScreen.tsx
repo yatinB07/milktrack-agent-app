@@ -1,6 +1,6 @@
 import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useAgentWorkspace } from '@/agent/AgentWorkspaceProvider';
 import { DeliveredOutcomeForm } from '@/agent/outcomes/DeliveredOutcomeForm';
@@ -45,6 +45,7 @@ function ReadyStopScreen({ routeStopId, vendorId, accessToken, clearVendor }: Re
   const outcome = useStopOutcome({ vendorId, routeStopId, accessToken });
   const stop = route.findStop(routeStopId);
   const [actionMode, setActionMode] = useState<ActionMode>('none');
+  const authoritativeBaseline = useRef<number | null>(null);
   const [checkingAuthoritative, setCheckingAuthoritative] = useState(false);
   const [mapsFailed, setMapsFailed] = useState(false);
   const [openingMaps, setOpeningMaps] = useState(false);
@@ -57,6 +58,17 @@ function ReadyStopScreen({ routeStopId, vendorId, accessToken, clearVendor }: Re
   useEffect(() => {
     if (forbidden) void clearVendor().catch(() => {});
   }, [clearVendor, forbidden]);
+
+  useEffect(() => {
+    if (
+      authoritativeBaseline.current === null
+      || route.status !== 'success'
+      || !route.lastRefreshedAt
+      || route.lastRefreshedAt <= authoritativeBaseline.current
+    ) return;
+    authoritativeBaseline.current = null;
+    outcome.reset();
+  }, [outcome, route.lastRefreshedAt, route.status]);
 
   if (protectedError) {
     return <StopState title="Delivery access restricted" body="This stop cannot be shown with the current delivery-agent access." />;
@@ -123,10 +135,10 @@ function ReadyStopScreen({ routeStopId, vendorId, accessToken, clearVendor }: Re
   }
 
   async function checkAuthoritativeOutcome() {
+    authoritativeBaseline.current = route.lastRefreshedAt ?? 0;
+    setActionMode('none');
     setCheckingAuthoritative(true);
     await route.refresh();
-    outcome.reset();
-    setActionMode('none');
     setCheckingAuthoritative(false);
   }
 
