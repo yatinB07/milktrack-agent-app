@@ -26,6 +26,12 @@ function delivery(id: string, routeAssignmentId: string, routeStopId: string, se
 }
 
 it('preserves assignment order while sorting stops and multi-product rows', () => {
+  const stopZFirst = delivery('d3', 'a', 'stop-z', 2);
+  const stopZSecond = delivery('d1', 'a', 'stop-z', 2);
+  const stopZPending = [
+    stopZSecond.pendingStopItems[0]!,
+    stopZFirst.pendingStopItems[0]!,
+  ];
   const assignmentPages: AgentRouteAssignmentPage[] = [
     { serviceDate: '2026-07-22', items: [assignment('b')], nextCursor: 'assignments-next' },
     { serviceDate: '2026-07-22', items: [assignment('a')] },
@@ -33,8 +39,8 @@ it('preserves assignment order while sorting stops and multi-product rows', () =
   const deliveryPages: AgentScheduledDeliveryPage[] = [{
     serviceDate: '2026-07-22',
     items: [
-      delivery('d3', 'a', 'stop-z', 2), delivery('d2', 'a', 'stop-b', 1),
-      delivery('d1', 'a', 'stop-z', 2), delivery('d4', 'a', 'stop-a', 1),
+      { ...stopZFirst, pendingStopItems: stopZPending }, delivery('d2', 'a', 'stop-b', 1),
+      { ...stopZSecond, pendingStopItems: stopZPending }, delivery('d4', 'a', 'stop-a', 1),
     ],
   }];
 
@@ -91,4 +97,60 @@ it('finds a projected stop without inventing a missing result', () => {
 
   expect(findTodayRouteStop(route, 'stop-a')?.products[0]?.id).toBe('d1');
   expect(findTodayRouteStop(route, 'missing')).toBeUndefined();
+});
+
+it('projects the exact pending set and authoritative stop state', () => {
+  const pending = {
+    ...delivery('pending', 'a', 'stop-a', 1),
+    version: 3,
+    pendingStopItems: [{
+      scheduledDeliveryId: 'pending',
+      expectedVersion: 3,
+      plannedQuantity: '1.25',
+      productName: 'Milk',
+      unitName: 'Litre',
+    }],
+  };
+  const leave = {
+    ...delivery('leave', 'a', 'stop-a', 1),
+    currentStatus: 'skipped_by_customer' as const,
+    version: 4,
+    blockedByCustomerLeave: true,
+    captureLocationEvidence: true,
+    pendingStopItems: pending.pendingStopItems,
+  };
+
+  const route = projectTodayRoute({
+    assignmentPages: [{ serviceDate: '2026-07-22', items: [assignment('a')] }],
+    deliveryPages: [{ serviceDate: '2026-07-22', items: [pending, leave] }],
+  });
+  const stop = route.assignments[0]!.stops[0]!;
+
+  expect(stop.pendingProducts.map(({ scheduledDeliveryId, expectedVersion }) => ({
+    scheduledDeliveryId,
+    expectedVersion,
+  }))).toEqual([{ scheduledDeliveryId: 'pending', expectedVersion: 3 }]);
+  expect(stop.completedProducts.map(({ id }) => id)).toEqual(['leave']);
+  expect(stop.blockedByCustomerLeave).toBe(true);
+  expect(stop.captureLocationEvidence).toBe(true);
+  expect(stop.currentOutcome).toBe('skipped_by_customer');
+});
+
+it('rejects conflicting complete pending sets for one stop', () => {
+  const first = delivery('first', 'a', 'stop-a', 1);
+  const second = {
+    ...delivery('second', 'a', 'stop-a', 1),
+    pendingStopItems: [{
+      scheduledDeliveryId: 'other',
+      expectedVersion: 2,
+      plannedQuantity: '2',
+      productName: 'Other',
+      unitName: 'Litre',
+    }],
+  };
+
+  expect(() => projectTodayRoute({
+    assignmentPages: [{ serviceDate: '2026-07-22', items: [assignment('a')] }],
+    deliveryPages: [{ serviceDate: '2026-07-22', items: [first, second] }],
+  })).toThrow('Route data unavailable');
 });

@@ -3,10 +3,17 @@ import type { AgentRouteAssignmentPage, AgentScheduledDeliveryPage } from './api
 type Assignment = AgentRouteAssignmentPage['items'][number];
 type Delivery = AgentScheduledDeliveryPage['items'][number];
 
+export class RouteDataUnavailableError extends Error {}
+
 export type TodayRouteStop = Readonly<{
   routeStopId: string;
   sequence: number;
   products: readonly Delivery[];
+  pendingProducts: readonly (Delivery['pendingStopItems'][number])[];
+  completedProducts: readonly Delivery[];
+  blockedByCustomerLeave: boolean;
+  captureLocationEvidence: boolean;
+  currentOutcome?: Delivery['currentStatus'];
 }>;
 
 export type TodayRouteAssignment = Readonly<{
@@ -85,9 +92,23 @@ function stops(deliveries: readonly Delivery[]): TodayRouteStop[] {
     stop.products.push(delivery);
     grouped.set(delivery.routeStopId, stop);
   }
-  return [...grouped].map(([routeStopId, stop]) => ({
-    routeStopId,
-    sequence: stop.sequence,
-    products: stop.products.sort((left, right) => left.id.localeCompare(right.id)),
-  })).sort((left, right) => left.sequence - right.sequence || left.routeStopId.localeCompare(right.routeStopId));
+  return [...grouped].map(([routeStopId, stop]) => {
+    const products = stop.products.sort((left, right) => left.id.localeCompare(right.id));
+    const pendingProducts = products[0]!.pendingStopItems;
+    const pendingSignature = JSON.stringify(pendingProducts);
+    if (products.some((product) => JSON.stringify(product.pendingStopItems) !== pendingSignature)) {
+      throw new RouteDataUnavailableError('Route data unavailable');
+    }
+    const completedProducts = products.filter((product) => product.currentStatus !== 'scheduled');
+    return {
+      routeStopId,
+      sequence: stop.sequence,
+      products,
+      pendingProducts,
+      completedProducts,
+      blockedByCustomerLeave: products.some((product) => product.blockedByCustomerLeave),
+      captureLocationEvidence: products[0]!.captureLocationEvidence,
+      ...(completedProducts[0] ? { currentOutcome: completedProducts[0].currentStatus } : {}),
+    };
+  }).sort((left, right) => left.sequence - right.sequence || left.routeStopId.localeCompare(right.routeStopId));
 }

@@ -7,7 +7,7 @@ import {
   type AgentDataErrorKind,
   type AgentDataRequest,
 } from './api';
-import { findTodayRouteStop, projectTodayRoute } from './model';
+import { findTodayRouteStop, projectTodayRoute, RouteDataUnavailableError } from './model';
 import { agentRouteAssignmentsQuery, agentScheduledDeliveriesQuery } from './queries';
 
 export type TodayRouteStatus = 'loading' | 'success' | 'error';
@@ -48,22 +48,28 @@ export function useTodayRoute(request: AgentDataRequest) {
     assignments.data?.pages.some((page) => page.serviceDate !== serviceDate)
     || deliveries.data?.pages.some((page) => page.serviceDate !== serviceDate),
   );
-  const model = useMemo(() => {
+  const projectedRoute = useMemo(() => {
     if (!assignments.data || !deliveries.data || !serviceDate) return undefined;
     const assignmentPages = matchingPrefix(assignments.data.pages, serviceDate);
     const deliveryPages = matchingPrefix(deliveries.data.pages, serviceDate);
-    return assignmentPages.length && deliveryPages.length
-      ? projectTodayRoute({ assignmentPages, deliveryPages })
-      : undefined;
+    if (!assignmentPages.length || !deliveryPages.length) return undefined;
+    try {
+      return projectTodayRoute({ assignmentPages, deliveryPages });
+    } catch (error) {
+      if (error instanceof RouteDataUnavailableError) return null;
+      throw error;
+    }
   }, [assignments.data, deliveries.data, serviceDate]);
-  const status: TodayRouteStatus = dateMismatch
+  const model = projectedRoute ?? undefined;
+  const dataUnavailable = projectedRoute === null;
+  const status: TodayRouteStatus = dateMismatch || dataUnavailable
     ? 'error'
     : model
       ? 'success'
       : assignments.isError || deliveries.isError
       ? 'error'
       : 'loading';
-  const errorKind = refreshError ?? (dateMismatch
+  const errorKind = refreshError ?? (dateMismatch || dataUnavailable
     ? 'unavailable'
     : status === 'error'
       ? kind(assignments.error ?? deliveries.error)

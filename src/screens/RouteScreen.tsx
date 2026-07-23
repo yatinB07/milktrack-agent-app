@@ -52,6 +52,10 @@ function ActiveRouteScreen({ accessToken, agentName, vendorId, vendorName, clear
     data: group.stops,
   })) ?? [];
   const stopCount = sections.reduce((count, section) => count + section.data.length, 0);
+  const completedStops = sections.reduce(
+    (count, section) => count + section.data.filter((stop) => stop.pendingProducts.length === 0).length,
+    0,
+  );
   const offline = netInfo.isConnected === false;
   const errors = [route.errorKind, route.paginationError];
   const accessError = errors.includes('forbidden')
@@ -119,6 +123,7 @@ function ActiveRouteScreen({ accessToken, agentName, vendorId, vendorName, clear
       <AppText accessibilityRole="header" variant="h1">Today&apos;s route</AppText>
       <AppText>{agentName} · {vendorName}</AppText>
       <AppText>Service date: {route.model.serviceDate ?? route.serviceDate ?? 'Not available'}</AppText>
+      <AppText accessibilityLiveRegion="polite">Progress: {completedStops} of {stopCount} stops complete</AppText>
       <ConnectivityBanner />
       {offline ? <Banner tone="warning" text="Offline. Showing saved route data." /> : null}
       {route.errorKind ? <Banner tone="warning" text="Could not refresh the route. Showing saved route data." /> : null}
@@ -149,7 +154,10 @@ function StopRow({ stop }: Readonly<{ stop: TodayRouteStop }>) {
   if (!first) return null;
   const address = [first.addressLine1, first.addressLine2, first.locality, first.city].filter(Boolean).join(', ');
   const products = stop.products.map((product) => `${product.plannedQuantity} ${product.unitName}, ${product.productName}`).join('. ');
-  const label = [`Stop ${stop.sequence}, ${first.householdName}, ${first.householdAccountNumber}`, address, products].filter(Boolean).join('. ') + '.';
+  const outcome = stop.blockedByCustomerLeave
+    ? 'Customer leave, delivery blocked'
+    : stop.currentOutcome ? `Outcome: ${stop.currentOutcome}` : undefined;
+  const label = [`Stop ${stop.sequence}, ${first.householdName}, ${first.householdAccountNumber}`, address, products, outcome].filter(Boolean).join('. ') + '.';
 
   return <Pressable
     accessible
@@ -162,6 +170,9 @@ function StopRow({ stop }: Readonly<{ stop: TodayRouteStop }>) {
     <AppText variant="h3">{`${stop.sequence}. ${first.householdName} · ${first.householdAccountNumber}`}</AppText>
     <AppText>{address}</AppText>
     {stop.products.map((product) => <AppText key={product.id}>{`${product.plannedQuantity} ${product.unitName} · ${product.productName}`}</AppText>)}
+    {stop.blockedByCustomerLeave
+      ? <AppText>Customer leave · delivery blocked</AppText>
+      : stop.currentOutcome ? <AppText>Outcome: {stop.currentOutcome}</AppText> : null}
   </Pressable>;
 }
 

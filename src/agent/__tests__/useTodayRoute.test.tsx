@@ -318,3 +318,27 @@ it('exposes the initial AgentDataError kind without managing the session', async
   expect(result.current.model).toBeUndefined();
   expect(agentApi.fetchAgentScheduledDeliveryPage).not.toHaveBeenCalled();
 });
+
+it('treats conflicting pending sets for one stop as unavailable data', async () => {
+  const page = deliveryPage('2026-07-22', [
+    ['milk', 'a', 'stop-a', 1],
+    ['curd', 'a', 'stop-a', 1],
+  ]);
+  page.items[1]!.pendingStopItems = [{
+    scheduledDeliveryId: 'different',
+    expectedVersion: 2,
+    plannedQuantity: '2',
+    productName: 'Different',
+    unitName: 'Litre',
+  }];
+  jest.mocked(agentApi.fetchAgentRouteAssignmentPage).mockResolvedValue(
+    assignmentPage('2026-07-22', ['a']),
+  );
+  jest.mocked(agentApi.fetchAgentScheduledDeliveryPage).mockResolvedValue(page);
+
+  const { result } = await setup();
+
+  await waitFor(() => expect(result.current.status).toBe('error'));
+  expect(result.current.errorKind).toBe('unavailable');
+  expect(result.current.model).toBeUndefined();
+});

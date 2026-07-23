@@ -81,8 +81,17 @@ const product = (id: string, assignmentId: string, stopId: string, sequence: num
 
 const beta = assignment('beta', 'Route Beta');
 const alpha = assignment('alpha', 'Route Alpha');
-const betaStop = product('milk', 'beta', 'stop-beta', 2, 'Mehta Home');
-const alphaStop = product('curd', 'alpha', 'stop-alpha', 5, 'Patel Home');
+const betaStop = {
+  ...product('milk', 'beta', 'stop-beta', 2, 'Mehta Home'),
+  currentStatus: 'delivered' as const,
+  pendingStopItems: [],
+};
+const alphaStop = {
+  ...product('curd', 'alpha', 'stop-alpha', 5, 'Patel Home'),
+  currentStatus: 'skipped_by_customer' as const,
+  blockedByCustomerLeave: true,
+  pendingStopItems: [],
+};
 const successRoute = {
   status: 'success' as const,
   loading: false,
@@ -91,8 +100,26 @@ const successRoute = {
   model: {
     serviceDate: '2026-07-22',
     assignments: [
-      { assignment: beta, stops: [{ routeStopId: 'stop-beta', sequence: 2, products: [betaStop] }] },
-      { assignment: alpha, stops: [{ routeStopId: 'stop-alpha', sequence: 5, products: [alphaStop] }] },
+      { assignment: beta, stops: [{
+        routeStopId: 'stop-beta',
+        sequence: 2,
+        products: [betaStop],
+        pendingProducts: [],
+        completedProducts: [betaStop],
+        blockedByCustomerLeave: false,
+        captureLocationEvidence: false,
+        currentOutcome: 'delivered' as const,
+      }] },
+      { assignment: alpha, stops: [{
+        routeStopId: 'stop-alpha',
+        sequence: 5,
+        products: [alphaStop],
+        pendingProducts: [],
+        completedProducts: [alphaStop],
+        blockedByCustomerLeave: true,
+        captureLocationEvidence: false,
+        currentOutcome: 'skipped_by_customer' as const,
+      }] },
     ],
     unmatchedDeliveryIds: [],
     hasMoreAssignments: false,
@@ -103,7 +130,7 @@ const successRoute = {
   canLoadMore: false,
   isLoadingMore: false,
   paginationError: undefined,
-  lastRefreshedAt: Date.parse('2026-07-22T06:30:00.000Z'),
+  lastRefreshedAt: new Date(2026, 6, 22, 6, 30).getTime(),
   findStop: jest.fn(),
 };
 
@@ -147,9 +174,13 @@ it('renders backend-ordered assignment sections and navigates with only the stop
   expect(screen.getByText('2. Mehta Home · H-stop-beta')).toBeTruthy();
   expect(screen.getByText('2 Market Road, Pune')).toBeTruthy();
   expect(screen.getByText('1.25 Litre · Cow Milk')).toBeTruthy();
+  expect(screen.getByText('Progress: 2 of 2 stops complete')).toBeTruthy();
+  expect(screen.getByText('Outcome: delivered')).toBeTruthy();
+  expect(screen.getByText('Customer leave · delivery blocked')).toBeTruthy();
+  expect(screen.getByText('Last refreshed: 06:30 AM')).toBeTruthy();
 
   const stopButton = screen.getByRole('button', {
-    name: 'Stop 2, Mehta Home, H-stop-beta. 2 Market Road, Pune. 1.25 Litre, Cow Milk.',
+    name: 'Stop 2, Mehta Home, H-stop-beta. 2 Market Road, Pune. 1.25 Litre, Cow Milk. Outcome: delivered.',
   });
   expect(stopButton).toHaveProp('accessibilityHint', 'Opens stop details');
   await fireEvent.press(stopButton);
@@ -285,7 +316,6 @@ it('loads one page batch and supports pull to refresh', async () => {
   jest.mocked(useTodayRoute).mockReturnValue({ ...successRoute, canLoadMore: true });
   await render(<RouteScreen />);
 
-  expect(screen.getByText(/Last refreshed:/)).toBeTruthy();
   await fireEvent.press(screen.getByRole('button', { name: 'Load more' }));
   expect(loadMore).toHaveBeenCalledTimes(1);
 
