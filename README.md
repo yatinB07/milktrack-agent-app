@@ -37,6 +37,8 @@ Reset the deterministic fixture from `milktrack-backend` before each run:
 docker compose --env-file .env run --rm -e APP_ENV=development -e NODE_ENV=development migrate npm run db:seed:phase3-agent -- --reset
 ```
 
+The seeded app identity is `Development Vendor A Delivery Agent (+919876543210)`.
+
 Set `EXPO_PUBLIC_API_BASE_URL` in this repository's ignored local `.env` to an origin the device can reach. Never put credentials in `eas.json` or committed environment examples.
 
 Build the internal Android APK with the `maestro` EAS profile, install the downloaded APK, sign in with the seeded delivery-agent identity, then run:
