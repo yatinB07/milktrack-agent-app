@@ -1,6 +1,6 @@
 # MilkTrack Agent
 
-Expo SDK 57 delivery-agent application. Phase 1 provides backend-connected phone OTP, encrypted refresh-token storage, session rotation/expiry/logout, authenticated identity, assignment access states, and empty route/synchronization states. Route data and delivery actions begin in later phases.
+Expo SDK 57 delivery-agent application. It provides backend-connected phone OTP, encrypted refresh-token storage, authenticated route access, and online delivered, agent-skip, and missed outcome recording.
 
 ## Prerequisites
 
@@ -28,6 +28,24 @@ The backend URL depends on the runtime:
 The device and computer must be able to reach each other. Production and remote development URLs must use HTTPS.
 
 In local development, request an OTP in the app and read the development-only code from the backend container log. Non-development environments require a real OTP provider.
+
+## Phase 3 Android device flow
+
+Reset the deterministic fixture from `milktrack-backend` before each run:
+
+```sh
+docker compose --env-file .env run --rm -e APP_ENV=development -e NODE_ENV=development migrate npm run db:seed:phase3-agent -- --reset
+```
+
+Set `EXPO_PUBLIC_API_BASE_URL` in this repository's ignored local `.env` to an origin the device can reach. Never put credentials in `eas.json` or committed environment examples.
+
+Build the internal Android APK with the `maestro` EAS profile, install the downloaded APK, sign in with the seeded delivery-agent identity, then run:
+
+```sh
+maestro test .maestro/phase3-online-outcomes.yaml
+```
+
+The flow preserves app state, so it requires an authenticated session and the freshly reset fixture. APK execution and the five-second device KPI are release-gate steps, not part of repository verification.
 
 ## Verify
 

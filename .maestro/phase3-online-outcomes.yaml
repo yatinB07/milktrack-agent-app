@@ -1,0 +1,25 @@
+appId: com.milktrack.agent
+---
+- launchApp:
+    clearState: false
+- assertVisible: "Today's route"
+- tapOn: "Stop 1.*"
+- tapOn: "Record delivered"
+- tapOn: "Confirm delivered"
+- assertVisible: "Delivery outcome recorded."
+- back
+- tapOn: "Stop 2.*"
+- tapOn: "Customer on leave / Skip delivery"
+- tapOn: "Customer unavailable"
+- tapOn: "Confirm skip"
+- assertVisible: "Delivery outcome recorded."
+- back
+- tapOn: "Stop 3.*"
+- tapOn: "Record missed"
+- tapOn: "Access blocked"
+- tapOn: "Confirm missed"
+- assertVisible: "Delivery outcome recorded."
+- back
+- tapOn: "Stop 4.*"
+- assertVisible: "Customer leave · delivery blocked"
+- assertNotVisible: "Record delivered"

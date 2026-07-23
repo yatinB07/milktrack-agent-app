@@ -1,18 +1,24 @@
 # Architecture
 
-## Phase 1 shape
+## Current shape
 
 Expo Router owns a guarded authentication stack and an authenticated tab shell with exactly Today's Route, Sync, and Account. `AuthProvider` keeps the access credential in memory, stores only the device identifier and refresh credential with SecureStore, rotates sessions through the generated backend contract, and clears invalid or logged-out sessions. OTP challenges stay in provider memory rather than route parameters.
 
-`AppProviders` owns the TanStack Query client and authentication provider. Authenticated state comes from `GET /v1/auth/me`; only an active delivery-agent membership establishes an assignment. Wrong-role sessions receive a permission state. Missing, inactive, and suspended assignments share security-safe access-unavailable copy because phone authentication intentionally does not disclose inactive membership state. Route and Sync use NetInfo for connectivity presentation. The backend remains authoritative, and the committed OpenAPI artifact records its backend commit and SHA-256 provenance.
+`AppProviders` owns the TanStack Query client and authentication provider. Authenticated state comes from `GET /v1/auth/me`; only an active delivery-agent membership establishes an assignment. Wrong-role sessions receive a permission state. Missing, inactive, and suspended assignments share security-safe access-unavailable copy because phone authentication intentionally does not disclose inactive membership state. Route and Sync use NetInfo for connectivity presentation.
+
+The online route loads bounded backend pages and submits one complete stop outcome: delivered, agent-reported skip, or missed. Customer leave blocks outcome actions. Submission stays server-authoritative, uses no optimistic final state, and requires an explicit authoritative check after an ambiguous response. Optional location evidence uses foreground permission only. The committed OpenAPI artifact records its backend commit and SHA-256 provenance.
 
 `EXPO_PUBLIC_API_BASE_URL` is the sole public runtime setting. It accepts only an absolute, credential-free HTTP(S) origin.
 
 ## Deliberate deferrals
 
-Phase 1 has no SQLite database, cached route projection, writable delivery flow, durable action queue, idempotency key, GPS, notification, or background synchronization. The Sync screen reports that no delivery actions are pending without claiming an offline queue exists.
+Phase 3 has no SQLite database, cached route projection, durable action queue, background location, notification, or background synchronization. The Sync screen reports that no delivery actions are pending without claiming an offline queue exists.
 
 The approved offline phase will add SQLite and an explicit action state machine. It must preserve unsynchronized actions, reuse each action's idempotency key for retries, expose conflicts without silent overwrite or deletion, and never depend on opportunistic background execution for correctness.
+
+## Device gate
+
+`eas.json` defines an internal Android APK profile without adding `expo-dev-client`. The state-preserving Maestro flow consumes a freshly reset backend fixture and an already authenticated app session. It is committed as a repeatable release-gate input; APK installation, device execution, and the five-second outcome-entry KPI require recorded device evidence.
 
 ## Repository lifecycle
 
