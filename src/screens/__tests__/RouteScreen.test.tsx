@@ -66,6 +66,17 @@ const product = (id: string, assignmentId: string, stopId: string, sequence: num
   deliverySlotName: 'Morning',
   deliverySlotStartLocalTime: '06:00',
   deliverySlotEndLocalTime: '09:00',
+  currentStatus: 'scheduled' as const,
+  version: 1,
+  blockedByCustomerLeave: false,
+  captureLocationEvidence: false,
+  pendingStopItems: [{
+    scheduledDeliveryId: id,
+    expectedVersion: 1,
+    plannedQuantity: id === 'milk' ? '1.25' : '2',
+    productName: id === 'milk' ? 'Cow Milk' : 'Curd',
+    unitName: 'Litre',
+  }],
 });
 
 const beta = assignment('beta', 'Route Beta');

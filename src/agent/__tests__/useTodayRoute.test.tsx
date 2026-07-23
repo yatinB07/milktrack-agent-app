@@ -75,6 +75,17 @@ function deliveryPage(
       deliverySlotName: 'Morning',
       deliverySlotStartLocalTime: '06:00',
       deliverySlotEndLocalTime: '09:00',
+      currentStatus: 'scheduled',
+      version: 1,
+      blockedByCustomerLeave: false,
+      captureLocationEvidence: false,
+      pendingStopItems: [{
+        scheduledDeliveryId: id,
+        expectedVersion: 1,
+        plannedQuantity: '1',
+        productName: `Product ${id}`,
+        unitName: 'Litre',
+      }],
     })),
     ...(nextCursor ? { nextCursor } : {}),
   };

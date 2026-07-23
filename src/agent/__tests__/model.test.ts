@@ -20,6 +20,8 @@ function delivery(id: string, routeAssignmentId: string, routeStopId: string, se
     householdAccountNumber: `H-${routeStopId}`, householdName: `Household ${routeStopId}`, addressLine1: '1 Test Road', city: 'Pune', region: 'MH', postalCode: '411001', countryCode: 'IN',
     productCode: id.toUpperCase(), productName: `Product ${id}`, unitCode: 'L', unitName: 'Litre', deliverySlotName: 'Morning',
     deliverySlotStartLocalTime: '06:00', deliverySlotEndLocalTime: '09:00',
+    currentStatus: 'scheduled', version: 1, blockedByCustomerLeave: false, captureLocationEvidence: false,
+    pendingStopItems: [{ scheduledDeliveryId: id, expectedVersion: 1, plannedQuantity: '1.25', productName: `Product ${id}`, unitName: 'Litre' }],
   };
 }
 

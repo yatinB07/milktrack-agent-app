@@ -4,15 +4,14 @@
  */
 
 export interface paths {
-    "/v1/vendors/{vendorId}/audit-events": {
+    "/v1/agent/vendors/{vendorId}/route-assignments": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** List tenant audit events */
-        get: operations["AuditController_list"];
+        get: operations["AgentRouteAssignmentController_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -21,7 +20,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/auth/otp/request": {
+    "/v1/agent/vendors/{vendorId}/route-stops/{routeStopId}/outcomes": {
         parameters: {
             query?: never;
             header?: never;
@@ -30,42 +29,23 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Request a phone sign-in challenge */
-        post: operations["AuthController_requestOtp"];
+        post: operations["AgentDeliveryController_record"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/auth/otp/verify": {
+    "/v1/agent/vendors/{vendorId}/scheduled-deliveries": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["AgentScheduledDeliveryController_list"];
         put?: never;
-        /** Verify a phone sign-in challenge */
-        post: operations["AuthController_verifyOtp"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/auth/admin/password": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Start administrator password sign-in */
-        post: operations["AuthController_startAdministratorSignIn"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -89,7 +69,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/auth/refresh": {
+    "/v1/auth/admin/password": {
         parameters: {
             query?: never;
             header?: never;
@@ -98,11 +78,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Rotate a device-bound session
-         * @description Browser clients send the refresh token in the secure cookie; mobile clients send it in the request body.
-         */
-        post: operations["AuthController_refresh"];
+        /** Start administrator password sign-in */
+        post: operations["AuthController_startAdministratorSignIn"];
         delete?: never;
         options?: never;
         head?: never;
@@ -160,57 +137,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/health": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["HealthController_getHealth"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/vendors/{vendorId}/memberships": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List memberships in the selected lifecycle */
-        get: operations["MembershipController_list"];
-        put?: never;
-        post: operations["MembershipController_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/vendors/{vendorId}/memberships/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read a membership in the selected lifecycle */
-        get: operations["MembershipController_get"];
-        put?: never;
-        post?: never;
-        delete: operations["MembershipController_softDelete"];
-        options?: never;
-        head?: never;
-        patch: operations["MembershipController_updateRole"];
-        trace?: never;
-    };
-    "/v1/vendors/{vendorId}/memberships/onboard": {
+    "/v1/auth/otp/request": {
         parameters: {
             query?: never;
             header?: never;
@@ -219,14 +146,15 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["MembershipController_onboard"];
+        /** Request a phone sign-in challenge */
+        post: operations["AuthController_requestOtp"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/vendors/{vendorId}/memberships/{id}/end": {
+    "/v1/auth/otp/verify": {
         parameters: {
             query?: never;
             header?: never;
@@ -235,14 +163,15 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["MembershipController_end"];
+        /** Verify a phone sign-in challenge */
+        post: operations["AuthController_verifyOtp"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/vendors/{vendorId}/memberships/{id}/restore": {
+    "/v1/auth/owner-enrollment/complete": {
         parameters: {
             query?: never;
             header?: never;
@@ -251,7 +180,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["MembershipController_restore"];
+        post: operations["OwnerEnrollmentController_complete"];
         delete?: never;
         options?: never;
         head?: never;
@@ -274,7 +203,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/auth/owner-enrollment/complete": {
+    "/v1/auth/refresh": {
         parameters: {
             query?: never;
             header?: never;
@@ -283,7 +212,235 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["OwnerEnrollmentController_complete"];
+        /**
+         * Rotate a device-bound session
+         * @description Browser clients send the refresh token in the secure cookie; mobile clients send it in the request body.
+         */
+        post: operations["AuthController_refresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/customer/vendors/{vendorId}/households": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerHouseholdController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/customer/vendors/{vendorId}/households/{householdId}/deliveries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerDeliveryController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/customer/vendors/{vendorId}/households/{householdId}/deliveries/{scheduledDeliveryId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerDeliveryController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/customer/vendors/{vendorId}/households/{householdId}/leave-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerLeaveController_list"];
+        put?: never;
+        post: operations["CustomerLeaveController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/customer/vendors/{vendorId}/households/{householdId}/leave-requests/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CustomerLeaveController_preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/customer/vendors/{vendorId}/households/{householdId}/leave-requests/{leaveRequestId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerLeaveController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/customer/vendors/{vendorId}/households/{householdId}/leave-requests/{leaveRequestId}/amendments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CustomerLeaveController_amend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/customer/vendors/{vendorId}/households/{householdId}/leave-requests/{leaveRequestId}/cancellations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CustomerLeaveController_cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/customer/vendors/{vendorId}/households/{householdId}/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerNotificationController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/customer/vendors/{vendorId}/households/{householdId}/prices/resolved": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerResolvedPriceController_resolve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/customer/vendors/{vendorId}/households/{householdId}/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerSubscriptionController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/customer/vendors/{vendorId}/households/{householdId}/subscriptions/{subscriptionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerSubscriptionController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/customer/vendors/{vendorId}/households/{householdId}/subscriptions/{subscriptionId}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CustomerSubscriptionController_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["HealthController_getHealth"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -324,22 +481,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/platform/users/{id}/restore": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["UserLifecycleController_restore"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/platform/users/{id}/deactivate": {
         parameters: {
             query?: never;
@@ -356,23 +497,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/platform/vendors/{vendorId}/owners/initial": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["VendorOwnerOnboardingController_status"];
-        put?: never;
-        post: operations["VendorOwnerOnboardingController_establish"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/platform/vendors/{vendorId}/owners/enrollments/{enrollmentId}/retry": {
+    "/v1/platform/users/{id}/restore": {
         parameters: {
             query?: never;
             header?: never;
@@ -381,7 +506,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["VendorOwnerOnboardingController_retry"];
+        post: operations["UserLifecycleController_restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -440,58 +565,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/vendors/{vendorId}/profile": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get the current vendor profile */
-        get: operations["VendorProfileController_getProfile"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/vendors/{vendorId}/households": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List households in the selected lifecycle */
-        get: operations["HouseholdController_list"];
-        put?: never;
-        post: operations["HouseholdController_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/vendors/{vendorId}/households/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read a household in the selected lifecycle */
-        get: operations["HouseholdController_get"];
-        put?: never;
-        post?: never;
-        delete: operations["HouseholdController_remove"];
-        options?: never;
-        head?: never;
-        patch: operations["HouseholdController_update"];
-        trace?: never;
-    };
-    "/v1/vendors/{vendorId}/households/{id}/restore": {
+    "/v1/platform/vendors/{vendorId}/owners/enrollments/{enrollmentId}/retry": {
         parameters: {
             query?: never;
             header?: never;
@@ -500,53 +574,38 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["HouseholdController_restore"];
+        post: operations["VendorOwnerOnboardingController_retry"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/vendors/{vendorId}/households/{id}/members": {
+    "/v1/platform/vendors/{vendorId}/owners/initial": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["HouseholdController_members"];
+        get: operations["VendorOwnerOnboardingController_status"];
         put?: never;
-        post: operations["HouseholdController_attach"];
+        post: operations["VendorOwnerOnboardingController_establish"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/vendors/{vendorId}/households/{id}/members/{memberId}/end": {
+    "/v1/vendors/{vendorId}/audit-events": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
-        post: operations["HouseholdController_end"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/customer/vendors/{vendorId}/households": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["CustomerHouseholdController_list"];
+        /** List tenant audit events */
+        get: operations["AuditController_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -555,105 +614,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/vendors/{vendorId}/units": {
+    "/v1/vendors/{vendorId}/deliveries": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["UnitController_list"];
-        put?: never;
-        post: operations["UnitController_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/vendors/{vendorId}/units/{unitId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["UnitController_get"];
+        get: operations["VendorDeliveryController_list"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["UnitController_rename"];
-        trace?: never;
-    };
-    "/v1/vendors/{vendorId}/units/{unitId}/deactivate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["UnitController_deactivate"];
-        delete?: never;
-        options?: never;
-        head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/vendors/{vendorId}/units/{unitId}/reactivate": {
+    "/v1/vendors/{vendorId}/deliveries/{scheduledDeliveryId}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
-        post: operations["UnitController_reactivate"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/vendors/{vendorId}/products": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List products in the selected lifecycle */
-        get: operations["ProductController_list"];
-        put?: never;
-        post: operations["ProductController_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/vendors/{vendorId}/products/{productId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read a product in the selected lifecycle */
-        get: operations["ProductController_get"];
+        get: operations["VendorDeliveryController_get"];
         put?: never;
         post?: never;
-        delete: operations["ProductController_remove"];
+        delete?: never;
         options?: never;
         head?: never;
-        patch: operations["ProductController_update"];
+        patch?: never;
         trace?: never;
     };
-    "/v1/vendors/{vendorId}/products/{productId}/restore": {
+    "/v1/vendors/{vendorId}/deliveries/{scheduledDeliveryId}/corrections": {
         parameters: {
             query?: never;
             header?: never;
@@ -662,11 +655,27 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["ProductController_restore"];
+        post: operations["VendorDeliveryController_correct"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/delivery-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DeliveryPolicyController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["DeliveryPolicyController_update"];
         trace?: never;
     };
     "/v1/vendors/{vendorId}/delivery-slots": {
@@ -781,6 +790,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/vendors/{vendorId}/households": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List households in the selected lifecycle */
+        get: operations["HouseholdController_list"];
+        put?: never;
+        post: operations["HouseholdController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/vendors/{vendorId}/households/{householdId}/price-overrides": {
         parameters: {
             query?: never;
@@ -829,6 +855,201 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/vendors/{vendorId}/households/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read a household in the selected lifecycle */
+        get: operations["HouseholdController_get"];
+        put?: never;
+        post?: never;
+        delete: operations["HouseholdController_remove"];
+        options?: never;
+        head?: never;
+        patch: operations["HouseholdController_update"];
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/households/{id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["HouseholdController_members"];
+        put?: never;
+        post: operations["HouseholdController_attach"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/households/{id}/members/{memberId}/end": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["HouseholdController_end"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/households/{id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["HouseholdController_restore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/leave-occurrence-decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["VendorLeaveController_listDecisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/leave-occurrence-decisions/{decisionId}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["VendorLeaveController_decide"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/leave-requests/{leaveRequestId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["VendorLeaveController_getRequest"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/memberships": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List memberships in the selected lifecycle */
+        get: operations["MembershipController_list"];
+        put?: never;
+        post: operations["MembershipController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/memberships/onboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["MembershipController_onboard"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/memberships/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read a membership in the selected lifecycle */
+        get: operations["MembershipController_get"];
+        put?: never;
+        post?: never;
+        delete: operations["MembershipController_softDelete"];
+        options?: never;
+        head?: never;
+        patch: operations["MembershipController_updateRole"];
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/memberships/{id}/end": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["MembershipController_end"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/memberships/{id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["MembershipController_restore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/vendors/{vendorId}/prices/resolved": {
         parameters: {
             query?: never;
@@ -845,73 +1066,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/customer/vendors/{vendorId}/households/{householdId}/prices/resolved": {
+    "/v1/vendors/{vendorId}/products": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["CustomerResolvedPriceController_resolve"];
+        /** List products in the selected lifecycle */
+        get: operations["ProductController_list"];
         put?: never;
-        post?: never;
+        post: operations["ProductController_create"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/vendors/{vendorId}/subscriptions": {
+    "/v1/vendors/{vendorId}/products/{productId}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** List subscriptions in the selected lifecycle */
-        get: operations["VendorSubscriptionController_list"];
-        put?: never;
-        post: operations["VendorSubscriptionController_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/vendors/{vendorId}/subscriptions/{subscriptionId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read a subscription in the selected lifecycle */
-        get: operations["VendorSubscriptionController_get"];
+        /** Read a product in the selected lifecycle */
+        get: operations["ProductController_get"];
         put?: never;
         post?: never;
-        delete: operations["VendorSubscriptionController_softDelete"];
+        delete: operations["ProductController_remove"];
         options?: never;
         head?: never;
-        patch?: never;
+        patch: operations["ProductController_update"];
         trace?: never;
     };
-    "/v1/vendors/{vendorId}/subscriptions/{subscriptionId}/revisions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["VendorSubscriptionController_history"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/vendors/{vendorId}/subscriptions/{subscriptionId}/modify": {
+    "/v1/vendors/{vendorId}/products/{productId}/restore": {
         parameters: {
             query?: never;
             header?: never;
@@ -920,117 +1109,22 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["VendorSubscriptionController_modify"];
+        post: operations["ProductController_restore"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/vendors/{vendorId}/subscriptions/{subscriptionId}/pause": {
+    "/v1/vendors/{vendorId}/profile": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
-        post: operations["VendorSubscriptionController_pause"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/vendors/{vendorId}/subscriptions/{subscriptionId}/resume": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["VendorSubscriptionController_resume"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/vendors/{vendorId}/subscriptions/{subscriptionId}/cancel": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["VendorSubscriptionController_cancel"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/vendors/{vendorId}/subscriptions/{subscriptionId}/restore": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["VendorSubscriptionController_restore"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/customer/vendors/{vendorId}/households/{householdId}/subscriptions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["CustomerSubscriptionController_list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/customer/vendors/{vendorId}/households/{householdId}/subscriptions/{subscriptionId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["CustomerSubscriptionController_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/customer/vendors/{vendorId}/households/{householdId}/subscriptions/{subscriptionId}/revisions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["CustomerSubscriptionController_history"];
+        /** Get the current vendor profile */
+        get: operations["VendorProfileController_getProfile"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1071,38 +1165,6 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["RouteController_rename"];
-        trace?: never;
-    };
-    "/v1/vendors/{vendorId}/routes/{routeId}/stops": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["RouteController_listStops"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/vendors/{vendorId}/routes/{routeId}/stops/replace": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["RouteController_replaceStops"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
     "/v1/vendors/{vendorId}/routes/{routeId}/assignments": {
@@ -1201,14 +1263,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/vendors/{vendorId}/route-assignments": {
+    "/v1/vendors/{vendorId}/routes/{routeId}/stops": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["AgentRouteAssignmentController_list"];
+        get: operations["RouteController_listStops"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1217,14 +1279,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/vendors/{vendorId}/scheduled-deliveries": {
+    "/v1/vendors/{vendorId}/routes/{routeId}/stops/replace": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["AgentScheduledDeliveryController_list"];
+        get?: never;
+        put?: never;
+        post: operations["RouteController_replaceStops"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/schedule-generation-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ScheduleGenerationRunController_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1249,16 +1327,194 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/vendors/{vendorId}/schedule-generation-runs": {
+    "/v1/vendors/{vendorId}/subscriptions": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["ScheduleGenerationRunController_list"];
+        /** List subscriptions in the selected lifecycle */
+        get: operations["VendorSubscriptionController_list"];
+        put?: never;
+        post: operations["VendorSubscriptionController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/subscriptions/{subscriptionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read a subscription in the selected lifecycle */
+        get: operations["VendorSubscriptionController_get"];
         put?: never;
         post?: never;
+        delete: operations["VendorSubscriptionController_softDelete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/subscriptions/{subscriptionId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["VendorSubscriptionController_cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/subscriptions/{subscriptionId}/modify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["VendorSubscriptionController_modify"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/subscriptions/{subscriptionId}/pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["VendorSubscriptionController_pause"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/subscriptions/{subscriptionId}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["VendorSubscriptionController_restore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/subscriptions/{subscriptionId}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["VendorSubscriptionController_resume"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/subscriptions/{subscriptionId}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["VendorSubscriptionController_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/units": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["UnitController_list"];
+        put?: never;
+        post: operations["UnitController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/units/{unitId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["UnitController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["UnitController_rename"];
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/units/{unitId}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["UnitController_deactivate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/units/{unitId}/reactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["UnitController_reactivate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1269,586 +1525,212 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        ListAuditEventsQueryDto: {
-            /** @default 25 */
-            limit: number;
-            cursor?: string;
-            action?: string;
-            entityType?: string;
-            /** Format: uuid */
-            entityId?: string;
+        AdminMfaRequestDto: {
+            /** @enum {string} */
+            clientType: "browser" | "mobile";
+            code: string;
+            deviceId: string;
+            deviceName?: string;
+            pendingMfaToken: string;
         };
-        AuditEventResponseDto: {
+        AdminPasswordRequestDto: {
+            deviceId: string;
+            deviceName?: string;
+            /** Format: email */
+            email: string;
+            password: string;
+        };
+        AgentRouteAssignmentListResponseDto: {
+            items: components["schemas"]["AgentRouteAssignmentResponseDto"][];
+            nextCursor?: string;
+            /** Format: date */
+            serviceDate: string;
+        };
+        AgentRouteAssignmentResponseDto: {
             /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            vendorId: string;
-            /** Format: uuid */
-            actorUserId: string;
-            action: string;
-            entityType: string;
-            /** Format: uuid */
-            entityId: string;
-            oldValue?: {
-                [key: string]: unknown;
-            };
-            newValue?: {
-                [key: string]: unknown;
-            };
-            reason?: string;
-            /** Format: uuid */
-            correlationId: string;
+            agentMembershipId: string;
             /** Format: date-time */
             createdAt: string;
+            deliverySlotEndLocalTime: string;
+            /** Format: uuid */
+            deliverySlotId: string;
+            deliverySlotName: string;
+            deliverySlotStartLocalTime: string;
+            /** Format: uuid */
+            id: string;
+            routeCode: string;
+            /** Format: uuid */
+            routeId: string;
+            routeName: string;
+            /** Format: date */
+            serviceDate: string;
+            /** @enum {string} */
+            status: "assigned" | "cancelled";
+            /** Format: date-time */
+            updatedAt: string;
         };
-        AuditEventListResponseDto: {
-            items: components["schemas"]["AuditEventResponseDto"][];
-            nextCursor?: string;
+        AgentStopOutcomeItemDto: {
+            actualQuantity?: string;
+            expectedVersion: number;
+            /** Format: uuid */
+            scheduledDeliveryId: string;
+        };
+        AgentStopOutcomeRequestDto: (components["schemas"]["DeliveredAgentStopOutcomeDto"] & unknown) | (components["schemas"]["SkippedAgentStopOutcomeDto"] & (unknown | unknown) & ({
+            /** @enum {unknown} */
+            reasonCode?: "other";
+        } | {
+            /** @enum {unknown} */
+            reasonCode?: "customer_on_leave" | "customer_unavailable" | "customer_requested_skip_at_door";
+        })) | (components["schemas"]["MissedAgentStopOutcomeDto"] & (unknown | unknown) & ({
+            /** @enum {unknown} */
+            reasonCode?: "other";
+        } | {
+            /** @enum {unknown} */
+            reasonCode?: "address_not_found" | "access_blocked" | "product_unavailable" | "vehicle_or_route_issue" | "safety_issue";
+        }));
+        AgentStopOutcomeResponseDto: {
+            items: components["schemas"]["DeliverySummaryResponseDto"][];
+            /** @enum {string} */
+            outcome: "delivered" | "skipped_by_agent" | "missed";
+            /** Format: uuid */
+            routeStopId: string;
+            /** Format: date */
+            serviceDate: string;
+        };
+        AmendCustomerLeaveRequestDto: {
+            /** Format: date */
+            endDate: string;
+            expectedVersion: number;
+            note?: string;
+            /** Format: date */
+            startDate: string;
+            subscriptionIds: string[];
         };
         ApiErrorResponseDto: {
             code: string;
-            message: string;
-            retryable: boolean;
             /** Format: uuid */
             correlationId: string;
-            retryAfterSeconds?: number;
             fieldErrors?: {
                 [key: string]: string[];
             };
+            message: string;
+            retryAfterSeconds?: number;
+            retryable: boolean;
             /** Format: uuid */
             runId?: string;
         };
-        RequestOtpRequestDto: {
-            /** @example +919876543210 */
-            phone: string;
-            /** @enum {string} */
-            purpose: "sign_in";
-        };
-        OtpChallengeResponseDto: {
-            /** @enum {boolean} */
-            accepted: true;
-            challengeToken: string;
-            /** Format: date-time */
-            expiresAt: string;
-        };
-        VerifyOtpRequestDto: {
-            challengeToken: string;
-            code: string;
-            deviceId: string;
-            deviceName?: string;
-            /** @enum {string} */
-            clientType: "browser" | "mobile";
-        };
-        SessionResponseDto: {
-            accessToken: string;
-            /** Format: date-time */
-            accessExpiresAt: string;
-            /** Format: date-time */
-            refreshExpiresAt: string;
-            refreshToken?: string;
-        };
-        AdminPasswordRequestDto: {
-            /** Format: email */
-            email: string;
-            password: string;
-            deviceId: string;
-            deviceName?: string;
-        };
-        PendingMfaResponseDto: {
-            pendingMfaToken: string;
-            /** Format: date-time */
-            expiresAt: string;
-        };
-        AdminMfaRequestDto: {
-            pendingMfaToken: string;
-            code: string;
-            deviceId: string;
-            deviceName?: string;
-            /** @enum {string} */
-            clientType: "browser" | "mobile";
-        };
-        RefreshRequestDto: {
-            refreshToken?: string;
-            deviceId: string;
-            /** @enum {string} */
-            clientType: "browser" | "mobile";
-        };
-        MembershipSummaryDto: {
+        AssignRouteRequestDto: {
             /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            vendorId: string;
-            vendorName: string;
-            /** @enum {string} */
-            role: "vendor_owner" | "vendor_administrator" | "delivery_agent" | "customer";
-            /** @enum {string} */
-            status: "invited" | "active" | "ended";
-        };
-        CurrentActorResponseDto: {
-            /** Format: uuid */
-            userId: string;
-            displayName: string;
-            platformRoles: ("product_owner" | "platform_administrator" | "support_operations")[];
-            memberships: components["schemas"]["MembershipSummaryDto"][];
-            /** Format: uuid */
-            sessionId: string;
-        };
-        HealthResponseDto: {
-            /** @enum {string} */
-            status: "ok";
-            /** @enum {string} */
-            service: "milktrack-backend";
-            /** Format: date-time */
-            timestamp: string;
-        };
-        MembershipDirectoryResponseDto: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            vendorId: string;
-            /** Format: uuid */
-            userId: string;
-            /** @enum {string} */
-            role: "vendor_owner" | "vendor_administrator" | "delivery_agent" | "customer";
-            /** @enum {string} */
-            status: "invited" | "active" | "ended";
-            /** @enum {string} */
-            lifecycle: "current" | "deleted";
-            /** Format: date-time */
-            joinedAt?: string;
-            /** Format: date-time */
-            endedAt?: string;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            displayName: string;
-            phone?: string;
-            /** Format: email */
-            email?: string;
-        };
-        MembershipPageResponseDto: {
-            items: components["schemas"]["MembershipDirectoryResponseDto"][];
-            /** @description Continue when present, including after a sparse or empty search result page. */
-            nextCursor?: string;
-        };
-        CreateMembershipRequestDto: {
-            /** Format: uuid */
-            userId: string;
-            /** @enum {string} */
-            role: "vendor_owner" | "vendor_administrator" | "delivery_agent" | "customer";
-        };
-        MembershipResponseDto: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            vendorId: string;
-            /** Format: uuid */
-            userId: string;
-            /** @enum {string} */
-            role: "vendor_owner" | "vendor_administrator" | "delivery_agent" | "customer";
-            /** @enum {string} */
-            status: "invited" | "active" | "ended";
-            /** @enum {string} */
-            lifecycle: "current" | "deleted";
-            /** Format: date-time */
-            joinedAt?: string;
-            /** Format: date-time */
-            endedAt?: string;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        OnboardMembershipRequestDto: {
-            displayName: string;
-            /** @example +919876543210 */
-            phone: string;
-            /** @enum {string} */
-            role: "customer" | "delivery_agent";
-        };
-        UpdateMembershipRoleRequestDto: {
-            /** @enum {string} */
-            role: "vendor_owner" | "vendor_administrator" | "delivery_agent" | "customer";
-        };
-        ReasonRequestDto: {
-            reason: string;
-        };
-        StartOwnerEnrollmentRequestDto: {
-            setupToken: string;
-            password: string;
-        };
-        StartOwnerEnrollmentResponseDto: {
-            completionToken: string;
-            totpSecret: string;
-        };
-        CompleteOwnerEnrollmentRequestDto: {
-            completionToken: string;
-            code: string;
-        };
-        CompleteOwnerEnrollmentResponseDto: {
-            /** Format: uuid */
-            vendorId: string;
-            /** Format: uuid */
-            userId: string;
-            /** Format: uuid */
-            membershipId: string;
-        };
-        UserResponseDto: {
-            /** Format: uuid */
-            id: string;
-            displayName: string;
-            /** @enum {string} */
-            status: "active" | "suspended" | "deactivated";
-            locale: string;
-            /** @enum {string} */
-            lifecycle: "current" | "deleted";
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            /** Format: date-time */
-            deactivatedAt?: string;
-        };
-        PlatformUserListResponseDto: {
-            items: components["schemas"]["UserResponseDto"][];
-            nextCursor?: string;
-        };
-        VendorOwnerOnboardingStatusResponseDto: {
-            /** Format: uuid */
-            vendorId: string;
-            /** @enum {string} */
-            state: "not_started" | "invited" | "setup_started" | "completed" | "expired" | "retired" | "delivery_failed";
-            /** Format: uuid */
-            enrollmentId?: string;
-            /** Format: uuid */
-            membershipId?: string;
-            ownerDisplayName?: string;
-            /** Format: email */
-            ownerEmail?: string;
-            /** Format: date-time */
-            expiresAt?: string;
-        };
-        EstablishVendorOwnerRequestDto: {
-            /** Format: email */
-            email: string;
-            displayName: string;
-            reason: string;
-        };
-        VendorOwnerOnboardingResponseDto: {
-            /** Format: uuid */
-            vendorId: string;
-            /** Format: uuid */
-            userId: string;
-            /** Format: uuid */
-            membershipId: string;
-            /** Format: uuid */
-            enrollmentId: string;
-            /** Format: email */
-            email: string;
-            createdUser: boolean;
-            /** Format: date-time */
-            expiresAt: string;
-            /** @enum {string} */
-            deliveryStatus: "delivered";
-        };
-        RetryOwnerEnrollmentResponseDto: {
-            /** Format: uuid */
-            enrollmentId: string;
-            /** Format: uuid */
-            membershipId: string;
-            /** Format: date-time */
-            expiresAt: string;
-            /** @enum {string} */
-            deliveryStatus: "delivered";
-        };
-        CreateVendorRequestDto: {
-            code: string;
-            legalName: string;
-            displayName: string;
-            timezone: string;
-            currency: string;
-            skipCutoffMinutes: number;
-            billingDay: number;
-        };
-        VendorResponseDto: {
-            /** Format: uuid */
-            id: string;
-            /** @enum {string} */
-            status: "pending_approval" | "onboarding" | "trial" | "active" | "suspended" | "closed";
-            allowedTransitions: ("pending_approval" | "onboarding" | "trial" | "active" | "suspended" | "closed")[];
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            code: string;
-            legalName: string;
-            displayName: string;
-            timezone: string;
-            currency: string;
-            skipCutoffMinutes: number;
-            billingDay: number;
-            version: number;
-        };
-        VendorListResponseDto: {
-            items: components["schemas"]["VendorResponseDto"][];
-            nextCursor?: string;
-        };
-        TransitionVendorRequestDto: {
-            /** @enum {string} */
-            to: "pending_approval" | "onboarding" | "trial" | "active" | "suspended" | "closed";
-            reason: string;
+            agentMembershipId: string;
             expectedVersion: number;
-        };
-        HouseholdResponseDto: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            vendorId: string;
-            /** @enum {string} */
-            status: "active" | "inactive";
-            /** @enum {string} */
-            lifecycle: "current" | "deleted";
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            accountNumber: string;
-            name: string;
-            addressLine1: string;
-            addressLine2?: string;
-            locality?: string;
-            city: string;
-            region: string;
-            postalCode: string;
-            countryCode: string;
-            latitude?: string;
-            longitude?: string;
-            notes?: string;
-            version: number;
-        };
-        HouseholdListResponseDto: {
-            items: components["schemas"]["HouseholdResponseDto"][];
-            nextCursor?: string;
-        };
-        CreateHouseholdRequestDto: {
-            accountNumber: string;
-            name: string;
-            addressLine1: string;
-            addressLine2?: string;
-            locality?: string;
-            city: string;
-            region: string;
-            postalCode: string;
-            countryCode: string;
-            latitude?: string;
-            longitude?: string;
-            notes?: string;
-        };
-        UpdateHouseholdRequestDto: {
-            expectedVersion: number;
-            accountNumber?: string;
-            name?: string;
-            addressLine1?: string;
-            addressLine2?: string | null;
-            locality?: string | null;
-            city?: string;
-            region?: string;
-            postalCode?: string;
-            countryCode?: string;
-            latitude?: string | null;
-            longitude?: string | null;
-            /** @enum {string} */
-            status?: "active" | "inactive";
-            notes?: string | null;
-        };
-        VersionedReasonRequestDto: {
             reason: string;
-            expectedVersion: number;
-        };
-        HouseholdMemberResponseDto: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            householdId: string;
-            /** Format: uuid */
-            customerMembershipId: string;
-            /** Format: uuid */
-            userId: string;
-            /** @enum {string} */
-            status: "active" | "ended";
-            /** Format: date-time */
-            joinedAt: string;
-            /** Format: date-time */
-            endedAt?: string;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            displayName?: string;
-            phone?: string;
-        };
-        HouseholdMemberListResponseDto: {
-            items: components["schemas"]["HouseholdMemberResponseDto"][];
-            nextCursor?: string;
         };
         AttachHouseholdMemberRequestDto: {
             /** Format: uuid */
             customerMembershipId: string;
         };
-        EndHouseholdMemberRequestDto: {
+        AuditEventListResponseDto: {
+            items: components["schemas"]["AuditEventResponseDto"][];
+            nextCursor?: string;
+        };
+        AuditEventResponseDto: {
+            action: string;
+            /** Format: uuid */
+            actorUserId: string;
+            /** Format: uuid */
+            correlationId: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            entityId: string;
+            entityType: string;
+            /** Format: uuid */
+            id: string;
+            newValue?: {
+                [key: string]: unknown;
+            };
+            oldValue?: {
+                [key: string]: unknown;
+            };
+            reason?: string;
+            /** Format: uuid */
+            vendorId: string;
+        };
+        CancelCustomerLeaveRequestDto: {
+            expectedVersion: number;
+            note?: string;
+        };
+        ClosePriceRequestDto: {
+            /** Format: date-time */
+            effectiveTo: string;
             reason: string;
         };
-        CustomerHouseholdResponseDto: {
+        CompleteOwnerEnrollmentRequestDto: {
+            code: string;
+            completionToken: string;
+        };
+        CompleteOwnerEnrollmentResponseDto: {
             /** Format: uuid */
-            id: string;
+            membershipId: string;
+            /** Format: uuid */
+            userId: string;
             /** Format: uuid */
             vendorId: string;
-            /** @enum {string} */
-            status: "active" | "inactive";
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            accountNumber: string;
-            name: string;
-            addressLine1: string;
-            addressLine2?: string;
-            locality?: string;
-            city: string;
-            region: string;
-            postalCode: string;
-            countryCode: string;
-            latitude?: string;
-            longitude?: string;
-            version: number;
         };
-        CustomerHouseholdListResponseDto: {
-            items: components["schemas"]["CustomerHouseholdResponseDto"][];
-            nextCursor?: string;
-        };
-        UnitResponseDto: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            vendorId: string;
-            /** @enum {string} */
-            status: "active" | "inactive";
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            code: string;
-            name: string;
-            decimalScale: number;
-        };
-        UnitListResponseDto: {
-            items: components["schemas"]["UnitResponseDto"][];
-            nextCursor?: string;
-        };
-        CreateUnitRequestDto: {
-            code: string;
-            name: string;
-            decimalScale: number;
-        };
-        RenameUnitRequestDto: {
-            name: string;
-        };
-        ProductResponseDto: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            vendorId: string;
-            /** Format: uuid */
-            defaultUnitId: string;
-            /** @enum {string} */
-            status: "active" | "inactive";
-            /** @enum {string} */
-            lifecycle: "current" | "deleted";
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            code: string;
-            name: string;
-            version: number;
-        };
-        ProductListResponseDto: {
-            items: components["schemas"]["ProductResponseDto"][];
-            nextCursor?: string;
-        };
-        CreateProductRequestDto: {
-            code: string;
-            /** Format: uuid */
-            defaultUnitId: string;
-            name: string;
-        };
-        UpdateProductRequestDto: {
-            /** @enum {string} */
-            status?: "active" | "inactive";
+        CorrectDeliveryRequestDto: {
+            actualQuantity?: string;
             expectedVersion: number;
-            name?: string;
-        };
-        RestoreProductRequestDto: {
-            expectedVersion: number;
-            reason?: string;
-        };
-        DeliverySlotResponseDto: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            vendorId: string;
-            /** @example 06:00 */
-            startLocalTime: string;
-            /** @example 09:00 */
-            endLocalTime: string;
+            reason: string;
             /** @enum {string} */
-            status: "active" | "inactive";
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            code: string;
-            name: string;
+            replacementOutcome: "delivered" | "skipped_by_agent" | "missed";
         };
-        DeliverySlotListResponseDto: {
-            items: components["schemas"]["DeliverySlotResponseDto"][];
-            nextCursor?: string;
+        CreateCustomerLeaveRequestDto: {
+            /** Format: date */
+            endDate: string;
+            note?: string;
+            /** Format: date */
+            startDate: string;
+            subscriptionIds: string[];
         };
         CreateDeliverySlotRequestDto: {
             code: string;
-            /** @example 06:00 */
-            startLocalTime: string;
             /** @example 09:00 */
             endLocalTime: string;
             name: string;
+            /** @example 06:00 */
+            startLocalTime: string;
         };
-        RenameDeliverySlotRequestDto: {
+        CreateHouseholdRequestDto: {
+            accountNumber: string;
+            addressLine1: string;
+            addressLine2?: string;
+            city: string;
+            countryCode: string;
+            latitude?: string;
+            locality?: string;
+            longitude?: string;
             name: string;
+            notes?: string;
+            postalCode: string;
+            region: string;
         };
-        PriceResponseDto: {
+        CreateMembershipRequestDto: {
+            /** @enum {string} */
+            role: "vendor_owner" | "vendor_administrator" | "delivery_agent" | "customer";
             /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            vendorId: string;
-            /** Format: uuid */
-            productId: string;
-            /** Format: uuid */
-            unitId: string;
+            userId: string;
+        };
+        CreateOverrideRequestDto: {
             amountMinor: string;
             /** Format: date-time */
             effectiveFrom: string;
             /** Format: date-time */
-            effectiveTo: string | null;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            currency: string;
-        };
-        PriceListResponseDto: {
-            items: components["schemas"]["PriceResponseDto"][];
-            nextCursor?: string;
+            effectiveTo?: string;
+            /** Format: uuid */
+            productId: string;
+            reason: string;
+            /** Format: uuid */
+            unitId: string;
         };
         CreatePriceRequestDto: {
             amountMinor: string;
@@ -1861,157 +1743,1066 @@ export interface components {
             /** Format: uuid */
             unitId: string;
         };
-        ClosePriceRequestDto: {
-            /** Format: date-time */
-            effectiveTo: string;
-            reason: string;
+        CreateProductRequestDto: {
+            code: string;
+            /** Format: uuid */
+            defaultUnitId: string;
+            name: string;
         };
-        OverrideResponseDto: {
+        CreateRouteRequestDto: {
+            code: string;
             /** Format: uuid */
-            id: string;
+            deliverySlotId: string;
+            name: string;
+        };
+        CreateSubscriptionRequestDto: {
             /** Format: uuid */
-            vendorId: string;
+            deliverySlotId: string;
+            /** Format: date */
+            endDate?: string;
+            /** Format: uuid */
+            householdId: string;
             /** Format: uuid */
             productId: string;
+            quantity: string;
+            /** Format: date */
+            startDate: string;
             /** Format: uuid */
             unitId: string;
-            amountMinor: string;
+            weekdays: number[];
+        };
+        CreateUnitRequestDto: {
+            code: string;
+            decimalScale: number;
+            name: string;
+        };
+        CreateVendorRequestDto: {
+            billingDay: number;
+            code: string;
+            currency: string;
+            displayName: string;
+            legalName: string;
+            skipCutoffMinutes: number;
+            timezone: string;
+        };
+        CurrentActorResponseDto: {
+            displayName: string;
+            memberships: components["schemas"]["MembershipSummaryDto"][];
+            platformRoles: ("product_owner" | "platform_administrator" | "support_operations")[];
+            /** Format: uuid */
+            sessionId: string;
+            /** Format: uuid */
+            userId: string;
+        };
+        CustomerDeliveryDetailResponseDto: {
+            actualQuantity?: string;
+            /** @enum {string} */
+            currentStatus: "scheduled" | "cancelled" | "delivered" | "skipped_by_customer" | "skipped_by_agent" | "missed";
+            events: components["schemas"]["DeliveryEventResponseDto"][];
             /** Format: date-time */
-            effectiveFrom: string;
-            /** Format: date-time */
-            effectiveTo: string | null;
+            finalizedAt?: string;
+            /** Format: uuid */
+            householdId: string;
+            /** Format: uuid */
+            id: string;
+            plannedQuantity: string;
+            /** Format: date */
+            serviceDate: string;
+            snapshot?: components["schemas"]["DeliveryPriceSnapshotResponseDto"];
+            /** Format: uuid */
+            subscriptionId: string;
+            version: number;
+        };
+        CustomerDeliveryListResponseDto: {
+            items: components["schemas"]["DeliverySummaryResponseDto"][];
+            /** @description Opaque cursor for stable ordering with an ID tie-breaker. */
+            nextCursor?: string;
+        };
+        CustomerHouseholdListResponseDto: {
+            items: components["schemas"]["CustomerHouseholdResponseDto"][];
+            nextCursor?: string;
+        };
+        CustomerHouseholdResponseDto: {
+            accountNumber: string;
+            addressLine1: string;
+            addressLine2?: string;
+            city: string;
+            countryCode: string;
             /** Format: date-time */
             createdAt: string;
+            /** Format: uuid */
+            id: string;
+            latitude?: string;
+            locality?: string;
+            longitude?: string;
+            name: string;
+            postalCode: string;
+            region: string;
+            /** @enum {string} */
+            status: "active" | "inactive";
             /** Format: date-time */
             updatedAt: string;
             /** Format: uuid */
+            vendorId: string;
+            version: number;
+        };
+        CustomerLeaveDecisionTimelineResponseDto: {
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string} */
+            currentStatus: "pending" | "approved" | "rejected";
+            /** Format: date-time */
+            cutoffAt: string;
+            /** Format: date-time */
+            decidedAt?: string;
+            /** Format: uuid */
+            decidedBy?: string;
+            decisionReason?: string;
+            /** Format: uuid */
+            deliverySlotId: string;
+            deliverySlotName: string;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            previousEffectiveStatus: "scheduled" | "skipped_by_customer";
+            /** Format: uuid */
+            productId: string;
+            productName: string;
+            /** @enum {string} */
+            requestedEffectiveStatus: "scheduled" | "skipped_by_customer";
+            /** Format: date */
+            serviceDate: string;
+            /** @enum {string} */
+            source: "customer" | "vendor_admin" | "system";
+            /** Format: uuid */
+            subscriptionId: string;
+            version: number;
+        };
+        CustomerLeaveDetailResponseDto: {
+            availableActions: ("amend" | "cancel")[];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            currentRevisionId?: string;
+            /** @enum {string} */
+            currentStatus: "pending_approval" | "partially_pending" | "accepted" | "rejected" | "cancelled";
+            /** Format: uuid */
             householdId: string;
+            /** Format: uuid */
+            id: string;
+            revisions: components["schemas"]["CustomerLeaveRevisionResponseDto"][];
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: uuid */
+            vendorId: string;
+            version: number;
+        };
+        CustomerLeaveListResponseDto: {
+            items: components["schemas"]["CustomerLeaveDetailResponseDto"][];
+            /** @description Opaque cursor for stable ordering with an ID tie-breaker. */
+            nextCursor?: string;
+        };
+        CustomerLeavePreviewRequestDto: {
+            /** @description Opaque cursor for stable occurrence ordering with an ID tie-breaker. */
+            cursor?: string;
+            /** Format: date */
+            endDate: string;
+            /** @default 25 */
+            limit: number;
+            note?: string;
+            /** Format: date */
+            startDate: string;
+            subscriptionIds: string[];
+        };
+        CustomerLeavePreviewResponseDto: {
+            items: components["schemas"]["LeaveOccurrenceResponseDto"][];
+            lateCount: number;
+            /** @enum {string} */
+            lateLeavePolicy: "reject" | "approval";
+            nextCursor?: string;
+            onTimeCount: number;
+            skipCutoffMinutes: number;
+            timezone: string;
+        };
+        CustomerLeaveRevisionResponseDto: {
+            /** @enum {string} */
+            action: "create" | "amend" | "cancel";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            createdBy: string;
+            /** @enum {string} */
+            currentStatus: "pending_approval" | "partially_pending" | "accepted" | "rejected" | "cancelled";
+            decisions: components["schemas"]["CustomerLeaveDecisionTimelineResponseDto"][];
+            /** Format: date */
+            endDate: string;
+            /** Format: uuid */
+            id: string;
+            note?: string;
+            /** @enum {string} */
+            source: "customer" | "vendor_admin" | "system";
+            /** Format: date */
+            startDate: string;
+            subscriptionIds: string[];
+            subscriptionLabels: components["schemas"]["LeaveSubscriptionLabelResponseDto"][];
+        };
+        CustomerNotificationListResponseDto: {
+            items: components["schemas"]["CustomerNotificationResponseDto"][];
+            nextCursor?: string;
+        };
+        CustomerNotificationResponseDto: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            payload: {
+                [key: string]: string;
+            };
+            /** Format: date-time */
+            readAt?: string;
+            /** @enum {string} */
+            type: "leave_accepted" | "leave_rejected" | "agent_reported_skip" | "delivery_corrected";
+        };
+        CustomerResolvedPriceResponseDto: {
+            amountMinor?: string;
+            currency?: string;
+            /** Format: date */
+            serviceDate: string;
+            /** @enum {string} */
+            source?: "customer_specific" | "global";
+            /** @enum {string} */
+            status: "resolved" | "missing";
+        };
+        CustomerSubscriptionHistoryResponseDto: {
+            items: components["schemas"]["CustomerSubscriptionRevisionResponseDto"][];
+            nextCursor?: string;
+        };
+        CustomerSubscriptionListResponseDto: {
+            items: components["schemas"]["CustomerSubscriptionResponseDto"][];
+            nextCursor?: string;
+        };
+        CustomerSubscriptionResponseDto: {
+            /** Format: date-time */
+            createdAt: string;
+            currentRevision?: components["schemas"]["CustomerSubscriptionRevisionResponseDto"];
+            /** Format: uuid */
+            householdId: string;
+            /** Format: uuid */
+            id: string;
+            revisions: components["schemas"]["CustomerSubscriptionRevisionResponseDto"][];
+            /** @enum {string} */
+            status: "future" | "active" | "paused" | "cancelled" | "completed";
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: uuid */
+            vendorId: string;
+            version: number;
+        };
+        CustomerSubscriptionRevisionResponseDto: {
+            /** Format: date-time */
+            createdAt: string;
+            deliverySlotEndLocalTime: string;
+            /** Format: uuid */
+            deliverySlotId: string;
+            deliverySlotName: string;
+            deliverySlotStartLocalTime: string;
+            /** Format: date */
+            endDate?: string;
+            /** Format: uuid */
+            id: string;
+            productCode: string;
+            /** Format: uuid */
+            productId: string;
+            productName: string;
+            quantity: string;
+            /** Format: date */
+            startDate: string;
+            /** @enum {string} */
+            status: "active" | "paused" | "cancelled";
+            /** Format: date-time */
+            supersededAt?: string;
+            /** Format: uuid */
+            supersededByRevisionId?: string;
+            unitCode: string;
+            /** Format: uuid */
+            unitId: string;
+            unitName: string;
+            /** Format: date-time */
+            updatedAt: string;
+            weekdays: number[];
+        };
+        DecideLeaveOccurrenceRequestDto: {
+            /** @enum {string} */
+            decision: "approved" | "rejected";
+            expectedVersion: number;
             reason: string;
+        };
+        DeliveredAgentStopOutcomeDto: {
+            items: components["schemas"]["DeliveredStopOutcomeItemDto"][];
+            /** Format: date-time */
+            occurredAt: string;
+            /** @enum {string} */
+            outcome: "delivered";
+            /** Format: date */
+            serviceDate: string;
+        };
+        DeliveredStopOutcomeItemDto: {
+            /** @description Positive decimal quantity with at most three fractional digits. */
+            actualQuantity: string;
+            expectedVersion: number;
+            /** Format: uuid */
+            scheduledDeliveryId: string;
+        };
+        DeliveryEventResponseDto: {
+            actualQuantity?: string;
+            /** @enum {string} */
+            eventType: "scheduled" | "delivered" | "skipped_by_customer" | "skipped_by_agent" | "missed";
+            /** Format: uuid */
+            id: string;
+            note?: string;
+            /** Format: date-time */
+            occurredAt: string;
+            reasonCode?: string;
+            /** Format: date-time */
+            receivedAt: string;
+            /** Format: uuid */
+            replacedEventId?: string;
+            /** @enum {string} */
+            source: "system" | "customer" | "delivery_agent" | "vendor_admin";
+        };
+        DeliveryPolicyResponseDto: {
+            captureAgentLocationEvidence: boolean;
+            /** @enum {string} */
+            lateLeavePolicy: "reject" | "approval";
+            skipCutoffMinutes: number;
+            /** Format: uuid */
+            vendorId: string;
+            version: number;
+        };
+        DeliveryPriceSnapshotResponseDto: {
+            /** @description Integer minor-unit amount serialized as a decimal string. */
+            amountMinor: string;
             currency: string;
+            /** @enum {string} */
+            pricingLevel: "global" | "customer_specific";
+            /** Format: date-time */
+            resolvedAt: string;
+            /** Format: uuid */
+            sourcePriceId: string;
+            /** @enum {string} */
+            sourcePriceType: "global_price" | "customer_price_override";
+        };
+        DeliverySlotListResponseDto: {
+            items: components["schemas"]["DeliverySlotResponseDto"][];
+            nextCursor?: string;
+        };
+        DeliverySlotResponseDto: {
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @example 09:00 */
+            endLocalTime: string;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @example 06:00 */
+            startLocalTime: string;
+            /** @enum {string} */
+            status: "active" | "inactive";
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: uuid */
+            vendorId: string;
+        };
+        DeliverySummaryResponseDto: {
+            actualQuantity?: string;
+            /** @enum {string} */
+            currentStatus: "scheduled" | "cancelled" | "delivered" | "skipped_by_customer" | "skipped_by_agent" | "missed";
+            /** Format: date-time */
+            finalizedAt?: string;
+            /** Format: uuid */
+            householdId: string;
+            /** Format: uuid */
+            id: string;
+            plannedQuantity: string;
+            /** Format: date */
+            serviceDate: string;
+            /** Format: uuid */
+            subscriptionId: string;
+            version: number;
+        };
+        EndHouseholdMemberRequestDto: {
+            reason: string;
+        };
+        EstablishVendorOwnerRequestDto: {
+            displayName: string;
+            /** Format: email */
+            email: string;
+            reason: string;
+        };
+        GenerateManualScheduleRunRequestDto: {
+            /** Format: date */
+            serviceDate: string;
+        };
+        HealthResponseDto: {
+            /** @enum {string} */
+            service: "milktrack-backend";
+            /** @enum {string} */
+            status: "ok";
+            /** Format: date-time */
+            timestamp: string;
+        };
+        HouseholdListResponseDto: {
+            items: components["schemas"]["HouseholdResponseDto"][];
+            nextCursor?: string;
+        };
+        HouseholdMemberListResponseDto: {
+            items: components["schemas"]["HouseholdMemberResponseDto"][];
+            nextCursor?: string;
+        };
+        HouseholdMemberResponseDto: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            customerMembershipId: string;
+            displayName?: string;
+            /** Format: date-time */
+            endedAt?: string;
+            /** Format: uuid */
+            householdId: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            joinedAt: string;
+            phone?: string;
+            /** @enum {string} */
+            status: "active" | "ended";
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: uuid */
+            userId: string;
+        };
+        HouseholdResponseDto: {
+            accountNumber: string;
+            addressLine1: string;
+            addressLine2?: string;
+            city: string;
+            countryCode: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            latitude?: string;
+            /** @enum {string} */
+            lifecycle: "current" | "deleted";
+            locality?: string;
+            longitude?: string;
+            name: string;
+            notes?: string;
+            postalCode: string;
+            region: string;
+            /** @enum {string} */
+            status: "active" | "inactive";
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: uuid */
+            vendorId: string;
+            version: number;
+        };
+        LeaveOccurrenceResponseDto: {
+            /** Format: date-time */
+            cutoffAt: string;
+            /** Format: uuid */
+            deliverySlotId: string;
+            deliverySlotName: string;
+            /** Format: uuid */
+            productId: string;
+            productName: string;
+            /** @enum {string} */
+            proposedBehavior: "accept" | "pending_approval" | "reject";
+            /** Format: date */
+            serviceDate: string;
+            /** Format: uuid */
+            subscriptionId: string;
+            /** @enum {string} */
+            timing: "on_time" | "late";
+        };
+        LeaveSubscriptionLabelResponseDto: {
+            /** Format: uuid */
+            deliverySlotId: string;
+            deliverySlotName: string;
+            /** Format: uuid */
+            productId: string;
+            productName: string;
+            /** Format: uuid */
+            subscriptionId: string;
+        };
+        ListAuditEventsQueryDto: {
+            action?: string;
+            cursor?: string;
+            /** Format: uuid */
+            entityId?: string;
+            entityType?: string;
+            /** @default 25 */
+            limit: number;
+        };
+        MembershipDirectoryResponseDto: {
+            /** Format: date-time */
+            createdAt: string;
+            displayName: string;
+            /** Format: email */
+            email?: string;
+            /** Format: date-time */
+            endedAt?: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            joinedAt?: string;
+            /** @enum {string} */
+            lifecycle: "current" | "deleted";
+            phone?: string;
+            /** @enum {string} */
+            role: "vendor_owner" | "vendor_administrator" | "delivery_agent" | "customer";
+            /** @enum {string} */
+            status: "invited" | "active" | "ended";
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: uuid */
+            userId: string;
+            /** Format: uuid */
+            vendorId: string;
+        };
+        MembershipPageResponseDto: {
+            items: components["schemas"]["MembershipDirectoryResponseDto"][];
+            /** @description Continue when present, including after a sparse or empty search result page. */
+            nextCursor?: string;
+        };
+        MembershipResponseDto: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            endedAt?: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            joinedAt?: string;
+            /** @enum {string} */
+            lifecycle: "current" | "deleted";
+            /** @enum {string} */
+            role: "vendor_owner" | "vendor_administrator" | "delivery_agent" | "customer";
+            /** @enum {string} */
+            status: "invited" | "active" | "ended";
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: uuid */
+            userId: string;
+            /** Format: uuid */
+            vendorId: string;
+        };
+        MembershipSummaryDto: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            role: "vendor_owner" | "vendor_administrator" | "delivery_agent" | "customer";
+            /** @enum {string} */
+            status: "invited" | "active" | "ended";
+            /** Format: uuid */
+            vendorId: string;
+            vendorName: string;
+        };
+        MissedAgentStopOutcomeDto: {
+            items: components["schemas"]["NonDeliveredStopOutcomeItemDto"][];
+            /** @description Present with longitude or both coordinates are absent. */
+            latitude?: number;
+            /** @description Present with latitude or both coordinates are absent. */
+            longitude?: number;
+            note?: string;
+            /** Format: date-time */
+            occurredAt: string;
+            /** @enum {string} */
+            outcome: "missed";
+            /**
+             * @description `other` requires a non-empty trimmed note.
+             * @enum {string}
+             */
+            reasonCode: "address_not_found" | "access_blocked" | "product_unavailable" | "vehicle_or_route_issue" | "safety_issue" | "other";
+            /** Format: date */
+            serviceDate: string;
+        };
+        ModifySubscriptionRequestDto: {
+            /** Format: uuid */
+            deliverySlotId: string;
+            /** Format: date */
+            effectiveDate: string;
+            /** Format: date */
+            endDate?: string;
+            expectedVersion: number;
+            /** Format: uuid */
+            productId: string;
+            quantity: string;
+            reason: string;
+            /** Format: uuid */
+            unitId: string;
+            weekdays: number[];
+        };
+        NonDeliveredStopOutcomeItemDto: {
+            expectedVersion: number;
+            /** Format: uuid */
+            scheduledDeliveryId: string;
+        };
+        OnboardMembershipRequestDto: {
+            displayName: string;
+            /** @example +919876543210 */
+            phone: string;
+            /** @enum {string} */
+            role: "customer" | "delivery_agent";
+        };
+        OtpChallengeResponseDto: {
+            /** @enum {boolean} */
+            accepted: true;
+            challengeToken: string;
+            /** Format: date-time */
+            expiresAt: string;
         };
         OverrideListResponseDto: {
             items: components["schemas"]["OverrideResponseDto"][];
             nextCursor?: string;
         };
-        CreateOverrideRequestDto: {
+        OverrideResponseDto: {
             amountMinor: string;
+            /** Format: date-time */
+            createdAt: string;
+            currency: string;
             /** Format: date-time */
             effectiveFrom: string;
             /** Format: date-time */
-            effectiveTo?: string;
+            effectiveTo: string | null;
+            /** Format: uuid */
+            householdId: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            productId: string;
+            reason: string;
+            /** Format: uuid */
+            unitId: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: uuid */
+            vendorId: string;
+        };
+        PendingMfaResponseDto: {
+            /** Format: date-time */
+            expiresAt: string;
+            pendingMfaToken: string;
+        };
+        PendingStopItemResponseDto: {
+            expectedVersion: number;
+            /** @example 1.25 */
+            plannedQuantity: string;
+            productName: string;
+            /** Format: uuid */
+            scheduledDeliveryId: string;
+            unitName: string;
+        };
+        PlatformUserListResponseDto: {
+            items: components["schemas"]["UserResponseDto"][];
+            nextCursor?: string;
+        };
+        PriceListResponseDto: {
+            items: components["schemas"]["PriceResponseDto"][];
+            nextCursor?: string;
+        };
+        PriceResponseDto: {
+            amountMinor: string;
+            /** Format: date-time */
+            createdAt: string;
+            currency: string;
+            /** Format: date-time */
+            effectiveFrom: string;
+            /** Format: date-time */
+            effectiveTo: string | null;
+            /** Format: uuid */
+            id: string;
             /** Format: uuid */
             productId: string;
             /** Format: uuid */
             unitId: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: uuid */
+            vendorId: string;
+        };
+        ProductListResponseDto: {
+            items: components["schemas"]["ProductResponseDto"][];
+            nextCursor?: string;
+        };
+        ProductResponseDto: {
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            defaultUnitId: string;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            lifecycle: "current" | "deleted";
+            name: string;
+            /** @enum {string} */
+            status: "active" | "inactive";
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: uuid */
+            vendorId: string;
+            version: number;
+        };
+        ReasonRequestDto: {
             reason: string;
         };
-        ResolvedPriceResponseDto: {
+        RefreshRequestDto: {
             /** @enum {string} */
-            status: "resolved" | "missing";
+            clientType: "browser" | "mobile";
+            deviceId: string;
+            refreshToken?: string;
+        };
+        RenameDeliverySlotRequestDto: {
+            name: string;
+        };
+        RenameRouteRequestDto: {
+            expectedVersion: number;
+            name: string;
+        };
+        RenameUnitRequestDto: {
+            name: string;
+        };
+        ReplaceRouteStopsRequestDto: {
+            /** Format: date */
+            effectiveDate: string;
+            expectedVersion: number;
+            householdIds: string[];
+            reason: string;
+        };
+        RequestOtpRequestDto: {
+            /** @example +919876543210 */
+            phone: string;
+            /** @enum {string} */
+            purpose: "sign_in";
+        };
+        ResolvedPriceResponseDto: {
             amountMinor?: string;
             currency?: string;
             /** @enum {string} */
             source?: "customer_specific" | "global";
             /** Format: uuid */
             sourcePriceId?: string;
+            /** @enum {string} */
+            status: "resolved" | "missing";
         };
-        CustomerResolvedPriceResponseDto: {
+        RestoreProductRequestDto: {
+            expectedVersion: number;
+            reason?: string;
+        };
+        RetryOwnerEnrollmentResponseDto: {
+            /** @enum {string} */
+            deliveryStatus: "delivered";
+            /** Format: uuid */
+            enrollmentId: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: uuid */
+            membershipId: string;
+        };
+        RouteAssignmentListResponseDto: {
+            items: components["schemas"]["RouteAssignmentResponseDto"][];
+            nextCursor?: string;
+        };
+        RouteAssignmentMutationResponseDto: {
+            /** Format: uuid */
+            agentMembershipId: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            deliverySlotId: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            routeId: string;
+            routeVersion: number;
             /** Format: date */
             serviceDate: string;
             /** @enum {string} */
-            status: "resolved" | "missing";
-            amountMinor?: string;
-            currency?: string;
-            /** @enum {string} */
-            source?: "customer_specific" | "global";
+            status: "assigned" | "cancelled";
+            /** Format: date-time */
+            updatedAt: string;
         };
-        SubscriptionRevisionResponseDto: {
+        RouteAssignmentResponseDto: {
             /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            productId: string;
-            /** Format: uuid */
-            unitId: string;
+            agentMembershipId: string;
+            /** Format: date-time */
+            createdAt: string;
             /** Format: uuid */
             deliverySlotId: string;
-            quantity: string;
-            weekdays: number[];
-            /** @enum {string} */
-            status: "active" | "paused" | "cancelled";
-            /** Format: date */
-            startDate: string;
-            /** Format: date */
-            endDate?: string;
-            /** Format: uuid */
-            createdBy: string;
-            /** Format: date-time */
-            supersededAt?: string;
-            /** Format: uuid */
-            supersededByRevisionId?: string;
-            supersessionReason?: string;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        SubscriptionResponseDto: {
             /** Format: uuid */
             id: string;
             /** Format: uuid */
-            vendorId: string;
-            /** Format: uuid */
-            householdId: string;
+            routeId: string;
+            /** Format: date */
+            serviceDate: string;
             /** @enum {string} */
-            status: "future" | "active" | "paused" | "cancelled" | "completed";
-            supersededRevisionCount?: number;
-            /** @enum {string} */
-            lifecycle: "current" | "deleted";
-            revisions: components["schemas"]["SubscriptionRevisionResponseDto"][];
-            /** Format: date-time */
-            createdAt: string;
+            status: "assigned" | "cancelled";
             /** Format: date-time */
             updatedAt: string;
-            version: number;
         };
-        SubscriptionListResponseDto: {
-            items: components["schemas"]["SubscriptionResponseDto"][];
+        RouteListResponseDto: {
+            items: components["schemas"]["RouteResponseDto"][];
             nextCursor?: string;
         };
-        CreateSubscriptionRequestDto: {
-            quantity: string;
-            weekdays: number[];
-            /** Format: date */
-            startDate: string;
-            /** Format: date */
-            endDate?: string;
+        RouteResponseDto: {
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            deliverySlotId: string;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            lifecycle: "current" | "deleted";
+            name: string;
+            /** @enum {string} */
+            status: "active" | "inactive";
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: uuid */
+            vendorId: string;
+            version: number;
+        };
+        RouteStopHouseholdResponseDto: {
+            accountNumber: string;
+            addressLine1: string;
+            addressLine2?: string;
+            city: string;
+            countryCode: string;
+            /** Format: uuid */
+            id: string;
+            latitude?: string;
+            locality?: string;
+            longitude?: string;
+            name: string;
+            postalCode: string;
+            region: string;
+            /** @enum {string} */
+            status: "active" | "inactive";
+        };
+        RouteStopResponseDto: {
+            household: components["schemas"]["RouteStopHouseholdResponseDto"];
             /** Format: uuid */
             householdId: string;
             /** Format: uuid */
-            productId: string;
-            /** Format: uuid */
-            unitId: string;
+            id: string;
+            sequence: number;
+        };
+        RouteStopsResponseDto: {
             /** Format: uuid */
             deliverySlotId: string;
+            /** Format: date */
+            endDate?: string;
+            nextCursor?: string;
+            /** Format: uuid */
+            routeId: string;
+            routeVersion: number;
+            /** Format: date */
+            serviceDate: string;
+            /** Format: date */
+            startDate?: string;
+            stops: components["schemas"]["RouteStopResponseDto"][];
+        };
+        RouteVersionReasonRequestDto: {
+            expectedVersion: number;
+            reason: string;
+        };
+        ScheduleGenerationRunCountsResponseDto: {
+            cancelled: number;
+            created: number;
+            existing: number;
+            missingPrice: number;
+            updated: number;
+        };
+        ScheduleGenerationRunListResponseDto: {
+            items: components["schemas"]["ScheduleGenerationRunResponseDto"][];
+            nextCursor?: string;
+        };
+        ScheduleGenerationRunResponseDto: {
+            attempt: number;
+            /** Format: date-time */
+            availableAt: string;
+            counts?: components["schemas"]["ScheduleGenerationRunCountsResponseDto"];
+            /** Format: date-time */
+            createdAt: string;
+            failureCode?: string;
+            failureMessage?: string;
+            /** Format: date-time */
+            finishedAt?: string;
+            /** Format: uuid */
+            id: string;
+            maxAttempts: number;
+            /** Format: date */
+            serviceDate: string;
+            /** Format: date-time */
+            startedAt?: string;
+            /** @enum {string} */
+            status: "queued" | "running" | "retry_wait" | "succeeded" | "failed";
+            /** @enum {string} */
+            trigger: "automatic" | "manual" | "configuration_change";
+            /** Format: date */
+            triggerLocalDate: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ScheduledDeliveryListResponseDto: {
+            items: components["schemas"]["ScheduledDeliveryResponseDto"][];
+            nextCursor?: string;
+            /** Format: date */
+            serviceDate: string;
+        };
+        ScheduledDeliveryResponseDto: {
+            addressLine1: string;
+            addressLine2?: string;
+            blockedByCustomerLeave: boolean;
+            captureLocationEvidence: boolean;
+            city: string;
+            countryCode: string;
+            /** @enum {string} */
+            currentStatus: "scheduled" | "delivered" | "skipped_by_customer" | "skipped_by_agent" | "missed";
+            deliverySlotEndLocalTime: string;
+            /** Format: uuid */
+            deliverySlotId: string;
+            deliverySlotName: string;
+            deliverySlotStartLocalTime: string;
+            householdAccountNumber: string;
+            /** Format: uuid */
+            householdId: string;
+            householdName: string;
+            /** Format: uuid */
+            id: string;
+            locality?: string;
+            pendingStopItems: components["schemas"]["PendingStopItemResponseDto"][];
+            /** @example 1.25 */
+            plannedQuantity: string;
+            postalCode: string;
+            productCode: string;
+            /** Format: uuid */
+            productId: string;
+            productName: string;
+            region: string;
+            /** Format: uuid */
+            routeAssignmentId: string;
+            routeCode: string;
+            /** Format: uuid */
+            routeId: string;
+            routeName: string;
+            /** Format: uuid */
+            routeStopId: string;
+            sequence: number;
+            /** Format: date */
+            serviceDate: string;
+            /** Format: uuid */
+            subscriptionId: string;
+            unitCode: string;
+            /** Format: uuid */
+            unitId: string;
+            unitName: string;
+            version: number;
+        };
+        SessionResponseDto: {
+            /** Format: date-time */
+            accessExpiresAt: string;
+            accessToken: string;
+            /** Format: date-time */
+            refreshExpiresAt: string;
+            refreshToken?: string;
+        };
+        SkippedAgentStopOutcomeDto: {
+            items: components["schemas"]["NonDeliveredStopOutcomeItemDto"][];
+            /** @description Present with longitude or both coordinates are absent. */
+            latitude?: number;
+            /** @description Present with latitude or both coordinates are absent. */
+            longitude?: number;
+            note?: string;
+            /** Format: date-time */
+            occurredAt: string;
+            /** @enum {string} */
+            outcome: "skipped_by_agent";
+            /**
+             * @description `other` requires a non-empty trimmed note.
+             * @enum {string}
+             */
+            reasonCode: "customer_on_leave" | "customer_unavailable" | "customer_requested_skip_at_door" | "other";
+            /** Format: date */
+            serviceDate: string;
+        };
+        StartOwnerEnrollmentRequestDto: {
+            password: string;
+            setupToken: string;
+        };
+        StartOwnerEnrollmentResponseDto: {
+            completionToken: string;
+            totpSecret: string;
         };
         SubscriptionHistoryResponseDto: {
             items: components["schemas"]["SubscriptionRevisionResponseDto"][];
             nextCursor?: string;
         };
-        ModifySubscriptionRequestDto: {
-            quantity: string;
-            weekdays: number[];
-            /** Format: date */
-            effectiveDate: string;
+        SubscriptionListResponseDto: {
+            items: components["schemas"]["SubscriptionResponseDto"][];
+            nextCursor?: string;
+        };
+        SubscriptionResponseDto: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            householdId: string;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            lifecycle: "current" | "deleted";
+            revisions: components["schemas"]["SubscriptionRevisionResponseDto"][];
+            /** @enum {string} */
+            status: "future" | "active" | "paused" | "cancelled" | "completed";
+            supersededRevisionCount?: number;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: uuid */
+            vendorId: string;
+            version: number;
+        };
+        SubscriptionRevisionResponseDto: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            createdBy: string;
+            /** Format: uuid */
+            deliverySlotId: string;
             /** Format: date */
             endDate?: string;
             /** Format: uuid */
+            id: string;
+            /** Format: uuid */
             productId: string;
+            quantity: string;
+            /** Format: date */
+            startDate: string;
+            /** @enum {string} */
+            status: "active" | "paused" | "cancelled";
+            /** Format: date-time */
+            supersededAt?: string;
+            /** Format: uuid */
+            supersededByRevisionId?: string;
+            supersessionReason?: string;
             /** Format: uuid */
             unitId: string;
-            /** Format: uuid */
-            deliverySlotId: string;
-            expectedVersion: number;
-            reason: string;
+            /** Format: date-time */
+            updatedAt: string;
+            weekdays: number[];
         };
         SubscriptionTransitionRequestDto: {
             /** Format: date */
@@ -2023,313 +2814,391 @@ export interface components {
             expectedVersion: number;
             reason: string;
         };
-        CustomerSubscriptionRevisionResponseDto: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            productId: string;
-            /** Format: uuid */
-            unitId: string;
-            /** Format: uuid */
-            deliverySlotId: string;
-            quantity: string;
-            weekdays: number[];
+        TransitionVendorRequestDto: {
+            expectedVersion: number;
+            reason: string;
             /** @enum {string} */
-            status: "active" | "paused" | "cancelled";
-            /** Format: date */
-            startDate: string;
-            /** Format: date */
-            endDate?: string;
-            /** Format: date-time */
-            supersededAt?: string;
-            /** Format: uuid */
-            supersededByRevisionId?: string;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            productCode: string;
-            productName: string;
-            unitCode: string;
-            unitName: string;
-            deliverySlotName: string;
-            deliverySlotStartLocalTime: string;
-            deliverySlotEndLocalTime: string;
+            to: "pending_approval" | "onboarding" | "trial" | "active" | "suspended" | "closed";
         };
-        CustomerSubscriptionResponseDto: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            vendorId: string;
-            /** Format: uuid */
-            householdId: string;
-            /** @enum {string} */
-            status: "future" | "active" | "paused" | "cancelled" | "completed";
-            revisions: components["schemas"]["CustomerSubscriptionRevisionResponseDto"][];
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            version: number;
-        };
-        CustomerSubscriptionListResponseDto: {
-            items: components["schemas"]["CustomerSubscriptionResponseDto"][];
+        UnitListResponseDto: {
+            items: components["schemas"]["UnitResponseDto"][];
             nextCursor?: string;
         };
-        CustomerSubscriptionHistoryResponseDto: {
-            items: components["schemas"]["CustomerSubscriptionRevisionResponseDto"][];
-            nextCursor?: string;
-        };
-        RouteResponseDto: {
+        UnitResponseDto: {
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            decimalScale: number;
             /** Format: uuid */
             id: string;
-            /** Format: uuid */
-            vendorId: string;
-            /** Format: uuid */
-            deliverySlotId: string;
+            name: string;
             /** @enum {string} */
             status: "active" | "inactive";
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: uuid */
+            vendorId: string;
+        };
+        UpdateDeliveryPolicyRequestDto: {
+            captureAgentLocationEvidence: boolean;
+            expectedVersion: number;
+            /** @enum {string} */
+            lateLeavePolicy: "reject" | "approval";
+            reason: string;
+            skipCutoffMinutes: number;
+        };
+        UpdateHouseholdRequestDto: {
+            accountNumber?: string;
+            addressLine1?: string;
+            addressLine2?: string | null;
+            city?: string;
+            countryCode?: string;
+            expectedVersion: number;
+            latitude?: string | null;
+            locality?: string | null;
+            longitude?: string | null;
+            name?: string;
+            notes?: string | null;
+            postalCode?: string;
+            region?: string;
+            /** @enum {string} */
+            status?: "active" | "inactive";
+        };
+        UpdateMembershipRoleRequestDto: {
+            /** @enum {string} */
+            role: "vendor_owner" | "vendor_administrator" | "delivery_agent" | "customer";
+        };
+        UpdateProductRequestDto: {
+            expectedVersion: number;
+            name?: string;
+            /** @enum {string} */
+            status?: "active" | "inactive";
+        };
+        UserResponseDto: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            deactivatedAt?: string;
+            displayName: string;
+            /** Format: uuid */
+            id: string;
             /** @enum {string} */
             lifecycle: "current" | "deleted";
-            /** Format: date-time */
-            createdAt: string;
+            locale: string;
+            /** @enum {string} */
+            status: "active" | "suspended" | "deactivated";
             /** Format: date-time */
             updatedAt: string;
-            code: string;
-            name: string;
-            version: number;
         };
-        RouteListResponseDto: {
-            items: components["schemas"]["RouteResponseDto"][];
-            nextCursor?: string;
-        };
-        CreateRouteRequestDto: {
-            code: string;
-            name: string;
+        VendorDeliveryDetailResponseDto: {
+            actualQuantity?: string;
+            agentDisplayName?: string;
+            /** Format: uuid */
+            agentMembershipId?: string;
+            /** @enum {string} */
+            currentStatus: "scheduled" | "cancelled" | "delivered" | "skipped_by_customer" | "skipped_by_agent" | "missed";
             /** Format: uuid */
             deliverySlotId: string;
-        };
-        RouteStopHouseholdResponseDto: {
-            /** Format: uuid */
-            id: string;
-            accountNumber: string;
-            name: string;
-            addressLine1: string;
-            addressLine2?: string;
-            locality?: string;
-            city: string;
-            region: string;
-            postalCode: string;
-            countryCode: string;
-            latitude?: string;
-            longitude?: string;
-            /** @enum {string} */
-            status: "active" | "inactive";
-        };
-        RouteStopResponseDto: {
-            /** Format: uuid */
-            id: string;
+            deliverySlotName: string;
+            events: components["schemas"]["VendorDeliveryEventResponseDto"][];
+            /** Format: date-time */
+            finalizedAt?: string;
             /** Format: uuid */
             householdId: string;
-            sequence: number;
-            household: components["schemas"]["RouteStopHouseholdResponseDto"];
-        };
-        RouteStopsResponseDto: {
-            /** Format: uuid */
-            routeId: string;
-            routeVersion: number;
-            /** Format: uuid */
-            deliverySlotId: string;
-            /** Format: date */
-            serviceDate: string;
-            /** Format: date */
-            startDate?: string;
-            /** Format: date */
-            endDate?: string;
-            stops: components["schemas"]["RouteStopResponseDto"][];
-            nextCursor?: string;
-        };
-        ReplaceRouteStopsRequestDto: {
-            /** Format: date */
-            effectiveDate: string;
-            expectedVersion: number;
-            reason: string;
-            householdIds: string[];
-        };
-        RouteAssignmentResponseDto: {
+            householdName: string;
             /** Format: uuid */
             id: string;
+            plannedQuantity: string;
             /** Format: uuid */
-            routeId: string;
+            productId: string;
+            productName: string;
             /** Format: uuid */
-            deliverySlotId: string;
-            /** Format: uuid */
-            agentMembershipId: string;
+            routeId?: string;
+            routeName?: string;
             /** Format: date */
             serviceDate: string;
+            snapshot?: components["schemas"]["DeliveryPriceSnapshotResponseDto"];
             /** @enum {string} */
-            status: "assigned" | "cancelled";
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        RouteAssignmentListResponseDto: {
-            items: components["schemas"]["RouteAssignmentResponseDto"][];
-            nextCursor?: string;
-        };
-        AssignRouteRequestDto: {
-            /** Format: uuid */
-            agentMembershipId: string;
-            reason: string;
-            expectedVersion: number;
-        };
-        RouteAssignmentMutationResponseDto: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            routeId: string;
-            /** Format: uuid */
-            deliverySlotId: string;
-            /** Format: uuid */
-            agentMembershipId: string;
-            /** Format: date */
-            serviceDate: string;
-            /** @enum {string} */
-            status: "assigned" | "cancelled";
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            routeVersion: number;
-        };
-        RouteVersionReasonRequestDto: {
-            reason: string;
-            expectedVersion: number;
-        };
-        RenameRouteRequestDto: {
-            name: string;
-            expectedVersion: number;
-        };
-        AgentRouteAssignmentResponseDto: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            routeId: string;
-            /** Format: uuid */
-            deliverySlotId: string;
-            /** Format: uuid */
-            agentMembershipId: string;
-            /** Format: date */
-            serviceDate: string;
-            /** @enum {string} */
-            status: "assigned" | "cancelled";
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            routeCode: string;
-            routeName: string;
-            deliverySlotName: string;
-            deliverySlotStartLocalTime: string;
-            deliverySlotEndLocalTime: string;
-        };
-        AgentRouteAssignmentListResponseDto: {
-            /** Format: date */
-            serviceDate: string;
-            items: components["schemas"]["AgentRouteAssignmentResponseDto"][];
-            nextCursor?: string;
-        };
-        ScheduledDeliveryResponseDto: {
-            /** Format: uuid */
-            id: string;
+            source?: "system" | "customer" | "delivery_agent" | "vendor_admin";
             /** Format: uuid */
             subscriptionId: string;
             /** Format: uuid */
-            householdId: string;
-            /** Format: uuid */
-            productId: string;
-            /** Format: uuid */
             unitId: string;
+            unitName: string;
+            /** Format: uuid */
+            vendorId: string;
+            version: number;
+        };
+        VendorDeliveryEventResponseDto: {
+            actualQuantity?: string;
+            /** @enum {string} */
+            eventType: "scheduled" | "delivered" | "skipped_by_customer" | "skipped_by_agent" | "missed";
+            /** Format: uuid */
+            id: string;
+            /** @description Latitude decimal string in [-90, 90], present only with longitude. */
+            latitude?: string;
+            /** @description Longitude decimal string in [-180, 180], present only with latitude. */
+            longitude?: string;
+            note?: string;
+            /** Format: date-time */
+            occurredAt: string;
+            reasonCode?: string;
+            /** Format: date-time */
+            receivedAt: string;
+            /** Format: uuid */
+            replacedEventId?: string;
+            /** @enum {string} */
+            source: "system" | "customer" | "delivery_agent" | "vendor_admin";
+        };
+        VendorDeliveryListResponseDto: {
+            items: components["schemas"]["VendorDeliverySummaryResponseDto"][];
+            /** @description Opaque cursor for stable ordering with an ID tie-breaker. */
+            nextCursor?: string;
+            /** Format: uuid */
+            vendorId: string;
+        };
+        VendorDeliverySummaryResponseDto: {
+            actualQuantity?: string;
+            agentDisplayName?: string;
+            /** Format: uuid */
+            agentMembershipId?: string;
+            /** @enum {string} */
+            currentStatus: "scheduled" | "cancelled" | "delivered" | "skipped_by_customer" | "skipped_by_agent" | "missed";
             /** Format: uuid */
             deliverySlotId: string;
-            /** Format: uuid */
-            routeAssignmentId: string;
-            /** Format: uuid */
-            routeStopId: string;
-            /** Format: date */
-            serviceDate: string;
-            /** @example 1.25 */
-            plannedQuantity: string;
-            sequence: number;
-            /** Format: uuid */
-            routeId: string;
-            addressLine2?: string;
-            locality?: string;
-            routeCode: string;
-            routeName: string;
-            householdAccountNumber: string;
-            householdName: string;
-            addressLine1: string;
-            city: string;
-            region: string;
-            postalCode: string;
-            countryCode: string;
-            productCode: string;
-            productName: string;
-            unitCode: string;
-            unitName: string;
             deliverySlotName: string;
-            deliverySlotStartLocalTime: string;
-            deliverySlotEndLocalTime: string;
-        };
-        ScheduledDeliveryListResponseDto: {
+            /** Format: date-time */
+            finalizedAt?: string;
+            /** Format: uuid */
+            householdId: string;
+            householdName: string;
+            /** Format: uuid */
+            id: string;
+            plannedQuantity: string;
+            /** Format: uuid */
+            productId: string;
+            productName: string;
+            /** Format: uuid */
+            routeId?: string;
+            routeName?: string;
             /** Format: date */
             serviceDate: string;
-            items: components["schemas"]["ScheduledDeliveryResponseDto"][];
+            /** @enum {string} */
+            source?: "system" | "customer" | "delivery_agent" | "vendor_admin";
+            /** Format: uuid */
+            subscriptionId: string;
+            /** Format: uuid */
+            unitId: string;
+            unitName: string;
+            version: number;
+        };
+        VendorLeaveDecisionListResponseDto: {
+            items: components["schemas"]["VendorLeaveDecisionResponseDto"][];
+            /** @description Opaque cursor for stable ordering with an ID tie-breaker. */
             nextCursor?: string;
+            /** Format: uuid */
+            vendorId: string;
         };
-        GenerateManualScheduleRunRequestDto: {
+        VendorLeaveDecisionResponseDto: {
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string} */
+            currentStatus: "pending" | "approved" | "rejected";
+            /** Format: date-time */
+            cutoffAt: string;
+            /** Format: uuid */
+            deliverySlotId: string;
+            deliverySlotName: string;
+            /** Format: uuid */
+            householdId: string;
+            householdName: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            leaveRequestId: string;
+            /** Format: uuid */
+            leaveRequestRevisionId: string;
+            /** Format: uuid */
+            productId: string;
+            productName: string;
             /** Format: date */
             serviceDate: string;
+            /** @enum {string} */
+            source: "customer" | "vendor_admin" | "system";
+            /** Format: uuid */
+            subscriptionId: string;
+            version: number;
         };
-        ScheduleGenerationRunCountsResponseDto: {
-            created: number;
-            existing: number;
-            updated: number;
-            cancelled: number;
-            missingPrice: number;
+        VendorLeaveDecisionResponseEnvelopeDto: {
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string} */
+            currentStatus: "pending" | "approved" | "rejected";
+            /** Format: date-time */
+            cutoffAt: string;
+            /** Format: uuid */
+            deliverySlotId: string;
+            deliverySlotName: string;
+            /** Format: uuid */
+            householdId: string;
+            householdName: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            leaveRequestId: string;
+            /** Format: uuid */
+            leaveRequestRevisionId: string;
+            /** Format: uuid */
+            productId: string;
+            productName: string;
+            request: components["schemas"]["VendorLeaveRequestDetailResponseDto"];
+            /** Format: date */
+            serviceDate: string;
+            /** @enum {string} */
+            source: "customer" | "vendor_admin" | "system";
+            /** Format: uuid */
+            subscriptionId: string;
+            version: number;
         };
-        ScheduleGenerationRunResponseDto: {
+        VendorLeaveDecisionTimelineResponseDto: {
+            availableActions: ("approve" | "reject")[];
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string} */
+            currentStatus: "pending" | "approved" | "rejected";
+            /** Format: date-time */
+            cutoffAt: string;
+            /** Format: date-time */
+            decidedAt?: string;
+            /** Format: uuid */
+            decidedBy?: string;
+            decisionReason?: string;
+            /** Format: uuid */
+            deliverySlotId: string;
+            deliverySlotName: string;
             /** Format: uuid */
             id: string;
             /** @enum {string} */
-            trigger: "automatic" | "manual" | "configuration_change";
-            /** Format: date */
-            triggerLocalDate: string;
+            previousEffectiveStatus: "scheduled" | "skipped_by_customer";
+            /** Format: uuid */
+            productId: string;
+            productName: string;
+            /** @enum {string} */
+            requestedEffectiveStatus: "scheduled" | "skipped_by_customer";
             /** Format: date */
             serviceDate: string;
             /** @enum {string} */
-            status: "queued" | "running" | "retry_wait" | "succeeded" | "failed";
-            attempt: number;
-            maxAttempts: number;
-            /** Format: date-time */
-            availableAt: string;
-            /** Format: date-time */
-            startedAt?: string;
-            /** Format: date-time */
-            finishedAt?: string;
-            failureCode?: string;
-            failureMessage?: string;
-            counts?: components["schemas"]["ScheduleGenerationRunCountsResponseDto"];
+            source: "customer" | "vendor_admin" | "system";
+            /** Format: uuid */
+            subscriptionId: string;
+            version: number;
+        };
+        VendorLeaveRequestDetailResponseDto: {
             /** Format: date-time */
             createdAt: string;
+            /** Format: uuid */
+            currentRevisionId?: string;
+            /** @enum {string} */
+            currentStatus: "pending_approval" | "partially_pending" | "accepted" | "rejected" | "cancelled";
+            /** Format: uuid */
+            householdId: string;
+            /** Format: uuid */
+            id: string;
+            revisions: components["schemas"]["VendorLeaveRevisionResponseDto"][];
             /** Format: date-time */
             updatedAt: string;
+            /** Format: uuid */
+            vendorId: string;
+            version: number;
         };
-        ScheduleGenerationRunListResponseDto: {
-            items: components["schemas"]["ScheduleGenerationRunResponseDto"][];
+        VendorLeaveRevisionResponseDto: {
+            /** @enum {string} */
+            action: "create" | "amend" | "cancel";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            createdBy: string;
+            /** @enum {string} */
+            currentStatus: "pending_approval" | "partially_pending" | "accepted" | "rejected" | "cancelled";
+            decisions: components["schemas"]["VendorLeaveDecisionTimelineResponseDto"][];
+            /** Format: date */
+            endDate: string;
+            /** Format: uuid */
+            id: string;
+            note?: string;
+            /** @enum {string} */
+            source: "customer" | "vendor_admin" | "system";
+            /** Format: date */
+            startDate: string;
+            subscriptionIds: string[];
+            subscriptionLabels: components["schemas"]["LeaveSubscriptionLabelResponseDto"][];
+        };
+        VendorListResponseDto: {
+            items: components["schemas"]["VendorResponseDto"][];
             nextCursor?: string;
+        };
+        VendorOwnerOnboardingResponseDto: {
+            createdUser: boolean;
+            /** @enum {string} */
+            deliveryStatus: "delivered";
+            /** Format: email */
+            email: string;
+            /** Format: uuid */
+            enrollmentId: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: uuid */
+            membershipId: string;
+            /** Format: uuid */
+            userId: string;
+            /** Format: uuid */
+            vendorId: string;
+        };
+        VendorOwnerOnboardingStatusResponseDto: {
+            /** Format: uuid */
+            enrollmentId?: string;
+            /** Format: date-time */
+            expiresAt?: string;
+            /** Format: uuid */
+            membershipId?: string;
+            ownerDisplayName?: string;
+            /** Format: email */
+            ownerEmail?: string;
+            /** @enum {string} */
+            state: "not_started" | "invited" | "setup_started" | "completed" | "expired" | "retired" | "delivery_failed";
+            /** Format: uuid */
+            vendorId: string;
+        };
+        VendorResponseDto: {
+            allowedTransitions: ("pending_approval" | "onboarding" | "trial" | "active" | "suspended" | "closed")[];
+            billingDay: number;
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            currency: string;
+            displayName: string;
+            /** Format: uuid */
+            id: string;
+            legalName: string;
+            skipCutoffMinutes: number;
+            /** @enum {string} */
+            status: "pending_approval" | "onboarding" | "trial" | "active" | "suspended" | "closed";
+            timezone: string;
+            /** Format: date-time */
+            updatedAt: string;
+            version: number;
+        };
+        VerifyOtpRequestDto: {
+            challengeToken: string;
+            /** @enum {string} */
+            clientType: "browser" | "mobile";
+            code: string;
+            deviceId: string;
+            deviceName?: string;
+        };
+        VersionedReasonRequestDto: {
+            expectedVersion: number;
+            reason: string;
         };
     };
     responses: never;
@@ -2340,14 +3209,12 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    AuditController_list: {
+    AgentRouteAssignmentController_list: {
         parameters: {
             query?: {
+                serviceDate?: string;
                 limit?: number;
                 cursor?: string;
-                action?: string;
-                entityType?: string;
-                entityId?: string;
             };
             header?: never;
             path: {
@@ -2362,7 +3229,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AuditEventListResponseDto"];
+                    "application/json": components["schemas"]["AgentRouteAssignmentListResponseDto"];
                 };
             };
             400: {
@@ -2389,6 +3256,22 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorResponseDto"];
                 };
             };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
             503: {
                 headers: {
                     [name: string]: unknown;
@@ -2399,64 +3282,28 @@ export interface operations {
             };
         };
     };
-    AuthController_requestOtp: {
+    AgentDeliveryController_record: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                vendorId: string;
+                routeStopId: string;
+            };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RequestOtpRequestDto"];
+                "application/json": components["schemas"]["AgentStopOutcomeRequestDto"];
             };
         };
         responses: {
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["OtpChallengeResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    AuthController_verifyOtp: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["VerifyOtpRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SessionResponseDto"];
+                    "application/json": components["schemas"]["AgentStopOutcomeResponseDto"];
                 };
             };
             400: {
@@ -2475,27 +3322,61 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorResponseDto"];
                 };
             };
-        };
-    };
-    AuthController_startAdministratorSignIn: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AdminPasswordRequestDto"];
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
             };
         };
+    };
+    AgentScheduledDeliveryController_list: {
+        parameters: {
+            query?: {
+                serviceDate?: string;
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                vendorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PendingMfaResponseDto"];
+                    "application/json": components["schemas"]["ScheduledDeliveryListResponseDto"];
                 };
             };
             400: {
@@ -2507,6 +3388,38 @@ export interface operations {
                 };
             };
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2555,7 +3468,7 @@ export interface operations {
             };
         };
     };
-    AuthController_refresh: {
+    AuthController_startAdministratorSignIn: {
         parameters: {
             query?: never;
             header?: never;
@@ -2564,7 +3477,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RefreshRequestDto"];
+                "application/json": components["schemas"]["AdminPasswordRequestDto"];
             };
         };
         responses: {
@@ -2573,7 +3486,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SessionResponseDto"];
+                    "application/json": components["schemas"]["PendingMfaResponseDto"];
                 };
             };
             400: {
@@ -2675,300 +3588,16 @@ export interface operations {
             };
         };
     };
-    HealthController_getHealth: {
+    AuthController_requestOtp: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HealthResponseDto"];
-                };
-            };
-        };
-    };
-    MembershipController_list: {
-        parameters: {
-            query?: {
-                lifecycle?: "current" | "deleted";
-                cursor?: string;
-                limit?: number;
-                role?: "vendor_owner" | "vendor_administrator" | "delivery_agent" | "customer";
-                status?: "invited" | "active" | "ended";
-                /** @description Searches at most 100 membership candidates per request; a sparse or empty result page can include nextCursor. */
-                search?: string;
-            };
-            header?: never;
-            path: {
-                vendorId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MembershipPageResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    MembershipController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-            };
-            cookie?: never;
-        };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateMembershipRequestDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MembershipResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    MembershipController_get: {
-        parameters: {
-            query?: {
-                lifecycle?: "current" | "deleted";
-            };
-            header?: never;
-            path: {
-                vendorId: string;
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MembershipDirectoryResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    MembershipController_softDelete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReasonRequestDto"];
-            };
-        };
-        responses: {
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    MembershipController_updateRole: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateMembershipRoleRequestDto"];
+                "application/json": components["schemas"]["RequestOtpRequestDto"];
             };
         };
         responses: {
@@ -2977,7 +3606,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MembershipResponseDto"];
+                    "application/json": components["schemas"]["OtpChallengeResponseDto"];
                 };
             };
             400: {
@@ -2988,32 +3617,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorResponseDto"];
                 };
             };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            /** @description Customer and delivery agent roles require onboarding (MEMBERSHIP_ONBOARDING_REQUIRED) */
-            409: {
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3023,93 +3627,16 @@ export interface operations {
             };
         };
     };
-    MembershipController_onboard: {
+    AuthController_verifyOtp: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                vendorId: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["OnboardMembershipRequestDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MembershipDirectoryResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            /** @description Security audit unavailable (SECURITY_AUDIT_UNAVAILABLE) */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    MembershipController_end: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReasonRequestDto"];
+                "application/json": components["schemas"]["VerifyOtpRequestDto"];
             };
         };
         responses: {
@@ -3118,7 +3645,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MembershipResponseDto"];
+                    "application/json": components["schemas"]["SessionResponseDto"];
                 };
             };
             400: {
@@ -3130,30 +3657,6 @@ export interface operations {
                 };
             };
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3163,19 +3666,16 @@ export interface operations {
             };
         };
     };
-    MembershipController_restore: {
+    OwnerEnrollmentController_complete: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                vendorId: string;
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ReasonRequestDto"];
+                "application/json": components["schemas"]["CompleteOwnerEnrollmentRequestDto"];
             };
         };
         responses: {
@@ -3184,7 +3684,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MembershipResponseDto"];
+                    "application/json": components["schemas"]["CompleteOwnerEnrollmentResponseDto"];
                 };
             };
             400: {
@@ -3196,22 +3696,6 @@ export interface operations {
                 };
             };
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3276,7 +3760,7 @@ export interface operations {
             };
         };
     };
-    OwnerEnrollmentController_complete: {
+    AuthController_refresh: {
         parameters: {
             query?: never;
             header?: never;
@@ -3285,7 +3769,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CompleteOwnerEnrollmentRequestDto"];
+                "application/json": components["schemas"]["RefreshRequestDto"];
             };
         };
         responses: {
@@ -3294,7 +3778,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CompleteOwnerEnrollmentResponseDto"];
+                    "application/json": components["schemas"]["SessionResponseDto"];
                 };
             };
             400: {
@@ -3313,12 +3797,1042 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorResponseDto"];
                 };
             };
+        };
+    };
+    CustomerHouseholdController_list: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                vendorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerHouseholdListResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CustomerDeliveryController_list: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                vendorId: string;
+                householdId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerDeliveryListResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CustomerDeliveryController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                householdId: string;
+                scheduledDeliveryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerDeliveryDetailResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CustomerLeaveController_list: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                vendorId: string;
+                householdId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerLeaveListResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CustomerLeaveController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                householdId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCustomerLeaveRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerLeaveDetailResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CustomerLeaveController_preview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                householdId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomerLeavePreviewRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerLeavePreviewResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CustomerLeaveController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                householdId: string;
+                leaveRequestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerLeaveDetailResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CustomerLeaveController_amend: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                householdId: string;
+                leaveRequestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AmendCustomerLeaveRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerLeaveDetailResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CustomerLeaveController_cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                householdId: string;
+                leaveRequestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CancelCustomerLeaveRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerLeaveDetailResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CustomerNotificationController_list: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                vendorId: string;
+                householdId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerNotificationListResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CustomerResolvedPriceController_resolve: {
+        parameters: {
+            query: {
+                serviceDate?: string;
+                productId: string;
+                unitId: string;
+                deliverySlotId: string;
+            };
+            header?: never;
+            path: {
+                vendorId: string;
+                householdId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerResolvedPriceResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CustomerSubscriptionController_list: {
+        parameters: {
+            query?: {
+                limit?: number;
+                status?: "future" | "active" | "paused" | "cancelled" | "completed";
+                cursor?: string;
+                productId?: string;
+                deliverySlotId?: string;
+            };
+            header?: never;
+            path: {
+                vendorId: string;
+                householdId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerSubscriptionListResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CustomerSubscriptionController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                householdId: string;
+                subscriptionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerSubscriptionResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    CustomerSubscriptionController_history: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                vendorId: string;
+                householdId: string;
+                subscriptionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerSubscriptionHistoryResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    HealthController_getHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthResponseDto"];
                 };
             };
         };
@@ -3512,71 +5026,6 @@ export interface operations {
             };
         };
     };
-    UserLifecycleController_restore: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReasonRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
     UserLifecycleController_deactivate: {
         parameters: {
             query?: never;
@@ -3642,155 +5091,12 @@ export interface operations {
             };
         };
     };
-    VendorOwnerOnboardingController_status: {
+    UserLifecycleController_restore: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                vendorId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["VendorOwnerOnboardingStatusResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    VendorOwnerOnboardingController_establish: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EstablishVendorOwnerRequestDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["VendorOwnerOnboardingResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    VendorOwnerOnboardingController_retry: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-                enrollmentId: string;
+                id: string;
             };
             cookie?: never;
         };
@@ -3805,7 +5111,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RetryOwnerEnrollmentResponseDto"];
+                    "application/json": components["schemas"]["UserResponseDto"];
                 };
             };
             400: {
@@ -3841,14 +5147,6 @@ export interface operations {
                 };
             };
             409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4079,1099 +5377,13 @@ export interface operations {
             };
         };
     };
-    VendorProfileController_getProfile: {
+    VendorOwnerOnboardingController_retry: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 vendorId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["VendorResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    HouseholdController_list: {
-        parameters: {
-            query?: {
-                limit?: number;
-                search?: string;
-                status?: "active" | "inactive";
-                lifecycle?: "current" | "deleted";
-                cursor?: string;
-            };
-            header?: never;
-            path: {
-                vendorId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HouseholdListResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    HouseholdController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateHouseholdRequestDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HouseholdResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    HouseholdController_get: {
-        parameters: {
-            query?: {
-                lifecycle?: "current" | "deleted";
-            };
-            header?: never;
-            path: {
-                vendorId: string;
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HouseholdResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    HouseholdController_remove: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["VersionedReasonRequestDto"];
-            };
-        };
-        responses: {
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    HouseholdController_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateHouseholdRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HouseholdResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    HouseholdController_restore: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["VersionedReasonRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HouseholdResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    HouseholdController_members: {
-        parameters: {
-            query?: {
-                limit?: number;
-                cursor?: string;
-            };
-            header?: never;
-            path: {
-                vendorId: string;
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HouseholdMemberListResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    HouseholdController_attach: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AttachHouseholdMemberRequestDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HouseholdMemberResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    HouseholdController_end: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-                id: string;
-                memberId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EndHouseholdMemberRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HouseholdMemberResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    CustomerHouseholdController_list: {
-        parameters: {
-            query?: {
-                limit?: number;
-                cursor?: string;
-            };
-            header?: never;
-            path: {
-                vendorId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CustomerHouseholdListResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    UnitController_list: {
-        parameters: {
-            query?: {
-                limit?: number;
-                status?: "active" | "inactive";
-                cursor?: string;
-                search?: string;
-            };
-            header?: never;
-            path: {
-                vendorId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnitListResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    UnitController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateUnitRequestDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnitResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    UnitController_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-                unitId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnitResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    UnitController_rename: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-                unitId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RenameUnitRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnitResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    UnitController_deactivate: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-                unitId: string;
+                enrollmentId: string;
             };
             cookie?: never;
         };
@@ -5186,7 +5398,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnitResponseDto"];
+                    "application/json": components["schemas"]["RetryOwnerEnrollmentResponseDto"];
                 };
             };
             400: {
@@ -5239,89 +5451,9 @@ export interface operations {
             };
         };
     };
-    UnitController_reactivate: {
+    VendorOwnerOnboardingController_status: {
         parameters: {
             query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-                unitId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReasonRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnitResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    ProductController_list: {
-        parameters: {
-            query?: {
-                limit?: number;
-                cursor?: string;
-                search?: string;
-                status?: "active" | "inactive";
-                lifecycle?: "current" | "deleted";
-            };
             header?: never;
             path: {
                 vendorId: string;
@@ -5335,7 +5467,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProductListResponseDto"];
+                    "application/json": components["schemas"]["VendorOwnerOnboardingStatusResponseDto"];
                 };
             };
             400: {
@@ -5388,7 +5520,7 @@ export interface operations {
             };
         };
     };
-    ProductController_create: {
+    VendorOwnerOnboardingController_establish: {
         parameters: {
             query?: never;
             header?: never;
@@ -5399,7 +5531,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateProductRequestDto"];
+                "application/json": components["schemas"]["EstablishVendorOwnerRequestDto"];
             };
         };
         responses: {
@@ -5408,7 +5540,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProductResponseDto"];
+                    "application/json": components["schemas"]["VendorOwnerOnboardingResponseDto"];
                 };
             };
             400: {
@@ -5461,15 +5593,18 @@ export interface operations {
             };
         };
     };
-    ProductController_get: {
+    AuditController_list: {
         parameters: {
             query?: {
-                lifecycle?: "current" | "deleted";
+                limit?: number;
+                cursor?: string;
+                action?: string;
+                entityType?: string;
+                entityId?: string;
             };
             header?: never;
             path: {
                 vendorId: string;
-                productId: string;
             };
             cookie?: never;
         };
@@ -5480,7 +5615,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProductResponseDto"];
+                    "application/json": components["schemas"]["AuditEventListResponseDto"];
                 };
             };
             400: {
@@ -5507,22 +5642,6 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorResponseDto"];
                 };
             };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
             503: {
                 headers: {
                     [name: string]: unknown;
@@ -5533,27 +5652,33 @@ export interface operations {
             };
         };
     };
-    ProductController_remove: {
+    VendorDeliveryController_list: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number;
+                serviceDate?: string;
+                householdId?: string;
+                routeId?: string;
+                agentMembershipId?: string;
+                productId?: string;
+                currentStatus?: "scheduled" | "cancelled" | "delivered" | "skipped_by_customer" | "skipped_by_agent" | "missed";
+                cursor?: string;
+            };
             header?: never;
             path: {
                 vendorId: string;
-                productId: string;
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["VersionedReasonRequestDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
-            204: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["VendorDeliveryListResponseDto"];
+                };
             };
             400: {
                 headers: {
@@ -5605,19 +5730,89 @@ export interface operations {
             };
         };
     };
-    ProductController_update: {
+    VendorDeliveryController_get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 vendorId: string;
-                productId: string;
+                scheduledDeliveryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VendorDeliveryDetailResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    VendorDeliveryController_correct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                scheduledDeliveryId: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["UpdateProductRequestDto"];
+                "application/json": components["schemas"]["CorrectDeliveryRequestDto"];
             };
         };
         responses: {
@@ -5626,7 +5821,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProductResponseDto"];
+                    "application/json": components["schemas"]["VendorDeliveryDetailResponseDto"];
                 };
             };
             400: {
@@ -5679,19 +5874,87 @@ export interface operations {
             };
         };
     };
-    ProductController_restore: {
+    DeliveryPolicyController_get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 vendorId: string;
-                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeliveryPolicyResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    DeliveryPolicyController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RestoreProductRequestDto"];
+                "application/json": components["schemas"]["UpdateDeliveryPolicyRequestDto"];
             };
         };
         responses: {
@@ -5700,7 +5963,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProductResponseDto"];
+                    "application/json": components["schemas"]["DeliveryPolicyResponseDto"];
                 };
             };
             400: {
@@ -6483,6 +6746,154 @@ export interface operations {
             };
         };
     };
+    HouseholdController_list: {
+        parameters: {
+            query?: {
+                limit?: number;
+                search?: string;
+                status?: "active" | "inactive";
+                lifecycle?: "current" | "deleted";
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                vendorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HouseholdListResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    HouseholdController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateHouseholdRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HouseholdResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
     PriceOverrideController_list: {
         parameters: {
             query?: {
@@ -6778,6 +7189,1271 @@ export interface operations {
             };
         };
     };
+    HouseholdController_get: {
+        parameters: {
+            query?: {
+                lifecycle?: "current" | "deleted";
+            };
+            header?: never;
+            path: {
+                vendorId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HouseholdResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    HouseholdController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VersionedReasonRequestDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    HouseholdController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateHouseholdRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HouseholdResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    HouseholdController_members: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                vendorId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HouseholdMemberListResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    HouseholdController_attach: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachHouseholdMemberRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HouseholdMemberResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    HouseholdController_end: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                id: string;
+                memberId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EndHouseholdMemberRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HouseholdMemberResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    HouseholdController_restore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VersionedReasonRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HouseholdResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    VendorLeaveController_listDecisions: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                vendorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VendorLeaveDecisionListResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    VendorLeaveController_decide: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                decisionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecideLeaveOccurrenceRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VendorLeaveDecisionResponseEnvelopeDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    VendorLeaveController_getRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                leaveRequestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VendorLeaveRequestDetailResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MembershipController_list: {
+        parameters: {
+            query?: {
+                lifecycle?: "current" | "deleted";
+                cursor?: string;
+                limit?: number;
+                role?: "vendor_owner" | "vendor_administrator" | "delivery_agent" | "customer";
+                status?: "invited" | "active" | "ended";
+                /** @description Searches at most 100 membership candidates per request; a sparse or empty result page can include nextCursor. */
+                search?: string;
+            };
+            header?: never;
+            path: {
+                vendorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MembershipPageResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MembershipController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMembershipRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MembershipResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MembershipController_onboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OnboardMembershipRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MembershipDirectoryResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Security audit unavailable (SECURITY_AUDIT_UNAVAILABLE) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MembershipController_get: {
+        parameters: {
+            query?: {
+                lifecycle?: "current" | "deleted";
+            };
+            header?: never;
+            path: {
+                vendorId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MembershipDirectoryResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MembershipController_softDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReasonRequestDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MembershipController_updateRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMembershipRoleRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MembershipResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Customer and delivery agent roles require onboarding (MEMBERSHIP_ONBOARDING_REQUIRED) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MembershipController_end: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReasonRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MembershipResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MembershipController_restore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReasonRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MembershipResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
     VendorResolvedPriceController_resolve: {
         parameters: {
             query: {
@@ -6853,93 +8529,14 @@ export interface operations {
             };
         };
     };
-    CustomerResolvedPriceController_resolve: {
-        parameters: {
-            query: {
-                serviceDate?: string;
-                productId: string;
-                unitId: string;
-                deliverySlotId: string;
-            };
-            header?: never;
-            path: {
-                vendorId: string;
-                householdId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CustomerResolvedPriceResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    VendorSubscriptionController_list: {
+    ProductController_list: {
         parameters: {
             query?: {
-                lifecycle?: "current" | "deleted";
                 limit?: number;
-                status?: "future" | "active" | "paused" | "cancelled" | "completed";
-                routeId?: string;
-                routeServiceDate?: string;
                 cursor?: string;
-                householdId?: string;
-                productId?: string;
-                deliverySlotId?: string;
+                search?: string;
+                status?: "active" | "inactive";
+                lifecycle?: "current" | "deleted";
             };
             header?: never;
             path: {
@@ -6954,7 +8551,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SubscriptionListResponseDto"];
+                    "application/json": components["schemas"]["ProductListResponseDto"];
                 };
             };
             400: {
@@ -7007,7 +8604,7 @@ export interface operations {
             };
         };
     };
-    VendorSubscriptionController_create: {
+    ProductController_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -7018,7 +8615,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateSubscriptionRequestDto"];
+                "application/json": components["schemas"]["CreateProductRequestDto"];
             };
         };
         responses: {
@@ -7027,7 +8624,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SubscriptionResponseDto"];
+                    "application/json": components["schemas"]["ProductResponseDto"];
                 };
             };
             400: {
@@ -7080,7 +8677,7 @@ export interface operations {
             };
         };
     };
-    VendorSubscriptionController_get: {
+    ProductController_get: {
         parameters: {
             query?: {
                 lifecycle?: "current" | "deleted";
@@ -7088,7 +8685,7 @@ export interface operations {
             header?: never;
             path: {
                 vendorId: string;
-                subscriptionId: string;
+                productId: string;
             };
             cookie?: never;
         };
@@ -7099,7 +8696,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SubscriptionResponseDto"];
+                    "application/json": components["schemas"]["ProductResponseDto"];
                 };
             };
             400: {
@@ -7152,19 +8749,19 @@ export interface operations {
             };
         };
     };
-    VendorSubscriptionController_softDelete: {
+    ProductController_remove: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 vendorId: string;
-                subscriptionId: string;
+                productId: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SubscriptionVersionReasonRequestDto"];
+                "application/json": components["schemas"]["VersionedReasonRequestDto"];
             };
         };
         responses: {
@@ -7224,16 +8821,160 @@ export interface operations {
             };
         };
     };
-    VendorSubscriptionController_history: {
+    ProductController_update: {
         parameters: {
-            query?: {
-                limit?: number;
-                cursor?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 vendorId: string;
-                subscriptionId: string;
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProductRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ProductController_restore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                productId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RestoreProductRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    VendorProfileController_getProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
             };
             cookie?: never;
         };
@@ -7244,7 +8985,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SubscriptionHistoryResponseDto"];
+                    "application/json": components["schemas"]["VendorResponseDto"];
                 };
             };
             400: {
@@ -7272,605 +9013,6 @@ export interface operations {
                 };
             };
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    VendorSubscriptionController_modify: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-                subscriptionId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ModifySubscriptionRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SubscriptionResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    VendorSubscriptionController_pause: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-                subscriptionId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SubscriptionTransitionRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SubscriptionResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    VendorSubscriptionController_resume: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-                subscriptionId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SubscriptionTransitionRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SubscriptionResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    VendorSubscriptionController_cancel: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-                subscriptionId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SubscriptionTransitionRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SubscriptionResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    VendorSubscriptionController_restore: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-                subscriptionId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SubscriptionVersionReasonRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SubscriptionResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    CustomerSubscriptionController_list: {
-        parameters: {
-            query?: {
-                limit?: number;
-                status?: "future" | "active" | "paused" | "cancelled" | "completed";
-                cursor?: string;
-                productId?: string;
-                deliverySlotId?: string;
-            };
-            header?: never;
-            path: {
-                vendorId: string;
-                householdId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CustomerSubscriptionListResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    CustomerSubscriptionController_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-                householdId: string;
-                subscriptionId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CustomerSubscriptionResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    CustomerSubscriptionController_history: {
-        parameters: {
-            query?: {
-                limit?: number;
-                cursor?: string;
-            };
-            header?: never;
-            path: {
-                vendorId: string;
-                householdId: string;
-                subscriptionId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CustomerSubscriptionHistoryResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8203,154 +9345,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RouteResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    RouteController_listStops: {
-        parameters: {
-            query: {
-                serviceDate: string;
-                limit?: number;
-                cursor?: string;
-            };
-            header?: never;
-            path: {
-                vendorId: string;
-                routeId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RouteStopsResponseDto"];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
-            };
-        };
-    };
-    RouteController_replaceStops: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendorId: string;
-                routeId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReplaceRouteStopsRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RouteStopsResponseDto"];
                 };
             };
             400: {
@@ -8859,16 +9853,17 @@ export interface operations {
             };
         };
     };
-    AgentRouteAssignmentController_list: {
+    RouteController_listStops: {
         parameters: {
-            query?: {
-                serviceDate?: string;
+            query: {
+                serviceDate: string;
                 limit?: number;
                 cursor?: string;
             };
             header?: never;
             path: {
                 vendorId: string;
+                routeId: string;
             };
             cookie?: never;
         };
@@ -8879,7 +9874,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AgentRouteAssignmentListResponseDto"];
+                    "application/json": components["schemas"]["RouteStopsResponseDto"];
                 };
             };
             400: {
@@ -8932,11 +9927,87 @@ export interface operations {
             };
         };
     };
-    AgentScheduledDeliveryController_list: {
+    RouteController_replaceStops: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                routeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplaceRouteStopsRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RouteStopsResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ScheduleGenerationRunController_list: {
         parameters: {
             query?: {
                 serviceDate?: string;
                 limit?: number;
+                trigger?: "automatic" | "manual" | "configuration_change";
+                status?: "queued" | "running" | "retry_wait" | "succeeded" | "failed";
                 cursor?: string;
             };
             header?: never;
@@ -8952,7 +10023,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ScheduledDeliveryListResponseDto"];
+                    "application/json": components["schemas"]["ScheduleGenerationRunListResponseDto"];
                 };
             };
             400: {
@@ -9078,14 +10149,18 @@ export interface operations {
             };
         };
     };
-    ScheduleGenerationRunController_list: {
+    VendorSubscriptionController_list: {
         parameters: {
             query?: {
-                serviceDate?: string;
+                lifecycle?: "current" | "deleted";
                 limit?: number;
-                trigger?: "automatic" | "manual" | "configuration_change";
-                status?: "queued" | "running" | "retry_wait" | "succeeded" | "failed";
+                status?: "future" | "active" | "paused" | "cancelled" | "completed";
+                routeId?: string;
+                routeServiceDate?: string;
                 cursor?: string;
+                householdId?: string;
+                productId?: string;
+                deliverySlotId?: string;
             };
             header?: never;
             path: {
@@ -9100,7 +10175,1106 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ScheduleGenerationRunListResponseDto"];
+                    "application/json": components["schemas"]["SubscriptionListResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    VendorSubscriptionController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSubscriptionRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    VendorSubscriptionController_get: {
+        parameters: {
+            query?: {
+                lifecycle?: "current" | "deleted";
+            };
+            header?: never;
+            path: {
+                vendorId: string;
+                subscriptionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    VendorSubscriptionController_softDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                subscriptionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubscriptionVersionReasonRequestDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    VendorSubscriptionController_cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                subscriptionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubscriptionTransitionRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    VendorSubscriptionController_modify: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                subscriptionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModifySubscriptionRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    VendorSubscriptionController_pause: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                subscriptionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubscriptionTransitionRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    VendorSubscriptionController_restore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                subscriptionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubscriptionVersionReasonRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    VendorSubscriptionController_resume: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                subscriptionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubscriptionTransitionRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    VendorSubscriptionController_history: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                vendorId: string;
+                subscriptionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionHistoryResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    UnitController_list: {
+        parameters: {
+            query?: {
+                limit?: number;
+                status?: "active" | "inactive";
+                cursor?: string;
+                search?: string;
+            };
+            header?: never;
+            path: {
+                vendorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnitListResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    UnitController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateUnitRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnitResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    UnitController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                unitId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnitResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    UnitController_rename: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                unitId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RenameUnitRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnitResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    UnitController_deactivate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                unitId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReasonRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnitResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    UnitController_reactivate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                unitId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReasonRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnitResponseDto"];
                 };
             };
             400: {
