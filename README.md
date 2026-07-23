@@ -39,9 +39,18 @@ docker compose --env-file .env run --rm -e APP_ENV=development -e NODE_ENV=devel
 
 The seeded app identity is `Development Vendor A Delivery Agent (+919876543210)`.
 
-Set `EXPO_PUBLIC_API_BASE_URL` in this repository's ignored local `.env` to an origin the device can reach. Never put credentials in `eas.json` or committed environment examples.
+For Expo Go or local builds, set `EXPO_PUBLIC_API_BASE_URL` in this repository's ignored local `.env` to an origin the device can reach.
 
-Build the internal Android APK with the `maestro` EAS profile, install the downloaded APK, sign in with the seeded delivery-agent identity, then run:
+Remote EAS builds do not read the ignored local `.env`. Configure the public API origin as a plaintext variable in the `preview` EAS environment selected by the `maestro` profile, then verify its presence:
+
+```sh
+eas env:create --environment preview --name EXPO_PUBLIC_API_BASE_URL --visibility plaintext
+eas env:list --environment preview
+```
+
+Enter a device-reachable HTTPS API origin when prompted. Never put credentials in this public variable, `eas.json`, or committed environment examples.
+
+Build the internal Android APK with `eas build --platform android --profile maestro`, install the downloaded APK, sign in with the seeded delivery-agent identity, then run:
 
 ```sh
 maestro test .maestro/phase3-online-outcomes.yaml

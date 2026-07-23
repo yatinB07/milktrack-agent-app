@@ -43,11 +43,12 @@
     "doctor": "expo-doctor",
     "test": "jest --runInBand",
     "test:watch": "jest --watch",
+    "test:config": "node --test scripts/*.test.mjs",
     "api:generate": "openapi-typescript openapi/openapi.json -o src/api/schema.d.ts",
     "api:import-test": "node --test scripts/import-openapi.test.mjs",
     "api:check": "node scripts/verify-openapi.mjs && openapi-typescript openapi/openapi.json -o /tmp/schema.d.ts && cmp -s /tmp/schema.d.ts src/api/schema.d.ts",
     "export": "expo export --platform all --output-dir dist",
-    "verify": "npm run doctor && npm run lint && npm run typecheck && npm test && npm run api:import-test && npm run api:check && npm run export"
+    "verify": "npm run doctor && npm run lint && npm run typecheck && npm test && npm run test:config && npm run api:check && npm run export"
   },
   "private": true
 }
