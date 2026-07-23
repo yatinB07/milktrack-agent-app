@@ -3,6 +3,11 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useAgentWorkspace } from '@/agent/AgentWorkspaceProvider';
+import { DeliveredOutcomeForm } from '@/agent/outcomes/DeliveredOutcomeForm';
+import { MissedOutcomeForm } from '@/agent/outcomes/MissedOutcomeForm';
+import { SkipOutcomeForm } from '@/agent/outcomes/SkipOutcomeForm';
+import type { StopOutcomeRequest } from '@/agent/outcomes/types';
+import { useStopOutcome } from '@/agent/outcomes/useStopOutcome';
 import { useTodayRoute } from '@/agent/useTodayRoute';
 import { useAuth } from '@/auth/AuthProvider';
 import { AppText } from '@/components/AppText';
@@ -10,6 +15,8 @@ import { Banner } from '@/components/Banner';
 import { Button } from '@/components/Button';
 import { Screen } from '@/components/Screen';
 import { colors, radii, spacing } from '@/theme/tokens';
+
+type ActionMode = 'none' | 'delivered' | 'skipped_by_agent' | 'missed';
 
 export function StopScreen({ routeStopId }: Readonly<{ routeStopId: string }>) {
   const auth = useAuth();
@@ -35,12 +42,17 @@ function ReadyStopScreen({ routeStopId, vendorId, accessToken, clearVendor }: Re
   clearVendor(): Promise<void>;
 }>) {
   const route = useTodayRoute({ vendorId, accessToken });
+  const outcome = useStopOutcome({ vendorId, routeStopId, accessToken });
   const stop = route.findStop(routeStopId);
+  const [actionMode, setActionMode] = useState<ActionMode>('none');
+  const [checkingAuthoritative, setCheckingAuthoritative] = useState(false);
   const [mapsFailed, setMapsFailed] = useState(false);
   const [openingMaps, setOpeningMaps] = useState(false);
   const protectedError = route.errorKind === 'authentication' || route.errorKind === 'forbidden'
-    || route.paginationError === 'authentication' || route.paginationError === 'forbidden';
-  const forbidden = route.errorKind === 'forbidden' || route.paginationError === 'forbidden';
+    || route.paginationError === 'authentication' || route.paginationError === 'forbidden'
+    || outcome.error?.kind === 'authentication' || outcome.error?.kind === 'forbidden';
+  const forbidden = route.errorKind === 'forbidden' || route.paginationError === 'forbidden'
+    || outcome.error?.kind === 'forbidden';
 
   useEffect(() => {
     if (forbidden) void clearVendor().catch(() => {});
@@ -85,6 +97,38 @@ function ReadyStopScreen({ routeStopId, vendorId, accessToken, clearVendor }: Re
       setOpeningMaps(false);
     }
   };
+  const rows = stop.pendingProducts.map((product) => ({
+    id: product.scheduledDeliveryId,
+    version: product.expectedVersion,
+    plannedQuantity: product.plannedQuantity,
+    productName: product.productName,
+    unitName: product.unitName,
+  }));
+  const formProps = {
+    serviceDate: route.serviceDate ?? first.serviceDate,
+    occurredAt: new Date().toISOString(),
+    rows,
+    submitting: outcome.pending,
+    onSubmit: submit,
+  };
+
+  async function submit(body: StopOutcomeRequest) {
+    try {
+      await outcome.submit(body);
+      setActionMode('none');
+      await route.refresh();
+    } catch {
+      // The classified hook state chooses the safe recovery path; never retry here.
+    }
+  }
+
+  async function checkAuthoritativeOutcome() {
+    setCheckingAuthoritative(true);
+    await route.refresh();
+    outcome.reset();
+    setActionMode('none');
+    setCheckingAuthoritative(false);
+  }
 
   return <Screen>
     <BackButton />
@@ -120,7 +164,58 @@ function ReadyStopScreen({ routeStopId, vendorId, accessToken, clearVendor }: Re
         <AppText>{product.plannedQuantity} {product.unitName}</AppText>
       </View>)}
     </View>
+    {stop.blockedByCustomerLeave
+      ? <Banner tone="warning" text="Customer leave · delivery blocked" />
+      : null}
+    {outcome.result
+      ? <Banner tone="success" text="Delivery outcome recorded." />
+      : outcome.requiresAuthoritativeRefetch
+        ? <View style={styles.section}>
+          <Banner tone="warning" text={outcome.error?.kind === 'conflict'
+            ? conflictMessage(outcome.error.code)
+            : 'The server outcome is uncertain. Check before recording anything else.'} />
+          <Button
+            label="Check authoritative outcome"
+            disabled={checkingAuthoritative}
+            onPress={() => void checkAuthoritativeOutcome()}
+          />
+        </View>
+        : stop.pendingProducts.length > 0 && !stop.blockedByCustomerLeave
+          ? <View style={styles.section}>
+            {outcome.error?.kind === 'invalid'
+              ? <Banner tone="error" text="Delivery details were rejected. Review the entries and try again." />
+              : null}
+            {actionMode === 'none' ? <>
+              <Button label="Record delivered" disabled={outcome.pending} onPress={() => setActionMode('delivered')} />
+              <Button label="Customer on leave / Skip delivery" disabled={outcome.pending} onPress={() => setActionMode('skipped_by_agent')} />
+              <Button label="Record missed" disabled={outcome.pending} onPress={() => setActionMode('missed')} />
+            </> : null}
+            {actionMode === 'delivered' ? <DeliveredOutcomeForm {...formProps} /> : null}
+            {actionMode === 'skipped_by_agent'
+              ? <SkipOutcomeForm {...formProps} captureLocationEvidence={stop.captureLocationEvidence} />
+              : null}
+            {actionMode === 'missed'
+              ? <MissedOutcomeForm {...formProps} captureLocationEvidence={stop.captureLocationEvidence} />
+              : null}
+            {actionMode !== 'none'
+              ? <Button label="Cancel" disabled={outcome.pending} onPress={() => setActionMode('none')} />
+              : null}
+          </View>
+          : null}
   </Screen>;
+}
+
+function conflictMessage(code?: string) {
+  switch (code) {
+    case 'INCOMPLETE_STOP_SET':
+      return 'The products for this stop changed on the server.';
+    case 'DELIVERY_ALREADY_FINALIZED':
+      return 'This stop already has a recorded outcome.';
+    case 'CUSTOMER_LEAVE_EFFECTIVE':
+      return 'Customer leave now blocks this delivery.';
+    default:
+      return 'This stop changed on the server.';
+  }
 }
 
 function StopState({ title, body, actionLabel, onAction }: Readonly<{

@@ -1,15 +1,30 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import * as Linking from 'expo-linking';
 import StopRoute from '../../../app/stops/[routeStopId]';
+import { StopOutcomeError } from '@/agent/outcomes/api';
+import type { StopOutcomeResult } from '@/agent/outcomes/types';
+import { useStopOutcome } from '@/agent/outcomes/useStopOutcome';
 import { StopScreen } from '../StopScreen';
 
 const mockBack = jest.fn();
 const loadMore = jest.fn();
 const refresh = jest.fn();
+const submitOutcome = jest.fn();
+const resetOutcome = jest.fn();
+const mockCaptureOptionalLocation = jest.fn();
 const mockClearVendor = jest.fn();
 let mockParams: Record<string, string | string[]> = { routeStopId: 'stop-a' };
 let mockAuth = { accessToken: 'access-token', status: 'authenticated' };
 let mockWorkspace = { status: 'ready', activeVendor: { vendorId: 'vendor-1', vendorName: 'Vendor One' }, clearVendor: mockClearVendor };
+type MockOutcome = ReturnType<typeof useStopOutcome>;
+let mockOutcome: MockOutcome = {
+  submit: submitOutcome,
+  pending: false,
+  result: undefined as StopOutcomeResult | undefined,
+  error: undefined as StopOutcomeError | undefined,
+  requiresAuthoritativeRefetch: false,
+  reset: resetOutcome,
+};
 
 const stop = {
   routeStopId: 'stop-a',
@@ -32,6 +47,25 @@ const stop = {
       deliverySlotStartLocalTime: '06:00', deliverySlotEndLocalTime: '09:00',
     },
   ],
+  pendingProducts: [
+    {
+      scheduledDeliveryId: 'delivery-1',
+      expectedVersion: 3,
+      plannedQuantity: '1.250',
+      productName: 'Full Cream Milk',
+      unitName: 'Litre',
+    },
+    {
+      scheduledDeliveryId: 'delivery-2',
+      expectedVersion: 5,
+      plannedQuantity: '0.500',
+      productName: 'Fresh Curd',
+      unitName: 'Kilogram',
+    },
+  ],
+  completedProducts: [],
+  blockedByCustomerLeave: false,
+  captureLocationEvidence: true,
 };
 
 let mockRoute = {
@@ -48,18 +82,192 @@ jest.mock('expo-linking', () => ({ canOpenURL: jest.fn(), openURL: jest.fn() }))
 jest.mock('@/auth/AuthProvider', () => ({ useAuth: () => mockAuth }));
 jest.mock('@/agent/AgentWorkspaceProvider', () => ({ useAgentWorkspace: () => mockWorkspace }));
 jest.mock('@/agent/useTodayRoute', () => ({ useTodayRoute: () => mockRoute }));
+jest.mock('@/agent/outcomes/useStopOutcome', () => ({ useStopOutcome: jest.fn() }));
+jest.mock('@/agent/outcomes/location', () => ({
+  captureOptionalLocation: (...args: unknown[]) => mockCaptureOptionalLocation(...args),
+}));
 
 beforeEach(() => {
   jest.clearAllMocks();
   mockClearVendor.mockResolvedValue(undefined);
+  submitOutcome.mockResolvedValue({ routeStopId: 'stop-a', outcome: 'delivered', items: [] });
+  mockCaptureOptionalLocation.mockResolvedValue(undefined);
   mockParams = { routeStopId: 'stop-a' };
   mockAuth = { accessToken: 'access-token', status: 'authenticated' };
   mockWorkspace = { status: 'ready', activeVendor: { vendorId: 'vendor-1', vendorName: 'Vendor One' }, clearVendor: mockClearVendor };
+  mockOutcome = {
+    submit: submitOutcome,
+    pending: false,
+    result: undefined,
+    error: undefined,
+    requiresAuthoritativeRefetch: false,
+    reset: resetOutcome,
+  };
+  jest.mocked(useStopOutcome).mockImplementation(() => mockOutcome);
   mockRoute = {
     status: 'success', loading: false, errorKind: undefined, serviceDate: '2026-07-22', model: {} as object | undefined,
     refresh, loadMore, canLoadMore: false, isLoadingMore: false, paginationError: undefined,
     lastRefreshedAt: 1_000, findStop: (routeStopId: string) => routeStopId === stop.routeStopId ? stop : undefined,
   };
+});
+
+it('blocks every outcome action when customer leave is effective', async () => {
+  mockRoute = {
+    ...mockRoute,
+    findStop: () => ({ ...stop, blockedByCustomerLeave: true }),
+  };
+  await render(<StopScreen routeStopId="stop-a" />);
+
+  expect(screen.getByText('Customer leave · delivery blocked')).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Record delivered' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Customer on leave / Skip delivery' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Record missed' })).toBeNull();
+});
+
+it('submits the complete authoritative pending set with edited delivered quantities', async () => {
+  await render(<StopScreen routeStopId="stop-a" />);
+
+  await fireEvent.press(screen.getByRole('button', { name: 'Record delivered' }));
+  expect(screen.getByLabelText('Full Cream Milk quantity in Litre')).toHaveProp('value', '1.250');
+  expect(screen.getByLabelText('Fresh Curd quantity in Kilogram')).toHaveProp('value', '0.500');
+  await fireEvent.changeText(screen.getByLabelText('Fresh Curd quantity in Kilogram'), '0.75');
+  await fireEvent.press(screen.getByRole('button', { name: 'Confirm delivered' }));
+
+  await waitFor(() => expect(submitOutcome).toHaveBeenCalledTimes(1));
+  expect(submitOutcome).toHaveBeenCalledWith({
+    serviceDate: '2026-07-22',
+    occurredAt: expect.any(String),
+    outcome: 'delivered',
+    items: [
+      { scheduledDeliveryId: 'delivery-1', expectedVersion: 3, actualQuantity: '1.250' },
+      { scheduledDeliveryId: 'delivery-2', expectedVersion: 5, actualQuantity: '0.75' },
+    ],
+  });
+  await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+});
+
+it('submits one skip with reason and note even when optional GPS is denied', async () => {
+  await render(<StopScreen routeStopId="stop-a" />);
+
+  await fireEvent.press(screen.getByRole('button', { name: 'Customer on leave / Skip delivery' }));
+  await fireEvent.press(screen.getByRole('button', { name: 'Other' }));
+  await fireEvent.changeText(screen.getByLabelText('Note'), ' Customer not home ');
+  await fireEvent.press(screen.getByRole('button', { name: 'Confirm skip' }));
+
+  await waitFor(() => expect(submitOutcome).toHaveBeenCalledTimes(1));
+  expect(mockCaptureOptionalLocation).toHaveBeenCalledWith(true);
+  expect(submitOutcome).toHaveBeenCalledWith({
+    serviceDate: '2026-07-22',
+    occurredAt: expect.any(String),
+    outcome: 'skipped_by_agent',
+    reasonCode: 'other',
+    note: 'Customer not home',
+    items: [
+      { scheduledDeliveryId: 'delivery-1', expectedVersion: 3 },
+      { scheduledDeliveryId: 'delivery-2', expectedVersion: 5 },
+    ],
+  });
+});
+
+it('opens the missed action and submits its required reason', async () => {
+  await render(<StopScreen routeStopId="stop-a" />);
+
+  await fireEvent.press(screen.getByRole('button', { name: 'Record missed' }));
+  await fireEvent.press(screen.getByRole('button', { name: 'Address not found' }));
+  await fireEvent.press(screen.getByRole('button', { name: 'Confirm missed' }));
+
+  await waitFor(() => expect(submitOutcome).toHaveBeenCalledWith(expect.objectContaining({
+    outcome: 'missed',
+    reasonCode: 'address_not_found',
+  })));
+});
+
+it('disables duplicate submission while the outcome request is pending', async () => {
+  const view = await render(<StopScreen routeStopId="stop-a" />);
+  await fireEvent.press(screen.getByRole('button', { name: 'Record delivered' }));
+
+  mockOutcome = { ...mockOutcome, pending: true };
+  await view.rerender(<StopScreen routeStopId="stop-a" />);
+
+  expect(screen.getByRole('button', { name: 'Confirm delivered' })).toBeDisabled();
+});
+
+it('shows the authoritative success without offering another action', async () => {
+  mockOutcome = {
+    ...mockOutcome,
+    result: { routeStopId: 'stop-a', serviceDate: '2026-07-22', outcome: 'delivered', items: [] },
+  };
+  await render(<StopScreen routeStopId="stop-a" />);
+
+  expect(screen.getByRole('alert')).toHaveTextContent('Delivery outcome recorded.');
+  expect(screen.queryByRole('button', { name: 'Record delivered' })).toBeNull();
+});
+
+it('shows a rejected-input message without inventing an outcome', async () => {
+  mockOutcome = { ...mockOutcome, error: new StopOutcomeError('invalid') };
+  await render(<StopScreen routeStopId="stop-a" />);
+
+  expect(screen.getByRole('alert')).toHaveTextContent('Delivery details were rejected. Review the entries and try again.');
+  expect(screen.getByRole('button', { name: 'Record delivered' })).toBeTruthy();
+});
+
+it('offers no outcome action when the authoritative pending set is empty', async () => {
+  mockRoute = {
+    ...mockRoute,
+    findStop: () => ({ ...stop, pendingProducts: [] }),
+  };
+  await render(<StopScreen routeStopId="stop-a" />);
+
+  expect(screen.queryByRole('button', { name: 'Record delivered' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Record missed' })).toBeNull();
+});
+
+it.each(['authentication', 'forbidden'] as const)(
+  'hides cached stop PII for an outcome %s failure',
+  async (kind) => {
+    mockOutcome = { ...mockOutcome, error: new StopOutcomeError(kind) };
+    await render(<StopScreen routeStopId="stop-a" />);
+
+    expect(screen.getByRole('header', { name: 'Delivery access restricted' })).toBeTruthy();
+    expect(screen.queryByText('Sharma Household')).toBeNull();
+    if (kind === 'forbidden') {
+      await waitFor(() => expect(mockClearVendor).toHaveBeenCalledTimes(1));
+    }
+  },
+);
+
+it.each([
+  ['STALE_VERSION', 'This stop changed on the server.'],
+  ['INCOMPLETE_STOP_SET', 'The products for this stop changed on the server.'],
+  ['DELIVERY_ALREADY_FINALIZED', 'This stop already has a recorded outcome.'],
+  ['CUSTOMER_LEAVE_EFFECTIVE', 'Customer leave now blocks this delivery.'],
+] as const)('shows safe copy for the typed %s conflict', async (code, copy) => {
+  mockOutcome = {
+    ...mockOutcome,
+    error: new StopOutcomeError('conflict', code),
+    requiresAuthoritativeRefetch: true,
+  };
+  await render(<StopScreen routeStopId="stop-a" />);
+
+  expect(screen.getByRole('alert')).toHaveTextContent(copy);
+  expect(screen.getByRole('button', { name: 'Check authoritative outcome' })).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Record delivered' })).toBeNull();
+});
+
+it('refetches instead of resubmitting after an ambiguous response', async () => {
+  mockOutcome = {
+    ...mockOutcome,
+    error: new StopOutcomeError('ambiguous'),
+    requiresAuthoritativeRefetch: true,
+  };
+  await render(<StopScreen routeStopId="stop-a" />);
+
+  expect(screen.getByRole('alert')).toHaveTextContent('The server outcome is uncertain. Check before recording anything else.');
+  await fireEvent.press(screen.getByRole('button', { name: 'Check authoritative outcome' }));
+
+  expect(refresh).toHaveBeenCalledTimes(1);
+  expect(submitOutcome).not.toHaveBeenCalled();
+  await waitFor(() => expect(resetOutcome).toHaveBeenCalledTimes(1));
 });
 
 it('shows the full stop, exact planned products, accessible controls, and map address', async () => {
