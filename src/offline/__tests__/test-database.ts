@@ -16,14 +16,30 @@ declare const process: {
   getBuiltinModule(name: 'node:sqlite'): {
     DatabaseSync: new (path: string) => Database;
   };
+  getBuiltinModule(name: 'node:fs'): {
+    unlinkSync(path: string): void;
+  };
 };
 
 const { DatabaseSync } = process.getBuiltinModule('node:sqlite');
+const { unlinkSync } = process.getBuiltinModule('node:fs');
+
+export function removeTestDatabase(path: string) {
+  try {
+    unlinkSync(path);
+  } catch {
+    // The cleanup is intentionally idempotent for failed setup paths.
+  }
+}
 
 export class TestDatabase {
-  readonly database = new DatabaseSync(':memory:');
+  readonly database: Database;
   exclusiveTransactions = 0;
   executedSql: string[] = [];
+
+  constructor(path = ':memory:') {
+    this.database = new DatabaseSync(path);
+  }
 
   async closeAsync() {
     this.database.close();

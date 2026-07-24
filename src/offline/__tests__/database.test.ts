@@ -2,7 +2,7 @@ import {
   initializeOfflineDatabase,
   OFFLINE_DATABASE_NAME,
 } from '../database';
-import { TestDatabase } from './test-database';
+import { removeTestDatabase, TestDatabase } from './test-database';
 
 describe('offline database V1', () => {
   let db: TestDatabase;
@@ -34,6 +34,30 @@ describe('offline database V1', () => {
     ).resolves.toEqual({ timeout: 5000 });
     expect(db.executedSql[0]).toContain('PRAGMA journal_mode = WAL');
     expect(db.exclusiveTransactions).toBe(1);
+  });
+
+  test('persists the migration and WAL mode across a file-backed reopen', async () => {
+    const path = `/tmp/milktrack-agent-${Date.now()}-${Math.random()}.db`;
+    const first = new TestDatabase(path);
+
+    try {
+      await initializeOfflineDatabase(first);
+      await first.closeAsync();
+
+      const reopened = new TestDatabase(path);
+      await initializeOfflineDatabase(reopened);
+
+      await expect(
+        reopened.getFirstAsync<{ user_version: number }>('PRAGMA user_version'),
+      ).resolves.toEqual({ user_version: 1 });
+      await expect(
+        reopened.getFirstAsync<{ journal_mode: string }>('PRAGMA journal_mode'),
+      ).resolves.toEqual({ journal_mode: 'wal' });
+      expect(reopened.exclusiveTransactions).toBe(0);
+      await reopened.closeAsync();
+    } finally {
+      removeTestDatabase(path);
+    }
   });
 
   test('creates the frozen strict tables, indexes, and triggers', async () => {
