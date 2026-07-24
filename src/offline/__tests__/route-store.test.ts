@@ -158,10 +158,30 @@ describe('route snapshot store', () => {
     });
 
     await expect(
-      deleteRouteSnapshotIfExpiredAndUnreferenced(storeDb, scope, 350),
+      deleteRouteSnapshotIfExpiredAndUnreferenced(storeDb, scope, 299),
     ).resolves.toBe(false);
     await expect(getRouteSnapshot(storeDb, scope)).resolves.not.toBeNull();
   });
+
+  test.each([
+    ['retains immediately before', 119, false],
+    ['deletes exactly at', 120, true],
+  ] as const)(
+    '%s the local retention deadline',
+    async (_behavior, now, expected) => {
+      await replaceRouteSnapshot(storeDb, {
+        ...scope,
+        serviceDate: '2026-07-24',
+        routeSyncId: 'route-sync-1',
+        lease,
+        route,
+      });
+
+      await expect(
+        deleteRouteSnapshotIfExpiredAndUnreferenced(storeDb, scope, now),
+      ).resolves.toBe(expected);
+    },
+  );
 });
 
 async function insertPendingAction(db: TestDatabase, routeSyncId: string) {
