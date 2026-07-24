@@ -1,5 +1,6 @@
 import {
   claimNextAction,
+  deleteExpiredSynced,
   getActionCounts,
   listActions,
   markConflict,
@@ -21,6 +22,7 @@ import {
   type SyncCheckpoint,
 } from './api';
 import { getLeaseFreshness, systemClock, type Clock } from './clock';
+import { deleteRouteSnapshotIfExpiredAndUnreferenced } from './route-store';
 import type { OfflineAccessScope, PendingBlock } from './types';
 
 export type SyncStatus =
@@ -144,7 +146,44 @@ export function createSyncRunner(input: Readonly<{
         await reportCheckpoints();
       }
     } finally {
-      if (status === 'syncing') setStatus('idle');
+      try {
+        await cleanupExpiredLocalData();
+      } finally {
+        if (status === 'syncing') setStatus('idle');
+      }
+    }
+  };
+
+  const cleanupExpiredLocalData = async () => {
+    const now = clock();
+    await deleteExpiredSynced(input.db, input.scope, now);
+    const routeFilter = input.scope.accessMode === 'offline_recovery'
+      ? {
+          sql: 'actor_id = ? AND device_id = ? AND route_sync_id = ?',
+          params: [
+            input.scope.actorId,
+            input.scope.deviceId,
+            input.scope.recoveryRouteSyncId,
+          ],
+        }
+      : {
+          sql: 'actor_id = ? AND device_id = ?',
+          params: [input.scope.actorId, input.scope.deviceId],
+        };
+    const routes = await input.db.getAllAsync<{ vendor_id: string }>(
+      `SELECT vendor_id FROM route_snapshots WHERE ${routeFilter.sql}`,
+      ...routeFilter.params,
+    );
+    for (const route of routes) {
+      await deleteRouteSnapshotIfExpiredAndUnreferenced(
+        input.db,
+        {
+          actorId: input.scope.actorId,
+          deviceId: input.scope.deviceId,
+          vendorId: route.vendor_id,
+        },
+        now,
+      );
     }
   };
 

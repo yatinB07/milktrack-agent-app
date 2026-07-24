@@ -477,6 +477,53 @@ describe('serialized offline synchronization runner', () => {
     });
   });
 
+  test('runs guarded retention after synchronization and removes only expired acknowledged data', async () => {
+    now = 30_000;
+    await insertRouteSnapshot(db);
+    await insertAction(db);
+    const runner = makeRunner({
+      submit: jest.fn().mockResolvedValue(synced('stop-1')),
+    });
+
+    await runner.wake();
+
+    await expect(action()).resolves.toBeNull();
+    await expect(
+      db.getFirstAsync<{ count: number }>(
+        'SELECT COUNT(*) AS count FROM route_snapshots',
+      ),
+    ).resolves.toEqual({ count: 0 });
+  });
+
+  test('retention lifecycle preserves expired retryable actions and their route projection', async () => {
+    now = 30_000;
+    await insertRouteSnapshot(db);
+    await insertAction(db);
+    const runner = makeRunner({
+      submit: jest.fn().mockRejectedValue(
+        new OfflineApiError(
+          503,
+          'UNAVAILABLE',
+          true,
+          'c',
+          undefined,
+          null,
+        ),
+      ),
+    });
+
+    await runner.wake();
+
+    await expect(action()).resolves.toMatchObject({
+      state: 'failed_retryable',
+    });
+    await expect(
+      db.getFirstAsync<{ count: number }>(
+        'SELECT COUNT(*) AS count FROM route_snapshots',
+      ),
+    ).resolves.toEqual({ count: 1 });
+  });
+
   function makeRunner({
     scope = standardScope,
     submit = jest.fn().mockResolvedValue(synced('stop-1')),

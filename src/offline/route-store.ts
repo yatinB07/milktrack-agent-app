@@ -110,7 +110,7 @@ export async function getRouteSnapshot(
 }
 
 export async function deleteRouteSnapshotIfExpiredAndUnreferenced(
-  db: SQLiteDatabase,
+  db: Pick<SQLiteDatabase, 'runAsync'>,
   scope: VendorRouteScope,
   now: number,
 ): Promise<boolean> {
