@@ -132,6 +132,7 @@ function ScopedAgentSyncProvider({
     setStatus(runner.status);
   };
   const syncNow = async () => {
+    await refresh();
     await runner.wake();
     await refresh();
   };

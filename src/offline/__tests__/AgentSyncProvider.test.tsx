@@ -197,6 +197,42 @@ describe('agent synchronization view contract', () => {
     expect(runner.setAccessToken).toHaveBeenLastCalledWith('access-2');
   });
 
+  test('publishes a just-enqueued SQLite snapshot before awaiting network drain', async () => {
+    const network = deferred<void>();
+    const runner = mockRunner();
+    createRunner.mockReturnValue(runner);
+    await render(
+      <AgentSyncProvider
+        scope={{
+          actorId: 'actor-1',
+          deviceId: 'device-1',
+          accessMode: 'standard',
+        }}
+        accessToken="access-1"
+      >
+        <SyncProbe />
+      </AgentSyncProvider>,
+    );
+    await waitFor(() => expect(runner.wake).toHaveBeenCalledTimes(1));
+    runner.getSnapshot.mockResolvedValue({
+      groups: [],
+      actions: [{
+        ...runnerSnapshotAction(),
+        state: 'pending',
+        syncedAtMs: null,
+      }],
+    });
+    runner.wake.mockImplementationOnce(() => network.promise);
+
+    const syncing = currentView().syncNow();
+    await waitFor(() =>
+      expect(currentView().actions[0]?.state).toBe('pending'),
+    );
+
+    network.resolve();
+    await act(async () => syncing);
+  });
+
   test('resets on access-scope change and ignores the old runner completion', async () => {
     const oldWake = deferred<void>();
     const oldRunner = mockRunner({
@@ -286,57 +322,61 @@ function mockRunner({
         },
       ],
       actions: [
-        {
-          actionId: 'action-1',
-          idempotencyKey: 'secret-key',
-          localSequence: 1,
-          actorId: 'actor-1',
-          vendorId: 'vendor-1',
-          deviceId: 'device-1',
-          routeStopId: 'stop-1',
-          serviceDate: '2026-07-24',
-          routeSyncId: 'sync-1',
-          payloadVersion: 1,
-          occurredAt: '2026-07-24T05:30:00.000Z',
-          request: {
-            routeSyncId: 'sync-1',
-            payloadVersion: 1,
-            localSequence: 1,
-            serviceDate: '2026-07-24',
-            occurredAt: '2026-07-24T05:30:00.000Z',
-            outcome: 'delivered',
-            items: [],
-          },
-          display: {
-            routeId: 'route-1',
-            routeName: 'Route One',
-            routeStopId: 'stop-1',
-            sequence: 1,
-            householdName: 'Household One',
-            householdAccountNumber: 'H-1',
-            outcome: 'delivered',
-            plannedItems: [],
-          },
-          leaseServerTimeMs: 1_000,
-          leaseExpiresAtMs: 20_000,
-          leaseSavedAtWallMs: 1_000,
-          retentionDeleteAfterWallMs: 20_000,
-          state: 'synced',
-          blockedReason: null,
-          attemptCount: 1,
-          nextAttemptAtMs: null,
-          lastHttpStatus: null,
-          lastErrorCode: null,
-          lastErrorMessage: null,
-          lastErrorCorrelationId: null,
-          serverResponse: { routeStopId: 'stop-1' },
-          conflictId: null,
-          syncedAtMs: 10_000,
-          createdAtMs: 9_000,
-          updatedAtMs: 10_000,
-        },
+        runnerSnapshotAction(),
       ],
     }),
+  };
+}
+
+function runnerSnapshotAction() {
+  return {
+    actionId: 'action-1',
+    idempotencyKey: 'secret-key',
+    localSequence: 1,
+    actorId: 'actor-1',
+    vendorId: 'vendor-1',
+    deviceId: 'device-1',
+    routeStopId: 'stop-1',
+    serviceDate: '2026-07-24',
+    routeSyncId: 'sync-1',
+    payloadVersion: 1 as const,
+    occurredAt: '2026-07-24T05:30:00.000Z',
+    request: {
+      routeSyncId: 'sync-1',
+      payloadVersion: 1 as const,
+      localSequence: 1,
+      serviceDate: '2026-07-24',
+      occurredAt: '2026-07-24T05:30:00.000Z',
+      outcome: 'delivered' as const,
+      items: [],
+    },
+    display: {
+      routeId: 'route-1',
+      routeName: 'Route One',
+      routeStopId: 'stop-1',
+      sequence: 1,
+      householdName: 'Household One',
+      householdAccountNumber: 'H-1',
+      outcome: 'delivered' as const,
+      plannedItems: [],
+    },
+    leaseServerTimeMs: 1_000,
+    leaseExpiresAtMs: 20_000,
+    leaseSavedAtWallMs: 1_000,
+    retentionDeleteAfterWallMs: 20_000,
+    state: 'synced' as const,
+    blockedReason: null,
+    attemptCount: 1,
+    nextAttemptAtMs: null,
+    lastHttpStatus: null,
+    lastErrorCode: null,
+    lastErrorMessage: null,
+    lastErrorCorrelationId: null,
+    serverResponse: { routeStopId: 'stop-1' },
+    conflictId: null,
+    syncedAtMs: 10_000,
+    createdAtMs: 9_000,
+    updatedAtMs: 10_000,
   };
 }
 

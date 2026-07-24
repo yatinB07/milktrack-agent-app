@@ -6,6 +6,8 @@ const mockPush = jest.fn();
 const mockSignOut = jest.fn();
 let mockActions: { state: string }[] = [];
 let mockActionsHydrated = true;
+const mockCountLogoutBlocking = jest.fn();
+const mockDatabase = { db: true };
 
 jest.mock('expo-router', () => ({
   router: { push: (...args: unknown[]) => mockPush(...args) },
@@ -13,8 +15,17 @@ jest.mock('expo-router', () => ({
 jest.mock('@/auth/AuthProvider', () => ({
   useAuth: () => ({
     actor: { displayName: 'Agent A' },
+    offlineScope: {
+      actorId: 'actor-1',
+      deviceId: 'device-1',
+      accessMode: 'standard',
+    },
     signOut: mockSignOut,
   }),
+}));
+jest.mock('expo-sqlite', () => ({ useSQLiteContext: () => mockDatabase }));
+jest.mock('@/offline/action-store', () => ({
+  countLogoutBlocking: (...args: unknown[]) => mockCountLogoutBlocking(...args),
 }));
 jest.mock('@/agent/AgentWorkspaceProvider', () => ({
   useAgentWorkspace: () => ({
@@ -35,6 +46,23 @@ beforeEach(() => {
   mockActionsHydrated = true;
   mockPush.mockClear();
   mockSignOut.mockClear();
+  mockCountLogoutBlocking.mockResolvedValue(0);
+});
+
+it('rechecks SQLite and blocks sign out when the rendered snapshot is stale', async () => {
+  mockCountLogoutBlocking.mockResolvedValue(1);
+  await render(<AccountScreen />);
+
+  await fireEvent.press(screen.getByRole('button', { name: 'Sign out' }));
+
+  expect(await screen.findByText('Sign out unavailable')).toBeTruthy();
+  expect(screen.getByText('1 unsynchronized action must be synchronized before signing out.')).toBeTruthy();
+  expect(mockCountLogoutBlocking).toHaveBeenCalledWith(mockDatabase, {
+    actorId: 'actor-1',
+    deviceId: 'device-1',
+    accessMode: 'standard',
+  });
+  expect(mockSignOut).not.toHaveBeenCalled();
 });
 
 it('fails closed while scoped actions are hydrating', async () => {
