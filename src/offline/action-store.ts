@@ -116,6 +116,7 @@ type RouteJson = Readonly<{
     householdAccountNumber: string;
     pendingStopItems: readonly Readonly<{
       scheduledDeliveryId: string;
+      expectedVersion: number;
       productName: string;
       unitName: string;
       plannedQuantity: string;
@@ -204,18 +205,24 @@ export async function enqueueAction(
       (delivery) => delivery.routeStopId === input.routeStopId,
     );
     const first = deliveries[0];
-    const requestIds = new Set(
-      input.request.items.map((item) => item.scheduledDeliveryId),
-    );
-    const stopIds = new Set(
-      first?.pendingStopItems.map((item) => item.scheduledDeliveryId),
+    const stopItems = new Map(
+      first?.pendingStopItems.map((item) => [
+        item.scheduledDeliveryId,
+        item.expectedVersion,
+      ]),
     );
     if (
       !first ||
       input.request.serviceDate !== snapshot.service_date ||
       first.serviceDate !== snapshot.service_date ||
-      requestIds.size !== stopIds.size ||
-      [...requestIds].some((id) => !stopIds.has(id))
+      input.request.items.length !== first.pendingStopItems.length ||
+      stopItems.size !== first.pendingStopItems.length ||
+      new Set(input.request.items.map((item) => item.scheduledDeliveryId))
+        .size !== input.request.items.length ||
+      input.request.items.some(
+        (item) =>
+          stopItems.get(item.scheduledDeliveryId) !== item.expectedVersion,
+      )
     ) {
       throw new Error('Action does not match active route');
     }

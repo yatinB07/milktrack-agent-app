@@ -102,9 +102,9 @@ describe('immutable offline action store', () => {
 
   test('rejects missing, stale, service-date-mismatched, and unknown-stop leases before allocation', async () => {
     await expect(
-      enqueueAction(db, actionInput('missing-vendor', 'missing-stop', {
+      enqueueAction(db, actionInput('wrong-vendor', 'stop-1', {
         ...vendorScope,
-        vendorId: 'missing',
+        vendorId: 'vendor-2',
       })),
     ).rejects.toThrow('Active route snapshot unavailable');
     await expect(
@@ -125,6 +125,34 @@ describe('immutable offline action store', () => {
         clock: () => 1_050,
       }),
     ).rejects.toThrow('Active route snapshot is stale');
+
+    await expect(
+      db.getFirstAsync<{ last_value: number }>(
+        'SELECT last_value FROM local_sequence WHERE singleton = 1',
+      ),
+    ).resolves.toEqual({ last_value: 0 });
+  });
+
+  test('rejects duplicate request items and cached version mismatches before allocation', async () => {
+    const request = deliveredRequest();
+    await expect(
+      enqueueAction(db, {
+        ...actionInput('duplicate-items', 'stop-1'),
+        request: {
+          ...request,
+          items: [request.items[0]!, request.items[0]!],
+        },
+      }),
+    ).rejects.toThrow('Action does not match active route');
+    await expect(
+      enqueueAction(db, {
+        ...actionInput('wrong-version', 'stop-1'),
+        request: {
+          ...request,
+          items: [{ ...request.items[0]!, expectedVersion: 2 }],
+        },
+      }),
+    ).rejects.toThrow('Action does not match active route');
 
     await expect(
       db.getFirstAsync<{ last_value: number }>(
@@ -329,6 +357,54 @@ describe('immutable offline action store', () => {
         recoveryRouteSyncId: 'sync-2',
       }, 1_012),
     ).resolves.toMatchObject({ actionId: 'sync-2-action' });
+  });
+
+  test('isolates reads, claims, mutations, counts, logout, and cleanup from a foreign device', async () => {
+    const foreignDeviceScope: OfflineAccessScope = {
+      ...standardScope,
+      deviceId: 'device-2',
+    };
+    await enqueue(db, 'action-1', 'stop-1');
+
+    await expect(
+      getAction(db, foreignDeviceScope, 'action-1'),
+    ).resolves.toBeNull();
+    await expect(listActions(db, foreignDeviceScope)).resolves.toEqual([]);
+    await expect(
+      claimNextAction(db, foreignDeviceScope, 1_000),
+    ).resolves.toBeNull();
+    await expect(
+      getActionCounts(db, foreignDeviceScope),
+    ).resolves.toEqual([]);
+    await expect(
+      countLogoutBlocking(db, foreignDeviceScope),
+    ).resolves.toBe(0);
+
+    await claimNextAction(db, standardScope, 1_000);
+    await expect(
+      recoverSending(db, foreignDeviceScope, 1_001),
+    ).resolves.toBe(0);
+    await expect(
+      markSynced(db, {
+        scope: foreignDeviceScope,
+        actionId: 'action-1',
+        serverResponse: { id: 'foreign' },
+        syncedAtMs: 1_010,
+      }),
+    ).rejects.toThrow('Action state changed or unavailable');
+
+    await markSynced(db, {
+      scope: standardScope,
+      actionId: 'action-1',
+      serverResponse: { id: 'server-event' },
+      syncedAtMs: 1_010,
+    });
+    await expect(
+      deleteExpiredSynced(db, foreignDeviceScope, 1_050),
+    ).resolves.toBe(0);
+    await expect(
+      getAction(db, standardScope, 'action-1'),
+    ).resolves.toMatchObject({ state: 'synced' });
   });
 
   test('returns grouped counts, counts logout blockers, and retries only retryable evidence now', async () => {
