@@ -13,7 +13,10 @@ import type { VendorRouteScope } from '@/offline/types';
 import type { StopOutcomeRequest } from './types';
 
 type StopOutcomeAction = Readonly<
-  Pick<OfflineActionView, 'actionId' | 'localSequence' | 'state'>
+  Pick<
+    OfflineActionView,
+    'actionId' | 'localSequence' | 'state' | 'blockedReason'
+  >
 >;
 
 export function useStopOutcome(input: Readonly<{
@@ -62,6 +65,7 @@ export function useStopOutcome(input: Readonly<{
       });
     },
     pending: mutation.isPending,
+    actionsHydrated: sync.actionsHydrated,
     action: localAction && (
       !providerAction || localAction.localSequence > providerAction.localSequence
     ) ? localAction : providerAction,
@@ -89,11 +93,15 @@ function newestAction(
 }
 
 function toActionView(
-  action: Pick<OfflineAction, 'actionId' | 'localSequence' | 'state'>,
+  action: Pick<
+    OfflineAction,
+    'actionId' | 'localSequence' | 'state' | 'blockedReason'
+  >,
 ): StopOutcomeAction {
   return {
     actionId: action.actionId,
     localSequence: action.localSequence,
     state: action.state,
+    blockedReason: action.blockedReason,
   };
 }

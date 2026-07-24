@@ -84,6 +84,7 @@ beforeEach(() => {
   mockOutcome = {
     submit: submitOutcome,
     pending: false,
+    actionsHydrated: true,
     action: undefined,
     error: undefined,
     reset: resetOutcome,
@@ -189,6 +190,55 @@ it.each([
   expect(screen.getByRole('alert')).toHaveTextContent(copy);
   expect(screen.queryByRole('button', { name: 'Record delivered' })).toBeNull();
   expect(screen.queryByRole('button', { name: 'Record missed' })).toBeNull();
+});
+
+it('suppresses every outcome control until persisted actions are hydrated', async () => {
+  mockOutcome = { ...mockOutcome, actionsHydrated: false };
+  const view = await render(<StopScreen routeStopId="stop-a" />);
+
+  expect(screen.getByRole('alert')).toHaveTextContent(
+    'Checking saved actions on this device before recording a delivery.',
+  );
+  expect(screen.queryByRole('button', { name: 'Record delivered' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Record missed' })).toBeNull();
+
+  mockOutcome = {
+    ...mockOutcome,
+    actionsHydrated: true,
+    action: {
+      actionId: 'persisted-action',
+      localSequence: 1,
+      state: 'pending',
+      blockedReason: null,
+    },
+  };
+  await view.rerender(<StopScreen routeStopId="stop-a" />);
+
+  expect(screen.getByRole('alert')).toHaveTextContent(
+    'Saved on device. Waiting to synchronize.',
+  );
+  expect(screen.queryByRole('button', { name: 'Record delivered' })).toBeNull();
+});
+
+it.each([
+  ['authentication', 'Synchronization paused. Sign in again to send this saved outcome.'],
+  ['authorization', 'Synchronization paused because delivery access was removed. Contact your vendor administrator.'],
+  ['invariant', 'This saved outcome cannot be synchronized automatically. Contact your vendor administrator.'],
+] as const)('renders explicit accessible %s guidance for a blocked action', async (blockedReason, copy) => {
+  mockOutcome = {
+    ...mockOutcome,
+    action: {
+      actionId: 'action-1',
+      localSequence: 1,
+      state: 'pending',
+      blockedReason,
+    },
+  };
+  await render(<StopScreen routeStopId="stop-a" />);
+
+  expect(screen.getByRole('alert')).toHaveTextContent(copy);
+  expect(screen.queryByText('Saved on device. Waiting to synchronize.')).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Record delivered' })).toBeNull();
 });
 
 it('blocks every outcome action when customer leave is effective', async () => {

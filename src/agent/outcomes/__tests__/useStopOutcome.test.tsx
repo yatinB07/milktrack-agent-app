@@ -81,6 +81,7 @@ function action(
 function syncView(actions: readonly OfflineActionView[] = []): AgentSyncView {
   return {
     status: 'idle',
+    actionsHydrated: true,
     groups: [],
     actions,
     getAction: jest.fn(),
@@ -148,7 +149,7 @@ it('durably enqueues one immutable submission before waking the shared runner', 
 it('uses only the newest matching action from the current safe provider view', async () => {
   jest.mocked(useAgentSync).mockReturnValue(syncView([
     action('older', 1, 'pending'),
-    action('newest', 4, 'synced'),
+    { ...action('newest', 4, 'pending'), blockedReason: 'authorization' },
     action('foreign-vendor', 9, 'conflict', 'vendor-b'),
     action('foreign-stop', 10, 'failed_retryable', 'vendor-a', 'stop-b'),
   ]));
@@ -158,8 +159,21 @@ it('uses only the newest matching action from the current safe provider view', a
   expect(result.current.action).toEqual({
     actionId: 'newest',
     localSequence: 4,
-    state: 'synced',
+    state: 'pending',
+    blockedReason: 'authorization',
   });
+});
+
+it('reports provider hydration before treating an empty safe action view as authoritative', async () => {
+  jest.mocked(useAgentSync).mockReturnValue({
+    ...syncView(),
+    actionsHydrated: false,
+  });
+
+  const { result } = await setup();
+
+  expect(result.current.actionsHydrated).toBe(false);
+  expect(result.current.action).toBeUndefined();
 });
 
 it('does not retry a failed local insert or wake the network runner', async () => {

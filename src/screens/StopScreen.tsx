@@ -175,8 +175,15 @@ function ReadyStopScreen({ routeStopId, vendorId, accessToken, actorId, deviceId
     {stop.blockedByCustomerLeave
       ? <Banner tone="warning" text="Customer leave · delivery blocked" />
       : null}
-    {outcome.action
-      ? <Banner tone={outcome.action.state === 'synced' ? 'success' : 'warning'} text={actionMessage(outcome.action.state)} />
+    {!outcome.actionsHydrated
+      ? <Banner tone="warning" text="Checking saved actions on this device before recording a delivery." />
+      : outcome.action
+      ? <Banner
+          tone={outcome.action.blockedReason
+            ? 'error'
+            : outcome.action.state === 'synced' ? 'success' : 'warning'}
+          text={actionMessage(outcome.action)}
+        />
       : route.freshness !== 'fresh'
         ? <View style={styles.section}>
           <Banner tone="warning" text={freshnessMessage(route.freshness)} />
@@ -207,11 +214,23 @@ function ReadyStopScreen({ routeStopId, vendorId, accessToken, actorId, deviceId
   </Screen>;
 }
 
-function actionMessage(state: 'pending' | 'sending' | 'synced' | 'failed_retryable' | 'conflict') {
-  if (state === 'pending') return 'Saved on device. Waiting to synchronize.';
-  if (state === 'sending') return 'Sending delivery outcome to MilkTrack.';
-  if (state === 'failed_retryable') return 'Synchronization needs retry. Open Synchronization for details.';
-  if (state === 'conflict') return 'Vendor review required. The saved outcome cannot be changed here.';
+function actionMessage(action: Readonly<{
+  state: 'pending' | 'sending' | 'synced' | 'failed_retryable' | 'conflict';
+  blockedReason: 'authentication' | 'authorization' | 'invariant' | null;
+}>) {
+  if (action.blockedReason === 'authentication') {
+    return 'Synchronization paused. Sign in again to send this saved outcome.';
+  }
+  if (action.blockedReason === 'authorization') {
+    return 'Synchronization paused because delivery access was removed. Contact your vendor administrator.';
+  }
+  if (action.blockedReason === 'invariant') {
+    return 'This saved outcome cannot be synchronized automatically. Contact your vendor administrator.';
+  }
+  if (action.state === 'pending') return 'Saved on device. Waiting to synchronize.';
+  if (action.state === 'sending') return 'Sending delivery outcome to MilkTrack.';
+  if (action.state === 'failed_retryable') return 'Synchronization needs retry. Open Synchronization for details.';
+  if (action.state === 'conflict') return 'Vendor review required. The saved outcome cannot be changed here.';
   return 'Delivery outcome synchronized.';
 }
 
