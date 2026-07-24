@@ -1,6 +1,6 @@
 import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useAgentWorkspace } from '@/agent/AgentWorkspaceProvider';
 import { DeliveredOutcomeForm } from '@/agent/outcomes/DeliveredOutcomeForm';
@@ -28,47 +28,61 @@ export function StopScreen({ routeStopId }: Readonly<{ routeStopId: string }>) {
   if (auth.status !== 'authenticated' || !auth.accessToken) {
     return <StopState title="Delivery access restricted" body="Sign in with an active delivery-agent account to view this stop." />;
   }
+  if (auth.actor?.accessMode === 'offline_recovery') {
+    return <StopState title="Outcome entry unavailable" body="Finish synchronization recovery before recording a delivery outcome." />;
+  }
+  if (
+    !auth.actor
+    || !auth.deviceId
+    || auth.offlineScope?.accessMode !== 'standard'
+    || auth.offlineScope.actorId !== auth.actor.userId
+    || auth.offlineScope.deviceId !== auth.deviceId
+  ) {
+    return <StopState title="Delivery access restricted" body="The authenticated device scope is unavailable. Sign in again before recording a delivery outcome." />;
+  }
   if (workspace.status !== 'ready' || !workspace.activeVendor) {
     return <StopState title="Delivery workspace unavailable" body="Choose an active delivery workspace before viewing this stop." />;
   }
 
-  return <ReadyStopScreen routeStopId={routeStopId} vendorId={workspace.activeVendor.vendorId} accessToken={auth.accessToken} clearVendor={workspace.clearVendor} />;
+  return <ReadyStopScreen
+    routeStopId={routeStopId}
+    vendorId={workspace.activeVendor.vendorId}
+    accessToken={auth.accessToken}
+    actorId={auth.actor.userId}
+    deviceId={auth.deviceId}
+    clearVendor={workspace.clearVendor}
+  />;
 }
 
-function ReadyStopScreen({ routeStopId, vendorId, accessToken, clearVendor }: Readonly<{
+function ReadyStopScreen({ routeStopId, vendorId, accessToken, actorId, deviceId, clearVendor }: Readonly<{
   routeStopId: string;
   vendorId: string;
   accessToken: string;
+  actorId: string;
+  deviceId: string;
   clearVendor(): Promise<void>;
 }>) {
-  const route = useTodayRoute({ vendorId, accessToken });
-  const outcome = useStopOutcome({ vendorId, routeStopId, accessToken });
+  const route = useTodayRoute({
+    actorId,
+    vendorId,
+    accessToken,
+    accessMode: 'standard',
+  });
+  const outcome = useStopOutcome({
+    scope: { actorId, deviceId, vendorId },
+    routeStopId,
+  });
   const stop = route.findStop(routeStopId);
   const [actionMode, setActionMode] = useState<ActionMode>('none');
-  const authoritativeBaseline = useRef<number | null>(null);
-  const [checkingAuthoritative, setCheckingAuthoritative] = useState(false);
   const [mapsFailed, setMapsFailed] = useState(false);
   const [openingMaps, setOpeningMaps] = useState(false);
-  const protectedError = route.errorKind === 'authentication' || route.errorKind === 'forbidden'
-    || route.paginationError === 'authentication' || route.paginationError === 'forbidden'
-    || outcome.error?.kind === 'authentication' || outcome.error?.kind === 'forbidden';
-  const forbidden = route.errorKind === 'forbidden' || route.paginationError === 'forbidden'
-    || outcome.error?.kind === 'forbidden';
+  const protectedError = route.errorKind === 'authentication'
+    || route.errorKind === 'forbidden';
+  const forbidden = route.errorKind === 'forbidden';
 
   useEffect(() => {
     if (forbidden) void clearVendor().catch(() => {});
   }, [clearVendor, forbidden]);
-
-  useEffect(() => {
-    if (
-      authoritativeBaseline.current === null
-      || route.status !== 'success'
-      || !route.lastRefreshedAt
-      || route.lastRefreshedAt <= authoritativeBaseline.current
-    ) return;
-    authoritativeBaseline.current = null;
-    outcome.reset();
-  }, [outcome, route.lastRefreshedAt, route.status]);
 
   if (protectedError) {
     return <StopState title="Delivery access restricted" body="This stop cannot be shown with the current delivery-agent access." />;
@@ -78,15 +92,6 @@ function ReadyStopScreen({ routeStopId, vendorId, accessToken, clearVendor }: Re
   }
   if (!stop && route.status === 'error') {
     return <StopState title="Route data unavailable" body="The stop could not be loaded. Your session and saved route data are unchanged." actionLabel="Retry route data" onAction={() => void route.refresh()} />;
-  }
-  if (!stop && route.canLoadMore) {
-    return <Screen>
-      <BackButton />
-      <AppText accessibilityRole="header" variant="h1">Stop not loaded yet</AppText>
-      <AppText>More pages remain in today’s route.</AppText>
-      {route.paginationError ? <Banner tone="error" text="More route data could not be loaded. Try again." /> : null}
-      <Button label="Load more route data" disabled={route.isLoadingMore} onPress={() => void route.loadMore()} />
-    </Screen>;
   }
   if (!stop || stop.products.length === 0) {
     return <StopState title="Stop no longer available" body="This stop is not present in the loaded route." />;
@@ -128,18 +133,9 @@ function ReadyStopScreen({ routeStopId, vendorId, accessToken, clearVendor }: Re
     try {
       await outcome.submit(body);
       setActionMode('none');
-      await route.refresh();
     } catch {
-      // The classified hook state chooses the safe recovery path; never retry here.
+      // The durable hook exposes a retry-safe local error without resubmitting.
     }
-  }
-
-  async function checkAuthoritativeOutcome() {
-    authoritativeBaseline.current = route.lastRefreshedAt ?? 0;
-    setActionMode('none');
-    setCheckingAuthoritative(true);
-    await route.refresh();
-    setCheckingAuthoritative(false);
   }
 
   return <Screen>
@@ -179,23 +175,17 @@ function ReadyStopScreen({ routeStopId, vendorId, accessToken, clearVendor }: Re
     {stop.blockedByCustomerLeave
       ? <Banner tone="warning" text="Customer leave · delivery blocked" />
       : null}
-    {outcome.result
-      ? <Banner tone="success" text="Delivery outcome recorded." />
-      : outcome.requiresAuthoritativeRefetch
+    {outcome.action
+      ? <Banner tone={outcome.action.state === 'synced' ? 'success' : 'warning'} text={actionMessage(outcome.action.state)} />
+      : route.freshness !== 'fresh'
         ? <View style={styles.section}>
-          <Banner tone="warning" text={outcome.error?.kind === 'conflict'
-            ? conflictMessage(outcome.error.code)
-            : 'The server outcome is uncertain. Check before recording anything else.'} />
-          <Button
-            label="Check authoritative outcome"
-            disabled={checkingAuthoritative}
-            onPress={() => void checkAuthoritativeOutcome()}
-          />
+          <Banner tone="warning" text={freshnessMessage(route.freshness)} />
+          <Button label="Refresh route" disabled={route.isRefreshing} onPress={() => void route.refresh()} />
         </View>
         : stop.pendingProducts.length > 0 && !stop.blockedByCustomerLeave
           ? <View style={styles.section}>
-            {outcome.error?.kind === 'invalid'
-              ? <Banner tone="error" text="Delivery details were rejected. Review the entries and try again." />
+            {outcome.error
+              ? <Banner tone="error" text="The outcome could not be saved on this device. Refresh the route and try again." />
               : null}
             {actionMode === 'none' ? <>
               <Button label="Record delivered" disabled={outcome.pending} onPress={() => setActionMode('delivered')} />
@@ -217,17 +207,18 @@ function ReadyStopScreen({ routeStopId, vendorId, accessToken, clearVendor }: Re
   </Screen>;
 }
 
-function conflictMessage(code?: string) {
-  switch (code) {
-    case 'INCOMPLETE_STOP_SET':
-      return 'The products for this stop changed on the server.';
-    case 'DELIVERY_ALREADY_FINALIZED':
-      return 'This stop already has a recorded outcome.';
-    case 'CUSTOMER_LEAVE_EFFECTIVE':
-      return 'Customer leave now blocks this delivery.';
-    default:
-      return 'This stop changed on the server.';
-  }
+function actionMessage(state: 'pending' | 'sending' | 'synced' | 'failed_retryable' | 'conflict') {
+  if (state === 'pending') return 'Saved on device. Waiting to synchronize.';
+  if (state === 'sending') return 'Sending delivery outcome to MilkTrack.';
+  if (state === 'failed_retryable') return 'Synchronization needs retry. Open Synchronization for details.';
+  if (state === 'conflict') return 'Vendor review required. The saved outcome cannot be changed here.';
+  return 'Delivery outcome synchronized.';
+}
+
+function freshnessMessage(freshness: 'stale' | 'clock_rollback' | 'missing') {
+  if (freshness === 'stale') return 'Route expired. Refresh before recording a delivery.';
+  if (freshness === 'clock_rollback') return 'Device time changed. Refresh the route before recording a delivery.';
+  return 'No saved route is available. Connect and refresh before recording a delivery.';
 }
 
 function StopState({ title, body, actionLabel, onAction }: Readonly<{
