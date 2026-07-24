@@ -4,11 +4,16 @@ import { router } from 'expo-router';
 import { useAgentWorkspace } from '@/agent/AgentWorkspaceProvider';
 import { useTodayRoute } from '@/agent/useTodayRoute';
 import { useAuth } from '@/auth/AuthProvider';
+import {
+  useAgentSync,
+  type OfflineActionView,
+} from '@/offline/AgentSyncProvider';
 import { RouteScreen } from '../RouteScreen';
 
 jest.mock('@/agent/useTodayRoute');
 jest.mock('@/agent/AgentWorkspaceProvider');
 jest.mock('@/auth/AuthProvider');
+jest.mock('@/offline/AgentSyncProvider');
 jest.mock('@react-native-community/netinfo');
 jest.mock('@/components/ConnectivityBanner', () => {
   const { Text } = jest.requireActual('react-native');
@@ -105,6 +110,51 @@ const savedRoute = {
   findStop: jest.fn(),
 };
 
+function localAction(
+  state: OfflineActionView['state'],
+  localSequence = 1,
+): OfflineActionView {
+  return {
+    actionId: `action-${localSequence}`,
+    localSequence,
+    vendorId: 'vendor-1',
+    routeStopId: 'stop-1',
+    serviceDate: '2026-07-24',
+    routeSyncId: 'sync-1',
+    occurredAt: '2026-07-24T06:30:00.000Z',
+    request: {
+      routeSyncId: 'sync-1',
+      payloadVersion: 1,
+      localSequence,
+      serviceDate: '2026-07-24',
+      occurredAt: '2026-07-24T06:30:00.000Z',
+      outcome: 'delivered',
+      items: [],
+    },
+    display: {
+      routeId: 'route-1',
+      routeName: 'North',
+      routeStopId: 'stop-1',
+      sequence: 1,
+      householdName: 'Patel Home',
+      householdAccountNumber: 'H-1',
+      outcome: 'delivered',
+      plannedItems: [],
+    },
+    state,
+    blockedReason: null,
+    attemptCount: 1,
+    nextAttemptAtMs: null,
+    lastHttpStatus: null,
+    lastErrorCode: null,
+    lastErrorMessage: null,
+    lastErrorCorrelationId: null,
+    serverResponse: null,
+    conflictId: state === 'conflict' ? 'conflict-1' : null,
+    syncedAtMs: state === 'synced' ? 1 : null,
+  };
+}
+
 beforeEach(() => {
   jest.clearAllMocks();
   jest.mocked(useAuth).mockReturnValue({
@@ -140,6 +190,15 @@ beforeEach(() => {
   });
   jest.mocked(useNetInfo).mockReturnValue({ isConnected: true } as ReturnType<typeof useNetInfo>);
   jest.mocked(useTodayRoute).mockReturnValue(savedRoute);
+  jest.mocked(useAgentSync).mockReturnValue({
+    status: 'idle',
+    actionsHydrated: true,
+    groups: [],
+    actions: [],
+    getAction: jest.fn(),
+    syncNow: jest.fn(),
+    retryNow: jest.fn(),
+  });
 });
 
 test('renders the complete fresh route from device storage', async () => {
@@ -204,6 +263,35 @@ test('retains a saved route and reports refresh failure', async () => {
   expect(screen.getByText('Could not refresh the route. Showing saved route data.')).toBeTruthy();
   expect(screen.getByText('1. Patel Home · H-1')).toBeTruthy();
 });
+
+test.each([
+  ['pending', 'Saved on device. Waiting to synchronize.'],
+  ['sending', 'Sending delivery outcome to MilkTrack.'],
+  ['failed_retryable', 'Synchronization needs retry.'],
+  ['conflict', 'Vendor review required.'],
+  ['synced', 'Delivery outcome synchronized.'],
+] as const)(
+  'overlays the newest local %s action on route status and progress',
+  async (state, message) => {
+    jest.mocked(useAgentSync).mockReturnValue({
+      status: 'idle',
+      actionsHydrated: true,
+      groups: [],
+      actions: [
+        localAction('pending', 1),
+        localAction(state, 2),
+      ],
+      getAction: jest.fn(),
+      syncNow: jest.fn(),
+      retryNow: jest.fn(),
+    });
+
+    await render(<RouteScreen />);
+
+    expect(screen.getByText('Progress: 1 of 1 stops complete')).toBeTruthy();
+    expect(screen.getByText(message)).toBeTruthy();
+  },
+);
 
 test('hides saved route PII after protected access fails', async () => {
   jest.mocked(useTodayRoute).mockReturnValue({

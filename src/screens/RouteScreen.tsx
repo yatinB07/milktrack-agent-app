@@ -13,6 +13,10 @@ import { Button } from '@/components/Button';
 import { ConnectivityBanner } from '@/components/ConnectivityBanner';
 import { Screen } from '@/components/Screen';
 import { StateMessage } from '@/components/StateMessage';
+import {
+  useAgentSync,
+  type OfflineActionView,
+} from '@/offline/AgentSyncProvider';
 import { colors, radii, spacing } from '@/theme/tokens';
 
 export function RouteScreen() {
@@ -49,14 +53,19 @@ function ActiveRouteScreen({ accessMode, accessToken, actorId, agentName, vendor
   retrySession(): Promise<void>;
 }>) {
   const route = useTodayRoute({ actorId, vendorId, accessToken, accessMode });
+  const sync = useAgentSync();
   const netInfo = useNetInfo();
   const sections = route.model?.assignments.map((group) => ({
     group,
     data: group.stops,
   })) ?? [];
   const stopCount = sections.reduce((count, section) => count + section.data.length, 0);
+  const actionByStop = newestActionsByStop(sync.actions, vendorId);
   const completedStops = sections.reduce(
-    (count, section) => count + section.data.filter((stop) => stop.pendingProducts.length === 0).length,
+    (count, section) => count + section.data.filter(
+      (stop) =>
+        stop.pendingProducts.length === 0 || actionByStop.has(stop.routeStopId),
+    ).length,
     0,
   );
   const offline = netInfo.isConnected === false;
@@ -131,7 +140,7 @@ function ActiveRouteScreen({ accessMode, accessToken, actorId, agentName, vendor
     </View>}
     refreshControl={<RefreshControl refreshing={route.isRefreshing} onRefresh={() => void route.refresh()} />}
     renderSectionHeader={({ section }) => <AssignmentHeader group={section.group} />}
-    renderItem={({ item }) => <StopRow stop={item} />}
+    renderItem={({ item }) => <StopRow stop={item} action={actionByStop.get(item.routeStopId)} />}
   /></SafeAreaView>;
 }
 
@@ -142,12 +151,17 @@ function AssignmentHeader({ group: { assignment } }: Readonly<{ group: TodayRout
   </View>;
 }
 
-function StopRow({ stop }: Readonly<{ stop: TodayRouteStop }>) {
+function StopRow({ stop, action }: Readonly<{
+  stop: TodayRouteStop;
+  action?: OfflineActionView;
+}>) {
   const first = stop.products[0];
   if (!first) return null;
   const address = [first.addressLine1, first.addressLine2, first.locality, first.city].filter(Boolean).join(', ');
   const products = stop.products.map((product) => `${product.plannedQuantity} ${product.unitName}, ${product.productName}`).join('. ');
-  const outcome = stop.blockedByCustomerLeave
+  const outcome = action
+    ? localActionMessage(action)
+    : stop.blockedByCustomerLeave
     ? 'Customer leave, delivery blocked'
     : stop.currentOutcome ? `Outcome: ${stop.currentOutcome}` : undefined;
   const label = [`Stop ${stop.sequence}, ${first.householdName}, ${first.householdAccountNumber}`, address, products, outcome].filter(Boolean).join('. ') + '.';
@@ -163,10 +177,54 @@ function StopRow({ stop }: Readonly<{ stop: TodayRouteStop }>) {
     <AppText variant="h3">{`${stop.sequence}. ${first.householdName} · ${first.householdAccountNumber}`}</AppText>
     <AppText>{address}</AppText>
     {stop.products.map((product) => <AppText key={product.id}>{`${product.plannedQuantity} ${product.unitName} · ${product.productName}`}</AppText>)}
-    {stop.blockedByCustomerLeave
+    {action
+      ? <AppText>{localActionMessage(action)}</AppText>
+      : stop.blockedByCustomerLeave
       ? <AppText>Customer leave · delivery blocked</AppText>
       : stop.currentOutcome ? <AppText>Outcome: {stop.currentOutcome}</AppText> : null}
   </Pressable>;
+}
+
+function newestActionsByStop(
+  actions: readonly OfflineActionView[],
+  vendorId: string,
+) {
+  const newest = new Map<string, OfflineActionView>();
+  for (const action of actions) {
+    const current = newest.get(action.routeStopId);
+    if (
+      action.vendorId === vendorId
+      && (!current || action.localSequence > current.localSequence)
+    ) {
+      newest.set(action.routeStopId, action);
+    }
+  }
+  return newest;
+}
+
+function localActionMessage(action: OfflineActionView) {
+  if (action.blockedReason === 'authentication') {
+    return 'Saved on device. Sign in again to synchronize.';
+  }
+  if (action.blockedReason === 'authorization') {
+    return 'Saved on device. Delivery access changed; recovery is required.';
+  }
+  if (action.blockedReason === 'invariant') {
+    return 'Saved on device. Contact your vendor administrator.';
+  }
+  if (action.state === 'pending') {
+    return 'Saved on device. Waiting to synchronize.';
+  }
+  if (action.state === 'sending') {
+    return 'Sending delivery outcome to MilkTrack.';
+  }
+  if (action.state === 'failed_retryable') {
+    return 'Synchronization needs retry.';
+  }
+  if (action.state === 'conflict') {
+    return 'Vendor review required.';
+  }
+  return 'Delivery outcome synchronized.';
 }
 
 function StatusScreen({ title, body, onRetry }: Readonly<{ title: string; body: string; onRetry?: () => Promise<void> }>) {
