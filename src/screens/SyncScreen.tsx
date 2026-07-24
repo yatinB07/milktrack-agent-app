@@ -1,13 +1,77 @@
+import { StyleSheet, View } from 'react-native';
+
+import { useAgentWorkspace } from '@/agent/AgentWorkspaceProvider';
+import type { SyncVendorGroup } from '@/offline/AgentSyncProvider';
+import { useAgentSync } from '@/offline/AgentSyncProvider';
 import { AppText } from '@/components/AppText';
-import { Banner } from '@/components/Banner';
+import { Button } from '@/components/Button';
 import { ConnectivityBanner } from '@/components/ConnectivityBanner';
 import { Screen } from '@/components/Screen';
-import { StateMessage } from '@/components/StateMessage';
-import { useAuth } from '@/auth/AuthProvider';
+import { colors, radii, spacing } from '@/theme/tokens';
+
+const syncStatus = {
+  idle: 'Ready to sync',
+  syncing: 'Synchronizing',
+  paused_authentication: 'Paused — sign in required',
+  paused_authorization: 'Paused — access required',
+} as const;
 
 export function SyncScreen() {
-  const { retrySession, status } = useAuth();
-  if (status === 'service-unavailable') return <Screen><AppText variant="h1">Sync</AppText><ConnectivityBanner /><StateMessage title="Synchronization unavailable" body="MilkTrack could not confirm synchronization status." actionLabel="Retry" onAction={() => void retrySession()} /></Screen>;
-  if (status !== 'authenticated') return <Screen><AppText variant="h1">Sync</AppText><StateMessage title="Access unavailable" body="An active delivery-agent assignment is required before synchronization." actionLabel="Retry" onAction={() => void retrySession()} /></Screen>;
-  return <Screen><AppText variant="h1">Sync</AppText><ConnectivityBanner /><Banner tone="info" text="All changes synchronized" /><StateMessage title="Nothing pending" body="No delivery actions are waiting to synchronize." actionLabel="Check connection" onAction={() => void retrySession()} /></Screen>;
+  const sync = useAgentSync();
+  const workspace = useAgentWorkspace();
+  const groups = [...sync.groups].sort((left, right) =>
+    left.vendorId.localeCompare(right.vendorId),
+  );
+
+  return <Screen>
+    <AppText accessibilityRole="header" variant="h1">Synchronization</AppText>
+    <ConnectivityBanner />
+    <AppText accessibilityLiveRegion="polite">Sync status: {syncStatus[sync.status]}</AppText>
+    <AppText accessibilityLabel="Synchronization queue changed" accessibilityLiveRegion="polite">
+      {groups.length === 0 ? 'No saved synchronization actions.' : `${groups.length} vendor synchronization queues.`}
+    </AppText>
+    <Button label="Sync now" onPress={() => void sync.syncNow()} />
+    {groups.map((group) => <VendorQueue
+      key={group.vendorId}
+      group={group}
+      vendorName={workspace.activeVendor?.vendorId === group.vendorId
+        ? workspace.activeVendor.vendorName
+        : undefined}
+    />)}
+  </Screen>;
 }
+
+function VendorQueue({ group, vendorName }: Readonly<{
+  group: SyncVendorGroup;
+  vendorName?: string;
+}>) {
+  return <View style={styles.group}>
+    <AppText accessibilityRole="header" variant="h2">{vendorName ?? 'Vendor workspace unavailable'}</AppText>
+    <AppText>Queue: {group.pending} Saved on device · {group.sending} Sending · {group.synced} Sent to MilkTrack · {group.failedRetryable} Needs retry · {group.conflict} Vendor review required</AppText>
+    <AppText>Route freshness: {freshnessLabel(group.routeFreshness)}</AppText>
+    <AppText>Oldest queued: {formatTime(group.oldestPendingAtMs)}</AppText>
+    <AppText>Last reported route: {formatTime(group.lastRouteSyncAtMs)}</AppText>
+    <AppText>Last reported action: {formatTime(group.lastActionSyncAtMs)}</AppText>
+  </View>;
+}
+
+function freshnessLabel(freshness: SyncVendorGroup['routeFreshness']) {
+  if (freshness === 'fresh') return 'Fresh';
+  if (freshness === 'stale') return 'Stale';
+  return 'Unavailable';
+}
+
+function formatTime(value: number | null) {
+  return value === null ? 'Unavailable' : new Date(value).toLocaleString();
+}
+
+const styles = StyleSheet.create({
+  group: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.panel,
+    borderWidth: 1,
+    gap: spacing.sm,
+    padding: spacing.lg,
+  },
+});
