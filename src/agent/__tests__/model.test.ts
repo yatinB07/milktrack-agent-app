@@ -6,7 +6,7 @@ type Delivery = AgentScheduledDeliveryPage['items'][number];
 
 function assignment(id: string): Assignment {
   return {
-    id, routeId: `route-${id}`, deliverySlotId: `slot-${id}`, agentMembershipId: 'agent-1', serviceDate: '2026-07-22', status: 'assigned',
+    id, routeId: `route-${id}`, routeVersion: 1, deliverySlotId: `slot-${id}`, agentMembershipId: 'agent-1', serviceDate: '2026-07-22', status: 'assigned',
     createdAt: '2026-07-22T00:00:00.000Z', updatedAt: '2026-07-22T00:00:00.000Z', routeCode: id.toUpperCase(), routeName: `Route ${id}`,
     deliverySlotName: 'Morning', deliverySlotStartLocalTime: '06:00', deliverySlotEndLocalTime: '09:00',
   };

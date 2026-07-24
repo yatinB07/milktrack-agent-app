@@ -131,6 +131,10 @@
           "routeName": {
             "type": "string"
           },
+          "routeVersion": {
+            "minimum": 1,
+            "type": "number"
+          },
           "serviceDate": {
             "format": "date",
             "type": "string"
@@ -150,6 +154,7 @@
         "required": [
           "id",
           "routeId",
+          "routeVersion",
           "deliverySlotId",
           "agentMembershipId",
           "serviceDate",
@@ -567,6 +572,77 @@
         ],
         "type": "object"
       },
+      "AuthoritativeSyncConflictDeliveryResponseDto": {
+        "properties": {
+          "actualQuantity": {
+            "pattern": "^(?!0(?:\\.0+)?$)(?:0|[1-9]\\d*)(?:\\.\\d{1,3})?$",
+            "type": "string"
+          },
+          "currentStatus": {
+            "enum": [
+              "scheduled",
+              "cancelled",
+              "delivered",
+              "skipped_by_customer",
+              "skipped_by_agent",
+              "missed"
+            ],
+            "type": "string"
+          },
+          "scheduledDeliveryId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "system",
+              "customer",
+              "delivery_agent",
+              "vendor_admin"
+            ],
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "type": "number"
+          }
+        },
+        "required": [
+          "scheduledDeliveryId",
+          "currentStatus",
+          "version"
+        ],
+        "type": "object"
+      },
+      "AuthoritativeSyncConflictSnapshotResponseDto": {
+        "properties": {
+          "conflictCode": {
+            "type": "string"
+          },
+          "deliveries": {
+            "items": {
+              "$ref": "#/components/schemas/AuthoritativeSyncConflictDeliveryResponseDto"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "routeStopId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "serviceDate": {
+            "format": "date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "conflictCode",
+          "routeStopId",
+          "serviceDate",
+          "deliveries"
+        ],
+        "type": "object"
+      },
       "CancelCustomerLeaveRequestDto": {
         "properties": {
           "expectedVersion": {
@@ -640,6 +716,36 @@
           "vendorId",
           "userId",
           "membershipId"
+        ],
+        "type": "object"
+      },
+      "ConflictCorrectionItemDto": {
+        "properties": {
+          "actualQuantity": {
+            "pattern": "^(?!0(?:\\.0+)?$)(?:0|[1-9]\\d*)(?:\\.\\d{1,3})?$",
+            "type": "string"
+          },
+          "expectedVersion": {
+            "minimum": 1,
+            "type": "number"
+          },
+          "replacementOutcome": {
+            "enum": [
+              "delivered",
+              "skipped_by_agent",
+              "missed"
+            ],
+            "type": "string"
+          },
+          "scheduledDeliveryId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "scheduledDeliveryId",
+          "expectedVersion",
+          "replacementOutcome"
         ],
         "type": "object"
       },
@@ -942,6 +1048,25 @@
         ],
         "type": "object"
       },
+      "CreateRouteSyncRequestDto": {
+        "properties": {
+          "routes": {
+            "items": {
+              "$ref": "#/components/schemas/RouteVersionDto"
+            },
+            "type": "array"
+          },
+          "serviceDate": {
+            "format": "date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "serviceDate",
+          "routes"
+        ],
+        "type": "object"
+      },
       "CreateSubscriptionRequestDto": {
         "properties": {
           "deliverySlotId": {
@@ -1066,6 +1191,13 @@
       },
       "CurrentActorResponseDto": {
         "properties": {
+          "accessMode": {
+            "enum": [
+              "standard",
+              "offline_recovery"
+            ],
+            "type": "string"
+          },
           "displayName": {
             "type": "string"
           },
@@ -1086,6 +1218,10 @@
             },
             "type": "array"
           },
+          "recoveryRouteSyncId": {
+            "format": "uuid",
+            "type": "string"
+          },
           "sessionId": {
             "format": "uuid",
             "type": "string"
@@ -1100,7 +1236,8 @@
           "displayName",
           "platformRoles",
           "memberships",
-          "sessionId"
+          "sessionId",
+          "accessMode"
         ],
         "type": "object"
       },
@@ -2983,6 +3120,70 @@
         ],
         "type": "object"
       },
+      "OfflineOutcomeConflictResponseDto": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "conflictId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "conflictStatus": {
+            "enum": [
+              "pending"
+            ],
+            "type": "string"
+          },
+          "correlationId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "retryable": {
+            "enum": [
+              false
+            ],
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "retryable",
+          "correlationId",
+          "conflictId",
+          "conflictStatus"
+        ],
+        "type": "object"
+      },
+      "OfflineOutcomeEnvelopeDto": {
+        "properties": {
+          "localSequence": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "number"
+          },
+          "payloadVersion": {
+            "enum": [
+              1
+            ],
+            "type": "number"
+          },
+          "routeSyncId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "routeSyncId",
+          "payloadVersion",
+          "localSequence"
+        ],
+        "type": "object"
+      },
       "OnboardMembershipRequestDto": {
         "properties": {
           "displayName": {
@@ -3462,11 +3663,49 @@
               "sign_in"
             ],
             "type": "string"
+          },
+          "routeSyncId": {
+            "format": "uuid",
+            "type": "string"
           }
         },
         "required": [
           "phone",
           "purpose"
+        ],
+        "type": "object"
+      },
+      "ResolveSyncConflictRequestDto": {
+        "properties": {
+          "corrections": {
+            "items": {
+              "$ref": "#/components/schemas/ConflictCorrectionItemDto"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "expectedVersion": {
+            "minimum": 1,
+            "type": "number"
+          },
+          "reason": {
+            "maxLength": 500,
+            "minLength": 3,
+            "pattern": "^\\S(?:.*\\S)?$",
+            "type": "string"
+          },
+          "resolution": {
+            "enum": [
+              "keep_server",
+              "correct_outcome"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "resolution",
+          "expectedVersion",
+          "reason"
         ],
         "type": "object"
       },
@@ -3877,6 +4116,57 @@
           "deliverySlotId",
           "serviceDate",
           "stops"
+        ],
+        "type": "object"
+      },
+      "RouteSyncResponseDto": {
+        "properties": {
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "routeSyncId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "routes": {
+            "items": {
+              "$ref": "#/components/schemas/RouteVersionDto"
+            },
+            "type": "array"
+          },
+          "serverTime": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "routeSyncId",
+          "serverTime",
+          "expiresAt",
+          "routes"
+        ],
+        "type": "object"
+      },
+      "RouteVersionDto": {
+        "properties": {
+          "routeAssignmentId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "routeId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "routeVersion": {
+            "minimum": 1,
+            "type": "number"
+          }
+        },
+        "required": [
+          "routeId",
+          "routeVersion",
+          "routeAssignmentId"
         ],
         "type": "object"
       },
@@ -4348,6 +4638,78 @@
         ],
         "type": "object"
       },
+      "SubmittedSyncConflictItemResponseDto": {
+        "properties": {
+          "actualQuantity": {
+            "pattern": "^(?!0(?:\\.0+)?$)(?:0|[1-9]\\d*)(?:\\.\\d{1,3})?$",
+            "type": "string"
+          },
+          "expectedVersion": {
+            "minimum": 1,
+            "type": "number"
+          },
+          "scheduledDeliveryId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "scheduledDeliveryId",
+          "expectedVersion"
+        ],
+        "type": "object"
+      },
+      "SubmittedSyncConflictSnapshotResponseDto": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SubmittedSyncConflictItemResponseDto"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "note": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "occurredAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "outcome": {
+            "enum": [
+              "delivered",
+              "skipped_by_agent",
+              "missed"
+            ],
+            "type": "string"
+          },
+          "reasonCode": {
+            "type": "string"
+          },
+          "routeStopId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "routeSyncId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "serviceDate": {
+            "format": "date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "routeSyncId",
+          "routeStopId",
+          "serviceDate",
+          "occurredAt",
+          "outcome",
+          "items"
+        ],
+        "type": "object"
+      },
       "SubscriptionHistoryResponseDto": {
         "properties": {
           "items": {
@@ -4567,6 +4929,361 @@
         "required": [
           "expectedVersion",
           "reason"
+        ],
+        "type": "object"
+      },
+      "SyncCheckpointRequestDto": {
+        "properties": {
+          "conflictCount": {
+            "maximum": 100000,
+            "minimum": 0,
+            "type": "number"
+          },
+          "failedRetryableCount": {
+            "maximum": 100000,
+            "minimum": 0,
+            "type": "number"
+          },
+          "lastActionSyncAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "lastRouteSyncAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "oldestPendingAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "pendingCount": {
+            "maximum": 100000,
+            "minimum": 0,
+            "type": "number"
+          },
+          "sendingCount": {
+            "maximum": 100000,
+            "minimum": 0,
+            "type": "number"
+          }
+        },
+        "required": [
+          "pendingCount",
+          "sendingCount",
+          "failedRetryableCount",
+          "conflictCount"
+        ],
+        "type": "object"
+      },
+      "SyncConflictAgentResponseDto": {
+        "properties": {
+          "deviceId": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "userId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "userId",
+          "displayName",
+          "deviceId"
+        ],
+        "type": "object"
+      },
+      "SyncConflictHouseholdResponseDto": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object"
+      },
+      "SyncConflictPageResponseDto": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SyncConflictResponseDto"
+            },
+            "type": "array"
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "SyncConflictResponseDto": {
+        "properties": {
+          "agent": {
+            "$ref": "#/components/schemas/SyncConflictAgentResponseDto"
+          },
+          "allowedResolutions": {
+            "items": {
+              "enum": [
+                "keep_server",
+                "correct_outcome"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "authoritativeSnapshot": {
+            "$ref": "#/components/schemas/AuthoritativeSyncConflictSnapshotResponseDto"
+          },
+          "billingImpact": {
+            "enum": [
+              "non_billable",
+              "authoritative_state_preserved"
+            ],
+            "type": "string"
+          },
+          "conflictCode": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "household": {
+            "$ref": "#/components/schemas/SyncConflictHouseholdResponseDto"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "idempotencyRecordId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "precedence": {
+            "type": "string"
+          },
+          "priority": {
+            "enum": [
+              "high",
+              "normal"
+            ],
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "receivedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "resolution": {
+            "enum": [
+              "keep_server",
+              "correct_outcome"
+            ],
+            "type": "string"
+          },
+          "resolvedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "resolvedBy": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "route": {
+            "$ref": "#/components/schemas/SyncConflictRouteResponseDto"
+          },
+          "routeStopId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "scheduledDeliveryIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "resolved",
+              "rejected"
+            ],
+            "type": "string"
+          },
+          "submittedSnapshot": {
+            "$ref": "#/components/schemas/SubmittedSyncConflictSnapshotResponseDto"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/SyncConflictTimelineItemResponseDto"
+            },
+            "type": "array"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "vendorId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "version": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "vendorId",
+          "idempotencyRecordId",
+          "routeStopId",
+          "submittedSnapshot",
+          "authoritativeSnapshot",
+          "scheduledDeliveryIds",
+          "status",
+          "createdAt",
+          "updatedAt",
+          "receivedAt",
+          "priority",
+          "route",
+          "agent",
+          "household",
+          "billingImpact",
+          "precedence",
+          "allowedResolutions",
+          "timeline",
+          "conflictCode",
+          "version"
+        ],
+        "type": "object"
+      },
+      "SyncConflictRouteResponseDto": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object"
+      },
+      "SyncConflictTimelineItemResponseDto": {
+        "properties": {
+          "actorDisplayName": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "received",
+              "resolved"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "occurredAt"
+        ],
+        "type": "object"
+      },
+      "SyncHealthItemResponseDto": {
+        "properties": {
+          "agentDisplayName": {
+            "type": "string"
+          },
+          "agentUserId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "conflictCount": {
+            "type": "number"
+          },
+          "deviceId": {
+            "type": "string"
+          },
+          "duplicateReplayCount": {
+            "type": "number"
+          },
+          "failedRetryableCount": {
+            "type": "number"
+          },
+          "lastActionSyncAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "lastRouteSyncAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "oldestPendingAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "pendingCount": {
+            "type": "number"
+          },
+          "reportedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "sendingCount": {
+            "type": "number"
+          },
+          "staleLeaseCount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "agentUserId",
+          "reportedAt",
+          "deviceId",
+          "pendingCount",
+          "sendingCount",
+          "failedRetryableCount",
+          "conflictCount",
+          "staleLeaseCount",
+          "duplicateReplayCount"
+        ],
+        "type": "object"
+      },
+      "SyncHealthListResponseDto": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SyncHealthItemResponseDto"
+            },
+            "type": "array"
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
         ],
         "type": "object"
       },
@@ -6164,6 +6881,401 @@
         ]
       }
     },
+    "/v1/agent/vendors/{vendorId}/route-stops/{routeStopId}/outcomes/offline": {
+      "post": {
+        "operationId": "AgentOfflineOutcomeController_record",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "vendorId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "routeStopId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "discriminator": {
+                  "propertyName": "outcome"
+                },
+                "oneOf": [
+                  {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/OfflineOutcomeEnvelopeDto"
+                      },
+                      {
+                        "$ref": "#/components/schemas/DeliveredAgentStopOutcomeDto"
+                      },
+                      {
+                        "not": {
+                          "anyOf": [
+                            {
+                              "required": [
+                                "reasonCode"
+                              ]
+                            },
+                            {
+                              "required": [
+                                "note"
+                              ]
+                            },
+                            {
+                              "required": [
+                                "latitude"
+                              ]
+                            },
+                            {
+                              "required": [
+                                "longitude"
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/OfflineOutcomeEnvelopeDto"
+                      },
+                      {
+                        "$ref": "#/components/schemas/SkippedAgentStopOutcomeDto"
+                      },
+                      {
+                        "oneOf": [
+                          {
+                            "required": [
+                              "latitude",
+                              "longitude"
+                            ]
+                          },
+                          {
+                            "not": {
+                              "anyOf": [
+                                {
+                                  "required": [
+                                    "latitude"
+                                  ]
+                                },
+                                {
+                                  "required": [
+                                    "longitude"
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "oneOf": [
+                          {
+                            "properties": {
+                              "reasonCode": {
+                                "enum": [
+                                  "other"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "note"
+                            ]
+                          },
+                          {
+                            "properties": {
+                              "reasonCode": {
+                                "enum": [
+                                  "customer_on_leave",
+                                  "customer_unavailable",
+                                  "customer_requested_skip_at_door"
+                                ]
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/OfflineOutcomeEnvelopeDto"
+                      },
+                      {
+                        "$ref": "#/components/schemas/MissedAgentStopOutcomeDto"
+                      },
+                      {
+                        "oneOf": [
+                          {
+                            "required": [
+                              "latitude",
+                              "longitude"
+                            ]
+                          },
+                          {
+                            "not": {
+                              "anyOf": [
+                                {
+                                  "required": [
+                                    "latitude"
+                                  ]
+                                },
+                                {
+                                  "required": [
+                                    "longitude"
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "oneOf": [
+                          {
+                            "properties": {
+                              "reasonCode": {
+                                "enum": [
+                                  "other"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "note"
+                            ]
+                          },
+                          {
+                            "properties": {
+                              "reasonCode": {
+                                "enum": [
+                                  "address_not_found",
+                                  "access_blocked",
+                                  "product_unavailable",
+                                  "vehicle_or_route_issue",
+                                  "safety_issue"
+                                ]
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "title": "OfflineStopOutcomeRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentStopOutcomeResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/OfflineOutcomeConflictResponseDto"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ApiErrorResponseDto"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "opaqueBearer": []
+          }
+        ],
+        "tags": [
+          "Agent offline deliveries"
+        ]
+      }
+    },
+    "/v1/agent/vendors/{vendorId}/route-syncs": {
+      "post": {
+        "operationId": "AgentSyncController_createRouteSync",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "vendorId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRouteSyncRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteSyncResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "opaqueBearer": []
+          }
+        ],
+        "tags": [
+          "Agent offline synchronization"
+        ]
+      }
+    },
     "/v1/agent/vendors/{vendorId}/scheduled-deliveries": {
       "get": {
         "operationId": "AgentScheduledDeliveryController_list",
@@ -6285,6 +7397,94 @@
         ],
         "tags": [
           "Agent scheduled deliveries"
+        ]
+      }
+    },
+    "/v1/agent/vendors/{vendorId}/sync-checkpoint": {
+      "put": {
+        "operationId": "AgentSyncController_upsertCheckpoint",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "vendorId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncCheckpointRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "opaqueBearer": []
+          }
+        ],
+        "tags": [
+          "Agent offline synchronization"
         ]
       }
     },
@@ -18183,6 +19383,443 @@
         ],
         "tags": [
           "Subscriptions"
+        ]
+      }
+    },
+    "/v1/vendors/{vendorId}/sync-conflicts": {
+      "get": {
+        "operationId": "VendorSyncConflictController_list",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "vendorId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "enum": [
+                "pending",
+                "resolved",
+                "rejected"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncConflictPageResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "opaqueBearer": []
+          }
+        ],
+        "tags": [
+          "Vendor sync conflicts"
+        ]
+      }
+    },
+    "/v1/vendors/{vendorId}/sync-conflicts/{conflictId}": {
+      "get": {
+        "operationId": "VendorSyncConflictController_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "vendorId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "conflictId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncConflictResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "opaqueBearer": []
+          }
+        ],
+        "tags": [
+          "Vendor sync conflicts"
+        ]
+      }
+    },
+    "/v1/vendors/{vendorId}/sync-conflicts/{conflictId}/resolution": {
+      "post": {
+        "operationId": "VendorSyncConflictController_resolve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "vendorId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "conflictId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveSyncConflictRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncConflictResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "opaqueBearer": []
+          }
+        ],
+        "tags": [
+          "Vendor sync conflicts"
+        ]
+      }
+    },
+    "/v1/vendors/{vendorId}/sync-health": {
+      "get": {
+        "operationId": "VendorSyncHealthController_list",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "vendorId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncHealthListResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "opaqueBearer": []
+          }
+        ],
+        "tags": [
+          "Vendor synchronization health"
         ]
       }
     },

@@ -23,6 +23,7 @@ function assignmentPage(serviceDate: string, ids: string[], nextCursor?: string)
     items: ids.map((id) => ({
       id,
       routeId: `route-${id}`,
+      routeVersion: 1,
       deliverySlotId: `slot-${id}`,
       agentMembershipId: 'agent-1',
       serviceDate,

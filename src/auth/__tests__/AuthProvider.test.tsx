@@ -12,7 +12,7 @@ jest.mock('../storage');
 
 const challenge = { accepted: true, challengeToken: 'challenge', expiresAt: '2026-07-19T12:05:00.000Z' } as const;
 const session = { accessToken: 'access', accessExpiresAt: '2099-07-19T12:15:00.000Z', refreshToken: 'refresh', refreshExpiresAt: '2099-08-19T12:00:00.000Z' };
-const actor = { userId: 'user', displayName: 'Agent A', platformRoles: [], memberships: [{ id: 'membership', vendorId: 'vendor', vendorName: 'Vendor A', role: 'delivery_agent' as const, status: 'active' as const }], sessionId: 'session' };
+const actor = { userId: 'user', displayName: 'Agent A', platformRoles: [], memberships: [{ id: 'membership', vendorId: 'vendor', vendorName: 'Vendor A', role: 'delivery_agent' as const, status: 'active' as const }], sessionId: 'session', accessMode: 'standard' as const };
 
 function Probe() {
   const auth = useAuth();

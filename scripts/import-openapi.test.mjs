@@ -46,3 +46,21 @@ test('canonicalizes imported OpenAPI object keys while preserving array order', 
     await rm(workingDirectory, { recursive: true, force: true });
   }
 });
+
+test('pins the Phase 4 offline contract and its provenance', async () => {
+  const document = JSON.parse(await readFile(join(process.cwd(), 'openapi/openapi.json'), 'utf8'));
+  const provenance = JSON.parse(await readFile(join(process.cwd(), 'openapi/provenance.json'), 'utf8'));
+  const schemas = document.components.schemas;
+
+  assert.equal(provenance.sourceCommit, 'fccf5d110261f9b4429a2fe02cb47abcf4dc0919');
+  assert.equal(provenance.sha256, '7f88e177c9367007e33a8817823ed20335ba87e227bc199b734ad1cf77dda974');
+  assert.equal(document.paths['/v1/agent/vendors/{vendorId}/route-syncs'].post.operationId, 'AgentSyncController_createRouteSync');
+  assert.deepEqual(schemas.RouteVersionDto.required, ['routeId', 'routeVersion', 'routeAssignmentId']);
+  assert.deepEqual(schemas.RouteSyncResponseDto.required, ['routeSyncId', 'serverTime', 'expiresAt', 'routes']);
+  assert.deepEqual(schemas.OfflineOutcomeEnvelopeDto.required, ['routeSyncId', 'payloadVersion', 'localSequence']);
+  assert.deepEqual(schemas.SyncCheckpointRequestDto.required, ['pendingCount', 'sendingCount', 'failedRetryableCount', 'conflictCount']);
+  assert.deepEqual(schemas.CurrentActorResponseDto.properties.accessMode.enum, ['standard', 'offline_recovery']);
+  assert.equal(schemas.CurrentActorResponseDto.properties.recoveryRouteSyncId.format, 'uuid');
+  assert.deepEqual(schemas.ApiErrorResponseDto.required, ['code', 'message', 'retryable', 'correlationId']);
+  assert.deepEqual(schemas.OfflineOutcomeConflictResponseDto.required, ['code', 'message', 'retryable', 'correlationId', 'conflictId', 'conflictStatus']);
+});

@@ -24,6 +24,7 @@ const loadMore = jest.fn();
 const assignment = (id: string, routeName: string) => ({
   id,
   routeId: `route-${id}`,
+  routeVersion: 1,
   deliverySlotId: `slot-${id}`,
   agentMembershipId: 'agent-1',
   serviceDate: '2026-07-22',
@@ -142,6 +143,7 @@ beforeEach(() => {
     actor: {
       userId: 'user-agent',
       sessionId: 'session-agent',
+      accessMode: 'standard',
       displayName: 'Agent A',
       platformRoles: [],
       memberships: [{ id: 'agent-1', vendorId: 'vendor-a', vendorName: 'Vendor A', role: 'delivery_agent', status: 'active' }],

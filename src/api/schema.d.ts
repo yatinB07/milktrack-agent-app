@@ -36,6 +36,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/agent/vendors/{vendorId}/route-stops/{routeStopId}/outcomes/offline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AgentOfflineOutcomeController_record"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/agent/vendors/{vendorId}/route-syncs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AgentSyncController_createRouteSync"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/agent/vendors/{vendorId}/scheduled-deliveries": {
         parameters: {
             query?: never;
@@ -45,6 +77,22 @@ export interface paths {
         };
         get: operations["AgentScheduledDeliveryController_list"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/agent/vendors/{vendorId}/sync-checkpoint": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AgentSyncController_upsertCheckpoint"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1457,6 +1505,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/vendors/{vendorId}/sync-conflicts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["VendorSyncConflictController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/sync-conflicts/{conflictId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["VendorSyncConflictController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/sync-conflicts/{conflictId}/resolution": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["VendorSyncConflictController_resolve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vendors/{vendorId}/sync-health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["VendorSyncHealthController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/vendors/{vendorId}/units": {
         parameters: {
             query?: never;
@@ -1562,6 +1674,7 @@ export interface components {
             /** Format: uuid */
             routeId: string;
             routeName: string;
+            routeVersion: number;
             /** Format: date */
             serviceDate: string;
             /** @enum {string} */
@@ -1656,6 +1769,24 @@ export interface components {
             /** Format: uuid */
             vendorId: string;
         };
+        AuthoritativeSyncConflictDeliveryResponseDto: {
+            actualQuantity?: string;
+            /** @enum {string} */
+            currentStatus: "scheduled" | "cancelled" | "delivered" | "skipped_by_customer" | "skipped_by_agent" | "missed";
+            /** Format: uuid */
+            scheduledDeliveryId: string;
+            /** @enum {string} */
+            source?: "system" | "customer" | "delivery_agent" | "vendor_admin";
+            version: number;
+        };
+        AuthoritativeSyncConflictSnapshotResponseDto: {
+            conflictCode: string;
+            deliveries: components["schemas"]["AuthoritativeSyncConflictDeliveryResponseDto"][];
+            /** Format: uuid */
+            routeStopId: string;
+            /** Format: date */
+            serviceDate: string;
+        };
         CancelCustomerLeaveRequestDto: {
             expectedVersion: number;
             note?: string;
@@ -1676,6 +1807,14 @@ export interface components {
             userId: string;
             /** Format: uuid */
             vendorId: string;
+        };
+        ConflictCorrectionItemDto: {
+            actualQuantity?: string;
+            expectedVersion: number;
+            /** @enum {string} */
+            replacementOutcome: "delivered" | "skipped_by_agent" | "missed";
+            /** Format: uuid */
+            scheduledDeliveryId: string;
         };
         CorrectDeliveryRequestDto: {
             actualQuantity?: string;
@@ -1755,6 +1894,11 @@ export interface components {
             deliverySlotId: string;
             name: string;
         };
+        CreateRouteSyncRequestDto: {
+            routes: components["schemas"]["RouteVersionDto"][];
+            /** Format: date */
+            serviceDate: string;
+        };
         CreateSubscriptionRequestDto: {
             /** Format: uuid */
             deliverySlotId: string;
@@ -1786,9 +1930,13 @@ export interface components {
             timezone: string;
         };
         CurrentActorResponseDto: {
+            /** @enum {string} */
+            accessMode: "standard" | "offline_recovery";
             displayName: string;
             memberships: components["schemas"]["MembershipSummaryDto"][];
             platformRoles: ("product_owner" | "platform_administrator" | "support_operations")[];
+            /** Format: uuid */
+            recoveryRouteSyncId?: string;
             /** Format: uuid */
             sessionId: string;
             /** Format: uuid */
@@ -2350,6 +2498,25 @@ export interface components {
             /** Format: uuid */
             scheduledDeliveryId: string;
         };
+        OfflineOutcomeConflictResponseDto: {
+            code: string;
+            /** Format: uuid */
+            conflictId: string;
+            /** @enum {string} */
+            conflictStatus: "pending";
+            /** Format: uuid */
+            correlationId: string;
+            message: string;
+            /** @enum {boolean} */
+            retryable: false;
+        };
+        OfflineOutcomeEnvelopeDto: {
+            localSequence: number;
+            /** @enum {number} */
+            payloadVersion: 1;
+            /** Format: uuid */
+            routeSyncId: string;
+        };
         OnboardMembershipRequestDto: {
             displayName: string;
             /** @example +919876543210 */
@@ -2487,6 +2654,15 @@ export interface components {
             phone: string;
             /** @enum {string} */
             purpose: "sign_in";
+            /** Format: uuid */
+            routeSyncId?: string;
+        };
+        ResolveSyncConflictRequestDto: {
+            corrections?: components["schemas"]["ConflictCorrectionItemDto"][];
+            expectedVersion: number;
+            reason: string;
+            /** @enum {string} */
+            resolution: "keep_server" | "correct_outcome";
         };
         ResolvedPriceResponseDto: {
             amountMinor?: string;
@@ -2615,6 +2791,22 @@ export interface components {
             /** Format: date */
             startDate?: string;
             stops: components["schemas"]["RouteStopResponseDto"][];
+        };
+        RouteSyncResponseDto: {
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: uuid */
+            routeSyncId: string;
+            routes: components["schemas"]["RouteVersionDto"][];
+            /** Format: date-time */
+            serverTime: string;
+        };
+        RouteVersionDto: {
+            /** Format: uuid */
+            routeAssignmentId: string;
+            /** Format: uuid */
+            routeId: string;
+            routeVersion: number;
         };
         RouteVersionReasonRequestDto: {
             expectedVersion: number;
@@ -2748,6 +2940,27 @@ export interface components {
             completionToken: string;
             totpSecret: string;
         };
+        SubmittedSyncConflictItemResponseDto: {
+            actualQuantity?: string;
+            expectedVersion: number;
+            /** Format: uuid */
+            scheduledDeliveryId: string;
+        };
+        SubmittedSyncConflictSnapshotResponseDto: {
+            items: components["schemas"]["SubmittedSyncConflictItemResponseDto"][];
+            note?: string;
+            /** Format: date-time */
+            occurredAt: string;
+            /** @enum {string} */
+            outcome: "delivered" | "skipped_by_agent" | "missed";
+            reasonCode?: string;
+            /** Format: uuid */
+            routeStopId: string;
+            /** Format: uuid */
+            routeSyncId: string;
+            /** Format: date */
+            serviceDate: string;
+        };
         SubscriptionHistoryResponseDto: {
             items: components["schemas"]["SubscriptionRevisionResponseDto"][];
             nextCursor?: string;
@@ -2813,6 +3026,109 @@ export interface components {
         SubscriptionVersionReasonRequestDto: {
             expectedVersion: number;
             reason: string;
+        };
+        SyncCheckpointRequestDto: {
+            conflictCount: number;
+            failedRetryableCount: number;
+            /** Format: date-time */
+            lastActionSyncAt?: string;
+            /** Format: date-time */
+            lastRouteSyncAt?: string;
+            /** Format: date-time */
+            oldestPendingAt?: string;
+            pendingCount: number;
+            sendingCount: number;
+        };
+        SyncConflictAgentResponseDto: {
+            deviceId: string;
+            displayName: string;
+            /** Format: uuid */
+            userId: string;
+        };
+        SyncConflictHouseholdResponseDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        SyncConflictPageResponseDto: {
+            items: components["schemas"]["SyncConflictResponseDto"][];
+            nextCursor?: string;
+        };
+        SyncConflictResponseDto: {
+            agent: components["schemas"]["SyncConflictAgentResponseDto"];
+            allowedResolutions: ("keep_server" | "correct_outcome")[];
+            authoritativeSnapshot: components["schemas"]["AuthoritativeSyncConflictSnapshotResponseDto"];
+            /** @enum {string} */
+            billingImpact: "non_billable" | "authoritative_state_preserved";
+            conflictCode: string;
+            /** Format: date-time */
+            createdAt: string;
+            household: components["schemas"]["SyncConflictHouseholdResponseDto"];
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            idempotencyRecordId: string;
+            precedence: string;
+            /** @enum {string} */
+            priority: "high" | "normal";
+            reason?: string;
+            /** Format: date-time */
+            receivedAt: string;
+            /** @enum {string} */
+            resolution?: "keep_server" | "correct_outcome";
+            /** Format: date-time */
+            resolvedAt?: string;
+            /** Format: uuid */
+            resolvedBy?: string;
+            route: components["schemas"]["SyncConflictRouteResponseDto"];
+            /** Format: uuid */
+            routeStopId: string;
+            scheduledDeliveryIds: string[];
+            /** @enum {string} */
+            status: "pending" | "resolved" | "rejected";
+            submittedSnapshot: components["schemas"]["SubmittedSyncConflictSnapshotResponseDto"];
+            timeline: components["schemas"]["SyncConflictTimelineItemResponseDto"][];
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: uuid */
+            vendorId: string;
+            version: number;
+        };
+        SyncConflictRouteResponseDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        SyncConflictTimelineItemResponseDto: {
+            actorDisplayName?: string;
+            /** Format: date-time */
+            occurredAt: string;
+            /** @enum {string} */
+            type: "received" | "resolved";
+        };
+        SyncHealthItemResponseDto: {
+            agentDisplayName?: string;
+            /** Format: uuid */
+            agentUserId: string;
+            conflictCount: number;
+            deviceId: string;
+            duplicateReplayCount: number;
+            failedRetryableCount: number;
+            /** Format: date-time */
+            lastActionSyncAt?: string;
+            /** Format: date-time */
+            lastRouteSyncAt?: string;
+            /** Format: date-time */
+            oldestPendingAt?: string;
+            pendingCount: number;
+            /** Format: date-time */
+            reportedAt: string;
+            sendingCount: number;
+            staleLeaseCount: number;
+        };
+        SyncHealthListResponseDto: {
+            items: components["schemas"]["SyncHealthItemResponseDto"][];
+            nextCursor?: string;
         };
         TransitionVendorRequestDto: {
             expectedVersion: number;
@@ -3356,6 +3672,159 @@ export interface operations {
             };
         };
     };
+    AgentOfflineOutcomeController_record: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                vendorId: string;
+                routeStopId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": (components["schemas"]["OfflineOutcomeEnvelopeDto"] & components["schemas"]["DeliveredAgentStopOutcomeDto"] & unknown) | (components["schemas"]["OfflineOutcomeEnvelopeDto"] & components["schemas"]["SkippedAgentStopOutcomeDto"] & (unknown | unknown) & ({
+                    /** @enum {unknown} */
+                    reasonCode?: "other";
+                } | {
+                    /** @enum {unknown} */
+                    reasonCode?: "customer_on_leave" | "customer_unavailable" | "customer_requested_skip_at_door";
+                })) | (components["schemas"]["OfflineOutcomeEnvelopeDto"] & components["schemas"]["MissedAgentStopOutcomeDto"] & (unknown | unknown) & ({
+                    /** @enum {unknown} */
+                    reasonCode?: "other";
+                } | {
+                    /** @enum {unknown} */
+                    reasonCode?: "address_not_found" | "access_blocked" | "product_unavailable" | "vehicle_or_route_issue" | "safety_issue";
+                }));
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentStopOutcomeResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfflineOutcomeConflictResponseDto"] | components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AgentSyncController_createRouteSync: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateRouteSyncRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RouteSyncResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
     AgentScheduledDeliveryController_list: {
         parameters: {
             query?: {
@@ -3404,6 +3873,69 @@ export interface operations {
                 };
             };
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AgentSyncController_upsertCheckpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SyncCheckpointRequestDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -10871,6 +11403,279 @@ export interface operations {
                 };
             };
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    VendorSyncConflictController_list: {
+        parameters: {
+            query?: {
+                limit?: number;
+                status?: "pending" | "resolved" | "rejected";
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                vendorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncConflictPageResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    VendorSyncConflictController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                conflictId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncConflictResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    VendorSyncConflictController_resolve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vendorId: string;
+                conflictId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolveSyncConflictRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncConflictResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    VendorSyncHealthController_list: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                vendorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncHealthListResponseDto"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
