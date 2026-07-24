@@ -31,7 +31,6 @@ jest.mock('@/agent/AgentWorkspaceProvider', () => ({
 }));
 jest.mock('expo-sqlite', () => ({
   SQLiteProvider: ({ children }: { children: React.ReactNode }) => children,
-  useSQLiteContext: () => ({ db: true }),
 }), { virtual: true });
 jest.mock('@/offline/AgentSyncProvider', () => ({
   AgentSyncProvider: ({ children }: { children: React.ReactNode }) => children,
@@ -40,6 +39,7 @@ jest.mock('@/offline/AgentSyncProvider', () => ({
     actionsHydrated: true,
     groups: [],
     actions: [],
+    getLogoutBlockingCount: jest.fn(),
     getAction: jest.fn(),
     syncNow: jest.fn(),
     retryNow: jest.fn(),

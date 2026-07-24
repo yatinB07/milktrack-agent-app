@@ -84,6 +84,7 @@ function syncView(actions: readonly OfflineActionView[] = []): AgentSyncView {
     actionsHydrated: true,
     groups: [],
     actions,
+    getLogoutBlockingCount: jest.fn(),
     getAction: jest.fn(),
     syncNow,
     retryNow: jest.fn(),

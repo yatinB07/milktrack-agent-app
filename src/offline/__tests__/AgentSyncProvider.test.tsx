@@ -1,4 +1,10 @@
-import { act, render, screen, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import { Component, useEffect, type ReactNode } from 'react';
 import { AppState, Text } from 'react-native';
 import { addEventListener as addNetInfoListener } from '@react-native-community/netinfo';
@@ -9,6 +15,7 @@ import {
   type AgentSyncView,
 } from '../AgentSyncProvider';
 import { createSyncRunner } from '../sync-runner';
+import { countLogoutBlocking } from '../action-store';
 import { AccountScreen } from '@/screens/AccountScreen';
 
 const mockDatabase = { db: true };
@@ -18,6 +25,7 @@ jest.mock('@react-native-community/netinfo', () => ({
   addEventListener: jest.fn(),
 }));
 jest.mock('../sync-runner', () => ({ createSyncRunner: jest.fn() }));
+jest.mock('../action-store', () => ({ countLogoutBlocking: jest.fn() }));
 jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
 jest.mock('@/auth/AuthProvider', () => ({
   useAuth: () => ({
@@ -44,6 +52,7 @@ const captureView = jest.fn<void, [AgentSyncView]>();
 describe('agent synchronization view contract', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(countLogoutBlocking).mockResolvedValue(0);
     appStateListener = undefined;
     netInfoListener = undefined;
     jest.spyOn(AppState, 'addEventListener').mockImplementation(
@@ -155,6 +164,15 @@ describe('agent synchronization view contract', () => {
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Sign out' })).toBeTruthy(),
     );
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Sign out' }));
+
+    expect(countLogoutBlocking).toHaveBeenCalledWith(mockDatabase, {
+      actorId: 'actor-1',
+      deviceId: 'device-1',
+      accessMode: 'standard',
+    });
+    expect(mockSignOut).toHaveBeenCalledTimes(1);
   });
 
   test('joins foreground, reconnect, manual, retry, and refreshed-token wakes to the same runner', async () => {

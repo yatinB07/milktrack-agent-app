@@ -1,5 +1,4 @@
 import { router } from 'expo-router';
-import { useSQLiteContext } from 'expo-sqlite';
 import { useState } from 'react';
 import { useAgentWorkspace } from '@/agent/AgentWorkspaceProvider';
 import { AppText } from '@/components/AppText';
@@ -8,13 +7,15 @@ import { Screen } from '@/components/Screen';
 import { StateMessage } from '@/components/StateMessage';
 import { useAuth } from '@/auth/AuthProvider';
 import { useAgentSync } from '@/offline/AgentSyncProvider';
-import { countLogoutBlocking } from '@/offline/action-store';
 
 export function AccountScreen() {
-  const db = useSQLiteContext();
-  const { actor, offlineScope, signOut } = useAuth();
+  const { actor, signOut } = useAuth();
   const { status, vendors, activeVendor } = useAgentWorkspace();
-  const { actions, actionsHydrated } = useAgentSync();
+  const {
+    actions,
+    actionsHydrated,
+    getLogoutBlockingCount,
+  } = useAgentSync();
   const [confirmedBlockingCount, setConfirmedBlockingCount] = useState(0);
   const [checkingSignOut, setCheckingSignOut] = useState(false);
   const snapshotBlockingCount = actions.filter((action) =>
@@ -24,9 +25,7 @@ export function AccountScreen() {
   const safeSignOut = async () => {
     setCheckingSignOut(true);
     try {
-      const currentBlockingCount = offlineScope
-        ? await countLogoutBlocking(db, offlineScope)
-        : 1;
+      const currentBlockingCount = await getLogoutBlockingCount();
       if (currentBlockingCount > 0) {
         setConfirmedBlockingCount(currentBlockingCount);
         return;

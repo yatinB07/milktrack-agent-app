@@ -87,6 +87,7 @@ const baseSyncView = {
     action('action-3', 'synced'),
     action('action-4', 'conflict'),
   ],
+  getLogoutBlockingCount: jest.fn(),
   getAction: jest.fn(),
   syncNow,
   retryNow: jest.fn(),

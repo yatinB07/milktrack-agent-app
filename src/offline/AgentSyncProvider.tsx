@@ -10,7 +10,10 @@ import {
 } from 'react';
 import { AppState } from 'react-native';
 
-import type { OfflineAction } from './action-store';
+import {
+  countLogoutBlocking,
+  type OfflineAction,
+} from './action-store';
 import {
   createSyncRunner,
   type SyncGroupSnapshot,
@@ -49,6 +52,7 @@ export type AgentSyncView = Readonly<{
   groups: readonly SyncVendorGroup[];
   actions: readonly OfflineActionView[];
   getAction(actionId: string): OfflineActionView | undefined;
+  getLogoutBlockingCount(): Promise<number>;
   syncNow(): Promise<void>;
   retryNow(actionId: string): Promise<void>;
 }>;
@@ -207,6 +211,7 @@ function ScopedAgentSyncProvider({
     actions,
     getAction: (actionId) =>
       actions.find((action) => action.actionId === actionId),
+    getLogoutBlockingCount: () => countLogoutBlocking(db, scope),
     syncNow,
     retryNow,
   };
