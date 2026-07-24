@@ -1,6 +1,8 @@
 # MilkTrack Agent
 
-Expo SDK 57 delivery-agent application. It provides backend-connected phone OTP, encrypted refresh-token storage, authenticated route access, and online delivered, agent-skip, and missed outcome recording.
+Expo SDK 57 delivery-agent application with phone OTP, leased route caching,
+durable SQLite outcomes, serialized idempotent synchronization, conflict
+presentation, and protected logout.
 
 ## Prerequisites
 
@@ -57,6 +59,26 @@ maestro test .maestro/phase3-online-outcomes.yaml
 ```
 
 The flow preserves app state, so it requires an authenticated session and the freshly reset fixture. APK execution and the five-second device KPI are release-gate steps, not part of repository verification.
+
+## Phase 4 Android offline flow
+
+Use the same freshly reset fixture, installed `maestro` APK, authenticated
+seeded agent, and device-reachable backend described above. Ensure Stop 1 has
+not already been finalized, then run:
+
+```sh
+maestro test .maestro/phase4-offline-restart.yaml
+```
+
+The Android-only flow enables airplane mode, records an outcome, verifies the
+local acknowledgement, force-stops and reopens the app without clearing state,
+checks the pending row survived, reconnects, and waits for “Sent to MilkTrack.”
+An `onFlowComplete` hook disables airplane mode even when the flow fails.
+
+Record the APK, commits, device, raw timings, Maestro artifacts, and every
+required manual scenario in
+`docs/phase-4-offline-device-evidence.md`. Native execution and both mobile
+KPIs remain release blockers until that document contains reviewed results.
 
 ## Verify
 

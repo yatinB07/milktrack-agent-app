@@ -1,0 +1,26 @@
+appId: com.milktrack.agent
+onFlowComplete:
+  - setAirplaneMode: disabled
+---
+- launchApp:
+    clearState: false
+- assertVisible: "Today's route"
+- setAirplaneMode: enabled
+- tapOn: "Stop 1.*"
+- tapOn: "Record delivered"
+- tapOn: "Confirm delivered"
+- assertVisible: "Saved on device. Waiting to synchronize."
+- back
+- assertVisible: "Saved on device. Waiting to synchronize."
+- stopApp
+- launchApp:
+    clearState: false
+- assertVisible: "Today's route"
+- assertVisible: "Saved on device. Waiting to synchronize."
+- tapOn: "Sync"
+- assertVisible: "Saved on device"
+- setAirplaneMode: disabled
+- tapOn: "Sync now"
+- extendedWaitUntil:
+    visible: "Sent to MilkTrack"
+    timeout: 30000
