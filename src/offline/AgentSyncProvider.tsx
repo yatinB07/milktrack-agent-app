@@ -5,7 +5,6 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type PropsWithChildren,
 } from 'react';
@@ -20,14 +19,34 @@ import {
 import type { OfflineAccessScope } from './types';
 
 export type SyncVendorGroup = SyncGroupSnapshot;
-export type OfflineActionView = Omit<
+export type OfflineActionView = Pick<
   OfflineAction,
-  'actorId' | 'deviceId' | 'idempotencyKey'
+  | 'actionId'
+  | 'localSequence'
+  | 'vendorId'
+  | 'routeStopId'
+  | 'serviceDate'
+  | 'routeSyncId'
+  | 'occurredAt'
+  | 'request'
+  | 'display'
+  | 'state'
+  | 'blockedReason'
+  | 'attemptCount'
+  | 'nextAttemptAtMs'
+  | 'lastHttpStatus'
+  | 'lastErrorCode'
+  | 'lastErrorMessage'
+  | 'lastErrorCorrelationId'
+  | 'serverResponse'
+  | 'conflictId'
+  | 'syncedAtMs'
 >;
 
 export type AgentSyncView = Readonly<{
   status: SyncStatus;
   groups: readonly SyncVendorGroup[];
+  actions: readonly OfflineActionView[];
   getAction(actionId: string): OfflineActionView | undefined;
   syncNow(): Promise<void>;
   retryNow(actionId: string): Promise<void>;
@@ -43,16 +62,31 @@ export function useAgentSync() {
   return value;
 }
 
-export function AgentSyncProvider({
+type AgentSyncProviderProps = PropsWithChildren<{
+  scope: OfflineAccessScope;
+  accessToken: string;
+}>;
+
+export function AgentSyncProvider(props: AgentSyncProviderProps) {
+  const recoveryRouteSyncId =
+    props.scope.accessMode === 'offline_recovery'
+      ? props.scope.recoveryRouteSyncId
+      : null;
+  const scopeKey = JSON.stringify([
+    props.scope.actorId,
+    props.scope.deviceId,
+    props.scope.accessMode,
+    recoveryRouteSyncId,
+  ]);
+  return <ScopedAgentSyncProvider key={scopeKey} {...props} />;
+}
+
+function ScopedAgentSyncProvider({
   scope,
   accessToken,
   children,
-}: PropsWithChildren<{
-  scope: OfflineAccessScope;
-  accessToken: string;
-}>) {
+}: AgentSyncProviderProps) {
   const db = useSQLiteContext();
-  const previousToken = useRef(accessToken);
   const [status, setStatus] = useState<SyncStatus>('idle');
   const [groups, setGroups] = useState<readonly SyncVendorGroup[]>([]);
   const [actions, setActions] = useState<readonly OfflineActionView[]>([]);
@@ -104,30 +138,41 @@ export function AgentSyncProvider({
   };
 
   useEffect(() => {
+    let active = true;
     runner.setAccessToken(accessToken);
-    if (previousToken.current === accessToken) return;
-    previousToken.current = accessToken;
     void runner
       .resumeAuthentication()
-      .then(() => runner.wake())
       .then(() => runner.getSnapshot())
       .then((snapshot) => {
+        if (!active) return;
         setGroups(snapshot.groups);
         setActions(snapshot.actions.map(toActionView));
         setStatus(runner.status);
       })
-      .catch(() => setStatus('idle'));
+      .catch(() => {
+        if (active) setStatus('idle');
+      });
+    return () => {
+      active = false;
+    };
   }, [accessToken, runner]);
 
   useEffect(() => {
+    let active = true;
     const updateView = () =>
       runner.getSnapshot().then((snapshot) => {
+        if (!active) return;
         setGroups(snapshot.groups);
         setActions(snapshot.actions.map(toActionView));
         setStatus(runner.status);
       });
     const wake = () => {
-      void runner.wake().then(updateView).catch(() => setStatus('idle'));
+      void runner
+        .wake()
+        .then(updateView)
+        .catch(() => {
+          if (active) setStatus('idle');
+        });
     };
     wake();
     let wasConnected: boolean | null = null;
@@ -143,6 +188,7 @@ export function AgentSyncProvider({
       if (reconnected) wake();
     });
     return () => {
+      active = false;
       appStateSubscription.remove();
       removeNetInfoListener();
     };
@@ -151,6 +197,7 @@ export function AgentSyncProvider({
   const value: AgentSyncView = {
     status,
     groups,
+    actions,
     getAction: (actionId) =>
       actions.find((action) => action.actionId === actionId),
     syncNow,
@@ -165,11 +212,26 @@ export function AgentSyncProvider({
 }
 
 function toActionView(action: OfflineAction): OfflineActionView {
-  const {
-    actorId: _actorId,
-    deviceId: _deviceId,
-    idempotencyKey: _idempotencyKey,
-    ...view
-  } = action;
-  return view;
+  return {
+    actionId: action.actionId,
+    localSequence: action.localSequence,
+    vendorId: action.vendorId,
+    routeStopId: action.routeStopId,
+    serviceDate: action.serviceDate,
+    routeSyncId: action.routeSyncId,
+    occurredAt: action.occurredAt,
+    request: action.request,
+    display: action.display,
+    state: action.state,
+    blockedReason: action.blockedReason,
+    attemptCount: action.attemptCount,
+    nextAttemptAtMs: action.nextAttemptAtMs,
+    lastHttpStatus: action.lastHttpStatus,
+    lastErrorCode: action.lastErrorCode,
+    lastErrorMessage: action.lastErrorMessage,
+    lastErrorCorrelationId: action.lastErrorCorrelationId,
+    serverResponse: action.serverResponse,
+    conflictId: action.conflictId,
+    syncedAtMs: action.syncedAtMs,
+  };
 }

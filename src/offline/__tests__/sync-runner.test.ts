@@ -1,5 +1,7 @@
 import {
+  claimNextAction,
   getAction,
+  markRetryable,
   type OfflineAction,
 } from '../action-store';
 import { OfflineApiError } from '../api';
@@ -169,8 +171,20 @@ describe('serialized offline synchronization runner', () => {
       'invariant',
     ],
     [
-      'explicit non-retryable server failure',
+      'service unavailable with a hostile retry flag',
       new OfflineApiError(503, 'PERMANENT', false, 'c', undefined, null),
+      'failed_retryable',
+      null,
+    ],
+    [
+      'hostile retryable validation response',
+      new OfflineApiError(400, 'VALIDATION_FAILED', true, 'c', undefined, null),
+      'pending',
+      'invariant',
+    ],
+    [
+      'hostile retryable non-processing conflict',
+      new OfflineApiError(409, 'IDEMPOTENCY_KEY_REUSED', true, 'c', undefined, null),
       'pending',
       'invariant',
     ],
@@ -197,6 +211,14 @@ describe('serialized offline synchronization runner', () => {
             ? 'paused_authorization'
             : 'idle',
       );
+      if (blockedReason === 'authentication' || blockedReason === 'authorization') {
+        await runner.wake();
+        expect(runner.status).toBe(
+          blockedReason === 'authentication'
+            ? 'paused_authentication'
+            : 'paused_authorization',
+        );
+      }
     },
   );
 
@@ -266,6 +288,93 @@ describe('serialized offline synchronization runner', () => {
       attemptCount: 2,
     });
     await expect(action('action-2')).resolves.toMatchObject({ state: 'synced' });
+  });
+
+  test('a newly authenticated runner resumes persisted authentication blocks before draining', async () => {
+    await insertAction(db);
+    const denied = makeRunner({
+      submit: jest.fn().mockRejectedValue(
+        new OfflineApiError(
+          401,
+          'AUTHENTICATION_REQUIRED',
+          false,
+          'c',
+          undefined,
+          null,
+        ),
+      ),
+    });
+    await denied.wake();
+
+    const submit = jest.fn().mockResolvedValue(synced('stop-1'));
+    const resumed = makeRunner({ submit });
+    await resumed.resumeAuthentication();
+
+    expect(submit).toHaveBeenCalledTimes(1);
+    await expect(action()).resolves.toMatchObject({
+      state: 'synced',
+      attemptCount: 2,
+    });
+  });
+
+  test('serializes refreshed-token resume after an in-flight 401 transition', async () => {
+    await insertAction(db);
+    const response = deferred<ReturnType<typeof synced>>();
+    const submit = jest
+      .fn()
+      .mockImplementationOnce(() => response.promise)
+      .mockResolvedValueOnce(synced('stop-1'));
+    const runner = makeRunner({ submit });
+
+    const firstWake = runner.wake();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    accessToken = 'access-2';
+    runner.setAccessToken(accessToken);
+    const resumed = runner.resumeAuthentication();
+    response.reject(
+      new OfflineApiError(
+        401,
+        'AUTHENTICATION_REQUIRED',
+        false,
+        'c',
+        undefined,
+        null,
+      ),
+    );
+    await Promise.all([firstWake, resumed]);
+
+    expect(submit).toHaveBeenCalledTimes(2);
+    expect(submit.mock.calls[1]![0].accessToken).toBe('access-2');
+    await expect(action()).resolves.toMatchObject({ state: 'synced' });
+  });
+
+  test('latches retry-now while a checkpoint is active and drains before the flight settles', async () => {
+    await insertAction(db);
+    const claimed = await claimNextAction(db, standardScope, now);
+    expect(claimed).not.toBeNull();
+    await markRetryable(db, {
+      scope: standardScope,
+      actionId: 'action-1',
+      nextAttemptAtMs: 20_000,
+      error: { code: 'UNAVAILABLE' },
+      updatedAtMs: now,
+    });
+    const checkpoint = deferred<void>();
+    const reportCheckpoint = jest
+      .fn()
+      .mockImplementationOnce(() => checkpoint.promise)
+      .mockResolvedValue(undefined);
+    const submit = jest.fn().mockResolvedValue(synced('stop-1'));
+    const runner = makeRunner({ submit, reportCheckpoint });
+
+    const wake = runner.wake();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const retry = runner.retryNow('action-1');
+    checkpoint.resolve();
+    await Promise.all([wake, retry]);
+
+    expect(submit).toHaveBeenCalledTimes(1);
+    await expect(action()).resolves.toMatchObject({ state: 'synced' });
   });
 
   test('reports best-effort grouped checkpoints without changing action success', async () => {
@@ -451,8 +560,10 @@ async function insertRouteSnapshot(db: TestDatabase) {
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
-  const promise = new Promise<T>((done) => {
+  let reject!: (reason: unknown) => void;
+  const promise = new Promise<T>((done, fail) => {
     resolve = done;
+    reject = fail;
   });
-  return { promise, resolve };
+  return { promise, resolve, reject };
 }

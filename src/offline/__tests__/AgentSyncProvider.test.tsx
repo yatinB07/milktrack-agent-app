@@ -92,6 +92,7 @@ describe('agent synchronization view contract', () => {
     expect(currentView().groups).toEqual([
       expect.objectContaining({ vendorId: 'vendor-1', synced: 1 }),
     ]);
+    expect(currentView().actions).toHaveLength(1);
     const action = currentView().getAction('action-1');
     expect(action).toMatchObject({
       actionId: 'action-1',
@@ -103,6 +104,9 @@ describe('agent synchronization view contract', () => {
     expect(action).not.toHaveProperty('actorId');
     expect(action).not.toHaveProperty('deviceId');
     expect(action).not.toHaveProperty('idempotencyKey');
+    expect(action).not.toHaveProperty('retentionDeleteAfterWallMs');
+    expect(action).not.toHaveProperty('createdAtMs');
+    expect(action).not.toHaveProperty('updatedAtMs');
   });
 
   test('joins foreground, reconnect, manual, retry, and refreshed-token wakes to the same runner', async () => {
@@ -138,11 +142,59 @@ describe('agent synchronization view contract', () => {
       </AgentSyncProvider>,
     );
     await waitFor(() =>
-      expect(runner.resumeAuthentication).toHaveBeenCalledTimes(1),
+      expect(runner.resumeAuthentication).toHaveBeenCalledTimes(2),
     );
-    expect(runner.wake).toHaveBeenCalledTimes(5);
+    expect(runner.wake).toHaveBeenCalledTimes(4);
     expect(createRunner).toHaveBeenCalledTimes(1);
     expect(runner.setAccessToken).toHaveBeenLastCalledWith('access-2');
+  });
+
+  test('resets on access-scope change and ignores the old runner completion', async () => {
+    const oldWake = deferred<void>();
+    const oldRunner = mockRunner({
+      wake: jest.fn().mockReturnValue(oldWake.promise),
+      vendorId: 'vendor-1',
+    });
+    const newRunner = mockRunner({ vendorId: 'vendor-2' });
+    createRunner
+      .mockReturnValueOnce(oldRunner)
+      .mockReturnValueOnce(newRunner);
+    const view = await render(
+      <AgentSyncProvider
+        scope={{
+          actorId: 'actor-1',
+          deviceId: 'device-1',
+          accessMode: 'standard',
+        }}
+        accessToken="access-1"
+      >
+        <SyncProbe />
+      </AgentSyncProvider>,
+    );
+    await waitFor(() => expect(oldRunner.wake).toHaveBeenCalledTimes(1));
+
+    await view.rerender(
+      <AgentSyncProvider
+        scope={{
+          actorId: 'actor-2',
+          deviceId: 'device-1',
+          accessMode: 'standard',
+        }}
+        accessToken="access-2"
+      >
+        <SyncProbe />
+      </AgentSyncProvider>,
+    );
+    await waitFor(() =>
+      expect(currentView().groups[0]?.vendorId).toBe('vendor-2'),
+    );
+    oldWake.resolve();
+    await act(async () => {
+      await oldWake.promise;
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(currentView().groups[0]?.vendorId).toBe('vendor-2');
   });
 });
 
@@ -157,17 +209,23 @@ function SyncProbe() {
   return <Text>{view.status}</Text>;
 }
 
-function mockRunner() {
+function mockRunner({
+  wake = jest.fn().mockResolvedValue(undefined),
+  vendorId = 'vendor-1',
+}: {
+  wake?: jest.Mock;
+  vendorId?: string;
+} = {}) {
   return {
     status: 'idle' as const,
     setAccessToken: jest.fn(),
-    wake: jest.fn().mockResolvedValue(undefined),
+    wake,
     retryNow: jest.fn().mockResolvedValue(undefined),
     resumeAuthentication: jest.fn().mockResolvedValue(undefined),
     getSnapshot: jest.fn().mockResolvedValue({
       groups: [
         {
-          vendorId: 'vendor-1',
+          vendorId,
           pending: 0,
           sending: 0,
           synced: 1,
@@ -238,6 +296,14 @@ function currentView() {
   const view = captureView.mock.calls.at(-1)?.[0];
   if (!view) throw new Error('Synchronization view unavailable');
   return view;
+}
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
 }
 
 class TestErrorBoundary extends Component<

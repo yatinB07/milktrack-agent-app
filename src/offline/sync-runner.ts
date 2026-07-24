@@ -79,6 +79,8 @@ export function createSyncRunner(input: Readonly<{
   let status: SyncStatus = 'idle';
   let flight: Promise<void> | null = null;
   let recovered = false;
+  let wakeRequested = false;
+  let resumeAuthenticationRequested = false;
   let accessToken = input.accessToken ?? '';
   const getAccessToken = () => input.getAccessToken?.() ?? accessToken;
 
@@ -88,15 +90,38 @@ export function createSyncRunner(input: Readonly<{
   };
 
   const wake = () => {
+    wakeRequested = true;
+    return ensureFlight();
+  };
+
+  const ensureFlight = () => {
     if (flight) return flight;
-    const current = drain().finally(() => {
+    const current = runRequestedWork().finally(() => {
       if (flight === current) flight = null;
     });
     flight = current;
     return current;
   };
 
+  const runRequestedWork = async () => {
+    while (wakeRequested || resumeAuthenticationRequested) {
+      const shouldResumeAuthentication = resumeAuthenticationRequested;
+      wakeRequested = false;
+      resumeAuthenticationRequested = false;
+      if (shouldResumeAuthentication) {
+        await clearAuthenticationBlocks();
+      }
+      await drain();
+    }
+  };
+
   const drain = async () => {
+    if (
+      status === 'paused_authentication' ||
+      status === 'paused_authorization'
+    ) {
+      return;
+    }
     setStatus('syncing');
     try {
       if (!recovered) {
@@ -111,7 +136,10 @@ export function createSyncRunner(input: Readonly<{
         if (!shouldContinue) break;
       }
 
-      if (input.scope.accessMode === 'standard') {
+      if (
+        status === 'syncing' &&
+        input.scope.accessMode === 'standard'
+      ) {
         await reportCheckpoints();
       }
     } finally {
@@ -203,14 +231,34 @@ export function createSyncRunner(input: Readonly<{
       } catch (cause) {
         if (cause instanceof OfflineApiError && cause.httpStatus === 401) {
           setStatus('paused_authentication');
+          break;
         } else if (
           cause instanceof OfflineApiError &&
           cause.httpStatus === 403
         ) {
           setStatus('paused_authorization');
+          break;
         }
       }
     }
+  };
+
+  const clearAuthenticationBlocks = async () => {
+    const actions = await listActions(input.db, input.scope);
+    for (const action of actions) {
+      if (
+        action.state === 'pending' &&
+        action.blockedReason === 'authentication'
+      ) {
+        await resumeBlocked(
+          input.db,
+          input.scope,
+          action.actionId,
+          clock(),
+        );
+      }
+    }
+    if (status === 'paused_authentication') setStatus('idle');
   };
 
   return {
@@ -226,21 +274,9 @@ export function createSyncRunner(input: Readonly<{
       await wake();
     },
     async resumeAuthentication() {
-      const actions = await listActions(input.db, input.scope);
-      for (const action of actions) {
-        if (
-          action.state === 'pending' &&
-          action.blockedReason === 'authentication'
-        ) {
-          await resumeBlocked(
-            input.db,
-            input.scope,
-            action.actionId,
-            clock(),
-          );
-        }
-      }
-      if (status === 'paused_authentication') setStatus('idle');
+      resumeAuthenticationRequested = true;
+      wakeRequested = true;
+      await ensureFlight();
     },
     getSnapshot: () => getSnapshot(input.db, input.scope, clock),
   };
@@ -331,8 +367,16 @@ async function getSnapshot(
 function blockedBy(error: OfflineApiError): PendingBlock | null {
   if (error.httpStatus === 401) return 'authentication';
   if (error.httpStatus === 403) return 'authorization';
-  if (!error.retryable) return 'invariant';
-  return null;
+  return isRetryable(error) ? null : 'invariant';
+}
+
+function isRetryable(error: OfflineApiError) {
+  return (
+    error.httpStatus === null ||
+    error.httpStatus === 429 ||
+    error.httpStatus === 503 ||
+    (error.code === 'OFFLINE_ACTION_PROCESSING' && error.retryable)
+  );
 }
 
 function safeError(error: OfflineApiError): SafeActionError {
