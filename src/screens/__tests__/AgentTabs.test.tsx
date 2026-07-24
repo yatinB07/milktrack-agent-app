@@ -24,6 +24,21 @@ jest.mock('@/agent/AgentWorkspaceProvider', () => ({
   AgentWorkspaceProvider: (props: { children: React.ReactNode }) => mockAgentWorkspaceProvider(props),
   useAgentWorkspace: () => mockWorkspace,
 }));
+jest.mock('expo-sqlite', () => ({
+  SQLiteProvider: ({ children }: { children: React.ReactNode }) => children,
+}), { virtual: true });
+jest.mock('@/offline/AgentSyncProvider', () => ({
+  AgentSyncProvider: ({ children }: { children: React.ReactNode }) => children,
+  useAgentSync: () => ({
+    status: 'idle',
+    actionsHydrated: true,
+    groups: [],
+    actions: [],
+    getAction: jest.fn(),
+    syncNow: jest.fn(),
+    retryNow: jest.fn(),
+  }),
+}));
 jest.mock('@/agent/useTodayRoute', () => ({
   useTodayRoute: () => ({
     status: 'success',
@@ -49,7 +64,7 @@ const renderScreen = (Component: ComponentType) => render(<AppProviders><Compone
 
 it.each([
   [RouteScreen, "Today's route", 'Check for route'],
-  [SyncScreen, 'Sync', 'Check connection'],
+  [SyncScreen, 'Synchronization', 'Sync now'],
   [AccountScreen, 'Account', 'Sign out'],
 ])('renders a field shell', async (Component, heading, action) => {
   await renderScreen(Component);
@@ -95,15 +110,13 @@ it('shows service failure instead of misreporting an assignment problem', async 
   mockAuth = { ...mockAuth, status: 'service-unavailable' };
   await renderScreen(RouteScreen);
   expect(screen.getByText('MilkTrack is unavailable')).toBeTruthy();
-  await renderScreen(SyncScreen);
-  expect(screen.getByText('Synchronization unavailable')).toBeTruthy();
-  expect(screen.queryByText('All changes synchronized')).toBeNull();
 });
 
-it('shows empty route and synchronized states without inventing an offline queue', async () => {
+it('shows empty route and an empty durable synchronization queue', async () => {
   mockAuth = { ...mockAuth, status: 'authenticated', actor: { displayName: 'Agent A', memberships: [{ vendorName: 'Vendor A', role: 'delivery_agent', status: 'active' }] } };
   await renderScreen(RouteScreen);
   expect(screen.getByText('No route assigned today')).toBeTruthy();
   await renderScreen(SyncScreen);
-  expect(screen.getByText('All changes synchronized')).toBeTruthy();
+  expect(screen.getByText('Sync status: Ready to sync')).toBeTruthy();
+  expect(screen.getByText('No saved synchronization actions.')).toBeTruthy();
 });
