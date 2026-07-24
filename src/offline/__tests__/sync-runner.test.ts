@@ -317,6 +317,50 @@ describe('serialized offline synchronization runner', () => {
     });
   });
 
+  test('a recovery runner resumes only the authorization block for its exact actor, device, and lease', async () => {
+    await insertAction(db);
+    const denied = makeRunner({
+      submit: jest.fn().mockRejectedValue(
+        new OfflineApiError(403, 'FORBIDDEN', false, 'c', undefined, null),
+      ),
+    });
+    await denied.wake();
+
+    const wrongLeaseSubmit = jest.fn();
+    const wrongLease = createSyncRunner({
+      db,
+      scope: { ...recoveryScope, recoveryRouteSyncId: 'sync-other' },
+      accessToken: 'recovery-wrong',
+      clock: () => now,
+      submitOutcome: wrongLeaseSubmit,
+      reportCheckpoint: jest.fn(),
+    });
+    await wrongLease.resumeAuthentication();
+    expect(wrongLeaseSubmit).not.toHaveBeenCalled();
+    await expect(action()).resolves.toMatchObject({
+      state: 'pending',
+      blockedReason: 'authorization',
+    });
+
+    const submit = jest.fn().mockResolvedValue(synced('stop-1'));
+    const recovered = createSyncRunner({
+      db,
+      scope: recoveryScope,
+      accessToken: 'recovery-access',
+      clock: () => now,
+      submitOutcome: submit,
+      reportCheckpoint: jest.fn(),
+    });
+    await recovered.resumeAuthentication();
+
+    expect(submit).toHaveBeenCalledTimes(1);
+    await expect(action()).resolves.toMatchObject({
+      state: 'synced',
+      blockedReason: null,
+      attemptCount: 2,
+    });
+  });
+
   test('serializes refreshed-token resume after an in-flight 401 transition', async () => {
     await insertAction(db);
     const response = deferred<ReturnType<typeof synced>>();

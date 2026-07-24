@@ -5,10 +5,17 @@ import PhoneRoute from '../../../app/(auth)/phone';
 const mockPush = jest.fn();
 const mockReplace = jest.fn();
 const mockRequestCode = jest.fn();
+const mockRequestRecoveryCode = jest.fn();
 const mockVerifyCode = jest.fn();
 
 jest.mock('@/auth/AuthProvider', () => ({
-  useAuth: () => ({ challenge: { phone: '9876543219' }, requestCode: mockRequestCode, verifyCode: mockVerifyCode }),
+  useAuth: () => ({
+    challenge: { phone: '9876543219' },
+    recoveryRouteSyncIds: ['route-sync-1'],
+    requestCode: mockRequestCode,
+    requestRecoveryCode: mockRequestRecoveryCode,
+    verifyCode: mockVerifyCode,
+  }),
 }));
 
 jest.mock('expo-router', () => ({
@@ -23,6 +30,17 @@ it('requests a challenge before opening OTP verification', async () => {
   await fireEvent.changeText(screen.getByLabelText('Phone number'), '9876543219');
   await fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
   expect(mockRequestCode).toHaveBeenCalledWith('9876543219');
+  expect(mockPush).toHaveBeenCalledWith('/(auth)/otp');
+});
+
+it('requests a lease-bound challenge before opening recovery verification', async () => {
+  await render(<PhoneRoute />);
+  await fireEvent.changeText(screen.getByLabelText('Phone number'), '9876543219');
+  await fireEvent.press(screen.getByRole('button', { name: 'Recover saved deliveries 1' }));
+  expect(mockRequestRecoveryCode).toHaveBeenCalledWith(
+    '9876543219',
+    'route-sync-1',
+  );
   expect(mockPush).toHaveBeenCalledWith('/(auth)/otp');
 });
 

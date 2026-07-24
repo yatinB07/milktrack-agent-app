@@ -15,6 +15,20 @@ it('requests a sign-in challenge with an E.164 phone number', async () => {
   expect(post).toHaveBeenCalledWith('/v1/auth/otp/request', { body: { phone: '+919876543210', purpose: 'sign_in' } });
 });
 
+it('binds a recovery challenge to the selected opaque route lease', async () => {
+  const challenge = { accepted: true, challengeToken: 'c'.repeat(43), expiresAt: '2026-07-19T12:00:00.000Z' } as const;
+  post.mockResolvedValueOnce({ data: challenge });
+
+  await expect(requestOtp('+919876543210', 'route-sync-1')).resolves.toEqual(challenge);
+  expect(post).toHaveBeenCalledWith('/v1/auth/otp/request', {
+    body: {
+      phone: '+919876543210',
+      purpose: 'sign_in',
+      routeSyncId: 'route-sync-1',
+    },
+  });
+});
+
 it('verifies OTP as a mobile client on the current device', async () => {
   const session = { accessToken: 'access', accessExpiresAt: '2026-07-19T12:15:00.000Z', refreshToken: 'refresh', refreshExpiresAt: '2026-08-19T12:00:00.000Z' };
   post.mockResolvedValueOnce({ data: session });

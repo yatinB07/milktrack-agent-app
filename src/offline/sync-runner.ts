@@ -8,6 +8,7 @@ import {
   recoverSending,
   releaseBlocked,
   resumeBlocked,
+  resumeRecoveryAuthorizationBlocks,
   retryNow as retryActionNow,
   type OfflineAction,
   type SafeActionError,
@@ -244,6 +245,16 @@ export function createSyncRunner(input: Readonly<{
   };
 
   const clearAuthenticationBlocks = async () => {
+    if (
+      input.scope.accessMode === 'offline_recovery'
+      && status !== 'paused_authorization'
+    ) {
+      await resumeRecoveryAuthorizationBlocks(
+        input.db,
+        input.scope,
+        clock(),
+      );
+    }
     const actions = await listActions(input.db, input.scope);
     for (const action of actions) {
       if (

@@ -495,6 +495,23 @@ export async function resumeBlocked(
   assertChanged(result);
 }
 
+export async function resumeRecoveryAuthorizationBlocks(
+  db: SqlExecutor,
+  scope: Extract<OfflineAccessScope, { accessMode: 'offline_recovery' }>,
+  updatedAtMs: number,
+) {
+  const filter = accessFilter(scope);
+  const result = await db.runAsync(
+    `UPDATE offline_actions
+     SET blocked_reason = NULL, updated_at_ms = ?
+     WHERE ${filter.sql}
+       AND state = 'pending' AND blocked_reason = 'authorization'`,
+    updatedAtMs,
+    ...filter.params,
+  );
+  return result.changes;
+}
+
 export async function retryNow(
   db: ActionDatabase,
   scope: OfflineAccessScope,
@@ -593,6 +610,22 @@ export async function countLogoutBlocking(
     ...filter.params,
   );
   return row?.count ?? 0;
+}
+
+export async function listAuthorizationRecoveryRouteSyncIds(
+  db: SqlExecutor,
+  scope: Readonly<{ actorId: string; deviceId: string }>,
+) {
+  const rows = await db.getAllAsync<{ route_sync_id: string }>(
+    `SELECT DISTINCT route_sync_id
+     FROM offline_actions
+     WHERE actor_id = ? AND device_id = ?
+       AND state = 'pending' AND blocked_reason = 'authorization'
+     ORDER BY route_sync_id`,
+    scope.actorId,
+    scope.deviceId,
+  );
+  return rows.map(({ route_sync_id }) => route_sync_id);
 }
 
 export async function deleteExpiredSynced(

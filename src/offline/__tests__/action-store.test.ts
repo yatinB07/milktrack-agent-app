@@ -5,6 +5,7 @@ import {
   enqueueAction,
   getAction,
   getActionCounts,
+  listAuthorizationRecoveryRouteSyncIds,
   listActions,
   markConflict,
   markRetryable,
@@ -456,6 +457,30 @@ describe('immutable offline action store', () => {
       attemptCount: 1,
       nextAttemptAtMs: 1_100,
     });
+  });
+
+  test('lists only authorization-blocked route leases for the exact actor and device', async () => {
+    await enqueue(db, 'recoverable', 'stop-1');
+    await claimNextAction(db, standardScope, 1_020);
+    await releaseBlocked(db, {
+      scope: standardScope,
+      actionId: 'recoverable',
+      block: 'authorization',
+      error: { httpStatus: 403 },
+      updatedAtMs: 1_021,
+    });
+    await expect(
+      listAuthorizationRecoveryRouteSyncIds(db, {
+        actorId: standardScope.actorId,
+        deviceId: standardScope.deviceId,
+      }),
+    ).resolves.toEqual(['sync-1']);
+    await expect(
+      listAuthorizationRecoveryRouteSyncIds(db, {
+        actorId: standardScope.actorId,
+        deviceId: 'foreign-device',
+      }),
+    ).resolves.toEqual([]);
   });
 
   test('deletes only expired synced rows and suppresses cleanup on clock rollback', async () => {

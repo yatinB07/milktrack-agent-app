@@ -18,9 +18,12 @@ function failure(error?: components['schemas']['ApiErrorResponseDto']): AuthErro
     : new AuthError('Authentication failed', undefined, error?.code);
 }
 
-export async function requestOtp(phone: string): Promise<Challenge> {
+export async function requestOtp(
+  phone: string,
+  routeSyncId?: string,
+): Promise<Challenge> {
   const { data, error } = await api.POST('/v1/auth/otp/request', {
-    body: { phone, purpose: 'sign_in' },
+    body: { phone, purpose: 'sign_in', ...(routeSyncId ? { routeSyncId } : {}) },
   });
   if (!data) throw failure(error);
   return data;

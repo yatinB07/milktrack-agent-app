@@ -4,6 +4,7 @@ import {
   clearRefreshToken,
   getOrCreateDeviceId,
   loadActiveVendorId,
+  loadLastAuthenticatedOfflineScope,
   loadRefreshToken,
   saveActiveVendorId,
   saveLastAuthenticatedOfflineScope,
@@ -65,6 +66,25 @@ it('persists only the non-secret last authenticated offline scope', async () => 
   );
   expect(setItem.mock.calls[0]![1]).not.toContain('accessToken');
   expect(setItem.mock.calls[0]![1]).not.toContain('refreshToken');
+});
+
+it('loads only a valid last authenticated offline scope', async () => {
+  getItem
+    .mockResolvedValueOnce(JSON.stringify({
+      actorId: 'actor-1',
+      deviceId: 'device-1',
+      accessMode: 'standard',
+    }))
+    .mockResolvedValueOnce('{"actorId":1}')
+    .mockResolvedValueOnce('not-json');
+
+  await expect(loadLastAuthenticatedOfflineScope()).resolves.toEqual({
+    actorId: 'actor-1',
+    deviceId: 'device-1',
+    accessMode: 'standard',
+  });
+  await expect(loadLastAuthenticatedOfflineScope()).resolves.toBeNull();
+  await expect(loadLastAuthenticatedOfflineScope()).resolves.toBeNull();
 });
 
 it('does not clear the last authenticated offline scope with session secrets', async () => {

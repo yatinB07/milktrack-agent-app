@@ -3,6 +3,7 @@ import { Button, Text, View } from 'react-native';
 import { AuthProvider, useAuth } from '../AuthProvider';
 import * as authApi from '../api';
 import * as storage from '../storage';
+import { listAuthorizationRecoveryRouteSyncIds } from '@/offline/action-store';
 
 jest.mock('@/api/client', () => ({ api: {} }));
 jest.mock('../api', () => {
@@ -10,6 +11,11 @@ jest.mock('../api', () => {
   return { ...actual, getCurrentActor: jest.fn(), logout: jest.fn(), refreshSession: jest.fn(), requestOtp: jest.fn(), verifyOtp: jest.fn() };
 });
 jest.mock('../storage');
+const mockDatabase = { db: true };
+jest.mock('expo-sqlite', () => ({ useSQLiteContext: () => mockDatabase }));
+jest.mock('@/offline/action-store', () => ({
+  listAuthorizationRecoveryRouteSyncIds: jest.fn(),
+}));
 
 const challenge = { accepted: true, challengeToken: 'challenge', expiresAt: '2026-07-19T12:05:00.000Z' } as const;
 const session = { accessToken: 'access', accessExpiresAt: '2099-07-19T12:15:00.000Z', refreshToken: 'refresh', refreshExpiresAt: '2099-08-19T12:00:00.000Z' };
@@ -17,7 +23,7 @@ const actor = { userId: 'user', displayName: 'Agent A', platformRoles: [], membe
 
 function Probe() {
   const auth = useAuth();
-  return <View><Text>{auth.status}</Text><Text>{auth.challenge?.phone}</Text><Text>{auth.actor?.displayName}</Text><Text>{auth.accessToken}</Text><Text>{auth.deviceId}</Text><Text>{auth.offlineScope ? JSON.stringify(auth.offlineScope) : ''}</Text><Button title="request" onPress={() => void auth.requestCode('9876543210')} /><Button title="verify" onPress={() => void auth.verifyCode('123456')} /><Button title="retry" onPress={() => void auth.retrySession()} /><Button title="logout" onPress={() => void auth.signOut()} /></View>;
+  return <View><Text>{auth.status}</Text><Text>{auth.challenge?.phone}</Text><Text>{auth.challenge?.routeSyncId}</Text><Text>{auth.recoveryRouteSyncIds.join(',')}</Text><Text>{auth.actor?.displayName}</Text><Text>{auth.accessToken}</Text><Text>{auth.deviceId}</Text><Text>{auth.offlineScope ? JSON.stringify(auth.offlineScope) : ''}</Text><Button title="request" onPress={() => void auth.requestCode('9876543210')} /><Button title="request-recovery" onPress={() => void auth.requestRecoveryCode('9876543210', 'route-sync-1')} /><Button title="verify" onPress={() => void auth.verifyCode('123456')} /><Button title="retry" onPress={() => void auth.retrySession()} /><Button title="logout" onPress={() => void auth.signOut()} /></View>;
 }
 
 function renderAuth() {
@@ -27,7 +33,9 @@ function renderAuth() {
 beforeEach(() => {
   jest.clearAllMocks();
   jest.mocked(storage.loadRefreshToken).mockResolvedValue(null);
+  jest.mocked(storage.loadLastAuthenticatedOfflineScope).mockResolvedValue(null);
   jest.mocked(storage.getOrCreateDeviceId).mockResolvedValue('agent-device');
+  jest.mocked(listAuthorizationRecoveryRouteSyncIds).mockResolvedValue([]);
 });
 
 it('requests and verifies OTP without putting the challenge in route state', async () => {
@@ -53,6 +61,31 @@ it('requests and verifies OTP without putting the challenge in route state', asy
     deviceId: 'agent-device',
     accessMode: 'standard',
   });
+});
+
+it('offers and requests only recovery leases owned by the last actor on this device', async () => {
+  jest.mocked(storage.loadLastAuthenticatedOfflineScope).mockResolvedValue({
+    actorId: 'user',
+    deviceId: 'agent-device',
+    accessMode: 'standard',
+  });
+  jest.mocked(listAuthorizationRecoveryRouteSyncIds).mockResolvedValue([
+    'route-sync-1',
+  ]);
+  jest.mocked(authApi.requestOtp).mockResolvedValue(challenge);
+  const view = await renderAuth();
+
+  await view.findByText('route-sync-1');
+  expect(listAuthorizationRecoveryRouteSyncIds).toHaveBeenCalledWith(
+    mockDatabase,
+    { actorId: 'user', deviceId: 'agent-device' },
+  );
+  await fireEvent.press(view.getByRole('button', { name: 'request-recovery' }));
+  await view.findAllByText('route-sync-1');
+  expect(authApi.requestOtp).toHaveBeenCalledWith(
+    '+919876543210',
+    'route-sync-1',
+  );
 });
 
 it('accepts trusted lease-bound offline recovery without active membership', async () => {

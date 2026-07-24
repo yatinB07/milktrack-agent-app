@@ -14,3 +14,26 @@ it('keeps invalid input and submits a valid agent phone', async () => {
   await fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
   expect(onContinue).toHaveBeenCalledWith('9876543210');
 });
+
+it('lets the same phone request recovery for a selected saved route', async () => {
+  const onRecoveryContinue = jest.fn();
+  await render(
+    <PhoneScreen
+      onContinue={jest.fn()}
+      recoveryRouteSyncIds={['route-sync-1', 'route-sync-2']}
+      onRecoveryContinue={onRecoveryContinue}
+    />,
+  );
+  await fireEvent.changeText(
+    screen.getByLabelText('Phone number'),
+    '9876543210',
+  );
+  await fireEvent.press(
+    screen.getByRole('button', { name: 'Recover saved deliveries 2' }),
+  );
+
+  expect(onRecoveryContinue).toHaveBeenCalledWith(
+    '9876543210',
+    'route-sync-2',
+  );
+});

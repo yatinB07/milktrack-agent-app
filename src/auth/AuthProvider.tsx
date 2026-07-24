@@ -1,10 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type PropsWithChildren } from 'react';
+import { useSQLiteContext } from 'expo-sqlite';
 import { AuthError, getCurrentActor, logout, refreshSession, requestOtp, verifyOtp, type Actor, type Session } from './api';
-import { clearRefreshToken, getOrCreateDeviceId, loadRefreshToken, saveLastAuthenticatedOfflineScope, saveRefreshToken } from './storage';
+import { clearRefreshToken, getOrCreateDeviceId, loadLastAuthenticatedOfflineScope, loadRefreshToken, saveLastAuthenticatedOfflineScope, saveRefreshToken } from './storage';
+import { listAuthorizationRecoveryRouteSyncIds } from '@/offline/action-store';
 import type { OfflineAccessScope } from '@/offline/types';
 
 type Status = 'loading' | 'anonymous' | 'authenticated' | 'access-unavailable' | 'permission-denied' | 'service-unavailable';
-type Challenge = Readonly<{ phone: string; token: string; expiresAt: string }>;
+type Challenge = Readonly<{ phone: string; token: string; expiresAt: string; routeSyncId?: string }>;
 type AuthValue = Readonly<{
   status: Status;
   actor?: Actor;
@@ -12,7 +14,9 @@ type AuthValue = Readonly<{
   deviceId?: string;
   offlineScope?: OfflineAccessScope;
   challenge?: Challenge;
+  recoveryRouteSyncIds: readonly string[];
   requestCode(phone: string): Promise<void>;
+  requestRecoveryCode(phone: string, routeSyncId: string): Promise<void>;
   verifyCode(code: string): Promise<void>;
   retrySession(): Promise<void>;
   signOut(): Promise<void>;
@@ -32,14 +36,30 @@ function accessStatus(actor: Actor): Status {
 }
 
 export function AuthProvider({ children }: PropsWithChildren) {
+  const db = useSQLiteContext();
   const [status, setStatus] = useState<Status>('loading');
   const [actor, setActor] = useState<Actor>();
   const [challenge, setChallenge] = useState<Challenge>();
   const [access, setAccess] = useState<Pick<Session, 'accessToken' | 'accessExpiresAt'>>();
   const [deviceId, setDeviceId] = useState<string>();
   const [offlineScope, setOfflineScope] = useState<OfflineAccessScope>();
+  const [recoveryRouteSyncIds, setRecoveryRouteSyncIds] = useState<readonly string[]>([]);
   const refreshFlight = useRef<Promise<void> | undefined>(undefined);
   const signOutFlight = useRef<Promise<void> | undefined>(undefined);
+
+  const discoverRecoveryRoutes = useCallback(async () => {
+    const [scope, currentDeviceId] = await Promise.all([
+      loadLastAuthenticatedOfflineScope(),
+      getOrCreateDeviceId(),
+    ]);
+    const routes = scope && scope.deviceId === currentDeviceId
+      ? await listAuthorizationRecoveryRouteSyncIds(db, {
+          actorId: scope.actorId,
+          deviceId: scope.deviceId,
+        })
+      : [];
+    setRecoveryRouteSyncIds(routes);
+  }, [db]);
 
   const acceptSession = useCallback(async (session: Session, currentDeviceId: string) => {
     if (!session.refreshToken) throw new Error('Mobile session did not include a refresh credential');
@@ -75,7 +95,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const restoreSession = useCallback(async () => {
     const refreshToken = await loadRefreshToken();
-    if (!refreshToken) return setStatus('anonymous');
+    if (!refreshToken) {
+      await discoverRecoveryRoutes().catch(() => setRecoveryRouteSyncIds([]));
+      return setStatus('anonymous');
+    }
     try {
       const deviceId = await getOrCreateDeviceId();
       await acceptSession(await refreshSession(refreshToken, deviceId), deviceId);
@@ -86,10 +109,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
         setActor(undefined);
         setDeviceId(undefined);
         setOfflineScope(undefined);
+        await discoverRecoveryRoutes().catch(() => setRecoveryRouteSyncIds([]));
         setStatus('anonymous');
       } else setStatus('service-unavailable');
     }
-  }, [acceptSession]);
+  }, [acceptSession, discoverRecoveryRoutes]);
 
   const retrySession = useCallback(() => {
     if (signOutFlight.current) return signOutFlight.current;
@@ -115,6 +139,22 @@ export function AuthProvider({ children }: PropsWithChildren) {
     const result = await requestOtp(`+91${phone}`);
     setChallenge({ phone, token: result.challengeToken, expiresAt: result.expiresAt });
   }, []);
+
+  const requestRecoveryCode = useCallback(async (
+    phone: string,
+    routeSyncId: string,
+  ) => {
+    if (!recoveryRouteSyncIds.includes(routeSyncId)) {
+      throw new Error('Saved delivery recovery is unavailable');
+    }
+    const result = await requestOtp(`+91${phone}`, routeSyncId);
+    setChallenge({
+      phone,
+      token: result.challengeToken,
+      expiresAt: result.expiresAt,
+      routeSyncId,
+    });
+  }, [recoveryRouteSyncIds]);
 
   const verifyCode = useCallback(async (code: string) => {
     if (!challenge) throw new Error('Request a new code');
@@ -161,7 +201,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return signOutFlight.current;
   }, [access]);
 
-  return <AuthContext.Provider value={{ status, actor, accessToken: access?.accessToken, deviceId, offlineScope, challenge, requestCode, verifyCode, retrySession, signOut }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ status, actor, accessToken: access?.accessToken, deviceId, offlineScope, challenge, recoveryRouteSyncIds, requestCode, requestRecoveryCode, verifyCode, retrySession, signOut }}>{children}</AuthContext.Provider>;
 }
 
 function authenticatedScope(

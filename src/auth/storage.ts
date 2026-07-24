@@ -52,3 +52,26 @@ export async function saveLastAuthenticatedOfflineScope(
     await SecureStore.setItemAsync(OFFLINE_SCOPE_KEY, JSON.stringify(scope));
   }
 }
+
+export async function loadLastAuthenticatedOfflineScope(): Promise<OfflineAccessScope | null> {
+  if (Platform.OS === 'web') return null;
+  const stored = await SecureStore.getItemAsync(OFFLINE_SCOPE_KEY);
+  if (!stored) return null;
+  try {
+    const scope = JSON.parse(stored) as Partial<OfflineAccessScope>;
+    if (
+      typeof scope.actorId !== 'string'
+      || typeof scope.deviceId !== 'string'
+      || (scope.accessMode !== 'standard' && scope.accessMode !== 'offline_recovery')
+      || (
+        scope.accessMode === 'offline_recovery'
+        && typeof scope.recoveryRouteSyncId !== 'string'
+      )
+    ) {
+      return null;
+    }
+    return scope as OfflineAccessScope;
+  } catch {
+    return null;
+  }
+}
