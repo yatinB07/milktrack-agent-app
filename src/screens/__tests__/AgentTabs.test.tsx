@@ -9,6 +9,11 @@ let mockAuth = {
   status: 'authenticated',
   accessToken: 'access-token',
   actor: { displayName: 'Agent A', memberships: [{ vendorName: 'Vendor A', role: 'delivery_agent', status: 'active' }] },
+  offlineScope: {
+    actorId: 'actor-1',
+    deviceId: 'device-1',
+    accessMode: 'standard' as const,
+  },
   retrySession: jest.fn(),
   signOut: jest.fn(),
 };
@@ -26,6 +31,7 @@ jest.mock('@/agent/AgentWorkspaceProvider', () => ({
 }));
 jest.mock('expo-sqlite', () => ({
   SQLiteProvider: ({ children }: { children: React.ReactNode }) => children,
+  useSQLiteContext: () => ({ db: true }),
 }), { virtual: true });
 jest.mock('@/offline/AgentSyncProvider', () => ({
   AgentSyncProvider: ({ children }: { children: React.ReactNode }) => children,
