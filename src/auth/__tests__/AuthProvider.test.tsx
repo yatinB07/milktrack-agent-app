@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from '../AuthProvider';
 import * as authApi from '../api';
 import * as storage from '../storage';
 
+jest.mock('@/api/client', () => ({ api: {} }));
 jest.mock('../api', () => {
   const actual = jest.requireActual('../api');
   return { ...actual, getCurrentActor: jest.fn(), logout: jest.fn(), refreshSession: jest.fn(), requestOtp: jest.fn(), verifyOtp: jest.fn() };
@@ -16,7 +17,7 @@ const actor = { userId: 'user', displayName: 'Agent A', platformRoles: [], membe
 
 function Probe() {
   const auth = useAuth();
-  return <View><Text>{auth.status}</Text><Text>{auth.challenge?.phone}</Text><Text>{auth.actor?.displayName}</Text><Text>{auth.accessToken}</Text><Button title="request" onPress={() => void auth.requestCode('9876543210')} /><Button title="verify" onPress={() => void auth.verifyCode('123456')} /><Button title="retry" onPress={() => void auth.retrySession()} /><Button title="logout" onPress={() => void auth.signOut()} /></View>;
+  return <View><Text>{auth.status}</Text><Text>{auth.challenge?.phone}</Text><Text>{auth.actor?.displayName}</Text><Text>{auth.accessToken}</Text><Text>{auth.deviceId}</Text><Text>{auth.offlineScope ? JSON.stringify(auth.offlineScope) : ''}</Text><Button title="request" onPress={() => void auth.requestCode('9876543210')} /><Button title="verify" onPress={() => void auth.verifyCode('123456')} /><Button title="retry" onPress={() => void auth.retrySession()} /><Button title="logout" onPress={() => void auth.signOut()} /></View>;
 }
 
 function renderAuth() {
@@ -46,6 +47,57 @@ it('requests and verifies OTP without putting the challenge in route state', asy
   expect(storage.saveRefreshToken).toHaveBeenCalledWith('refresh');
   expect(view.getByText('Agent A')).toBeTruthy();
   expect(view.getByText('access')).toBeTruthy();
+  expect(view.getByText('agent-device')).toBeTruthy();
+  expect(storage.saveLastAuthenticatedOfflineScope).toHaveBeenCalledWith({
+    actorId: 'user',
+    deviceId: 'agent-device',
+    accessMode: 'standard',
+  });
+});
+
+it('accepts trusted lease-bound offline recovery without active membership', async () => {
+  jest.mocked(storage.loadRefreshToken).mockResolvedValue('stored-refresh');
+  jest.mocked(authApi.refreshSession).mockResolvedValue(session);
+  jest.mocked(authApi.getCurrentActor).mockResolvedValue({
+    ...actor,
+    memberships: [],
+    accessMode: 'offline_recovery',
+    recoveryRouteSyncId: 'route-sync-1',
+  });
+  const view = await renderAuth();
+
+  await view.findByText('authenticated');
+  expect(
+    view.getByText(
+      JSON.stringify({
+        actorId: 'user',
+        deviceId: 'agent-device',
+        accessMode: 'offline_recovery',
+        recoveryRouteSyncId: 'route-sync-1',
+      }),
+    ),
+  ).toBeTruthy();
+  expect(storage.saveLastAuthenticatedOfflineScope).toHaveBeenCalledWith({
+    actorId: 'user',
+    deviceId: 'agent-device',
+    accessMode: 'offline_recovery',
+    recoveryRouteSyncId: 'route-sync-1',
+  });
+});
+
+it('denies recovery identity without its trusted route lease', async () => {
+  jest.mocked(storage.loadRefreshToken).mockResolvedValue('stored-refresh');
+  jest.mocked(authApi.refreshSession).mockResolvedValue(session);
+  jest.mocked(authApi.getCurrentActor).mockResolvedValue({
+    ...actor,
+    memberships: [],
+    accessMode: 'offline_recovery',
+    recoveryRouteSyncId: undefined,
+  });
+  const view = await renderAuth();
+
+  await view.findByText('permission-denied');
+  expect(storage.saveLastAuthenticatedOfflineScope).not.toHaveBeenCalled();
 });
 
 it('restores a rotated session and marks an unassigned user unavailable', async () => {
@@ -80,6 +132,7 @@ it('expires a session when actor lookup rejects its credential', async () => {
 
   await view.findByText('anonymous');
   expect(storage.clearRefreshToken).toHaveBeenCalled();
+  expect(storage.saveLastAuthenticatedOfflineScope).not.toHaveBeenCalled();
 });
 
 it('serializes concurrent refresh attempts for a rotating token', async () => {

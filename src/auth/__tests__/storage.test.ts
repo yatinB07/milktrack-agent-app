@@ -4,8 +4,10 @@ import {
   clearRefreshToken,
   getOrCreateDeviceId,
   loadActiveVendorId,
+  loadLastAuthenticatedOfflineScope,
   loadRefreshToken,
   saveActiveVendorId,
+  saveLastAuthenticatedOfflineScope,
   saveRefreshToken,
 } from '../storage';
 
@@ -48,4 +50,46 @@ it('persists only the non-secret active vendor identifier', async () => {
   expect(getItem).toHaveBeenCalledWith('milktrack.agent.vendor');
   expect(setItem).toHaveBeenCalledWith('milktrack.agent.vendor', 'vendor-b');
   expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith('milktrack.agent.vendor');
+});
+
+it('persists and validates only the non-secret last authenticated offline scope', async () => {
+  const recoveryScope = {
+    actorId: 'actor-1',
+    deviceId: 'device-1',
+    accessMode: 'offline_recovery' as const,
+    recoveryRouteSyncId: 'route-sync-1',
+  };
+  await saveLastAuthenticatedOfflineScope(recoveryScope);
+  expect(setItem).toHaveBeenCalledWith(
+    'milktrack.agent.offline-scope',
+    JSON.stringify(recoveryScope),
+  );
+  expect(setItem.mock.calls[0]![1]).not.toContain('accessToken');
+  expect(setItem.mock.calls[0]![1]).not.toContain('refreshToken');
+
+  getItem.mockResolvedValueOnce(JSON.stringify(recoveryScope));
+  await expect(loadLastAuthenticatedOfflineScope()).resolves.toEqual(
+    recoveryScope,
+  );
+  getItem.mockResolvedValueOnce(
+    JSON.stringify({
+      ...recoveryScope,
+      accessMode: 'standard',
+      recoveryRouteSyncId: 'must-not-survive',
+    }),
+  );
+  await expect(loadLastAuthenticatedOfflineScope()).resolves.toBeNull();
+  getItem.mockResolvedValueOnce('{malformed');
+  await expect(loadLastAuthenticatedOfflineScope()).resolves.toBeNull();
+});
+
+it('does not clear the last authenticated offline scope with session secrets', async () => {
+  await clearRefreshToken();
+
+  expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith(
+    'milktrack.agent.refresh',
+  );
+  expect(SecureStore.deleteItemAsync).not.toHaveBeenCalledWith(
+    'milktrack.agent.offline-scope',
+  );
 });
