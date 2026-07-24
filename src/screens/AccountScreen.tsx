@@ -5,14 +5,26 @@ import { Button } from '@/components/Button';
 import { Screen } from '@/components/Screen';
 import { StateMessage } from '@/components/StateMessage';
 import { useAuth } from '@/auth/AuthProvider';
+import { useAgentSync } from '@/offline/AgentSyncProvider';
 
 export function AccountScreen() {
   const { actor, signOut } = useAuth();
   const { status, vendors, activeVendor } = useAgentWorkspace();
+  const blockingCount = useAgentSync().actions.filter((action) =>
+    action.state === 'pending' || action.state === 'sending' || action.state === 'failed_retryable',
+  ).length;
   const canSwitch = status === 'selection-required' || vendors.length > 1;
   return <Screen>
     <AppText accessibilityRole="header" variant="h1">Account</AppText>
     {canSwitch ? <Button label="Switch workspace" onPress={() => router.push('/agent-workspace')} /> : null}
-    <StateMessage title={actor?.displayName ?? 'Agent account'} body={activeVendor?.vendorName ?? 'No active vendor assignment'} actionLabel="Sign out" onAction={() => void signOut()} />
+    <StateMessage title={actor?.displayName ?? 'Agent account'} body={activeVendor?.vendorName ?? 'No active vendor assignment'} />
+    {blockingCount > 0
+      ? <StateMessage
+          title="Sign out unavailable"
+          body={`${blockingCount} unsynchronized action${blockingCount === 1 ? '' : 's'} must be synchronized before signing out.`}
+          actionLabel="View synchronization"
+          onAction={() => router.push('/sync')}
+        />
+      : <Button label="Sign out" onPress={() => void signOut()} />}
   </Screen>;
 }
