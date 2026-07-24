@@ -1,13 +1,15 @@
 import { api } from '@/api/client';
 import {
   AgentDataError,
+  createAgentRouteSync,
   fetchAgentRouteAssignmentPage,
   fetchAgentScheduledDeliveryPage,
 } from '../api';
 
-jest.mock('@/api/client', () => ({ api: { GET: jest.fn() } }));
+jest.mock('@/api/client', () => ({ api: { GET: jest.fn(), POST: jest.fn() } }));
 
 const get = api.GET as jest.Mock;
+const post = api.POST as jest.Mock;
 const request = { vendorId: '00000000-0000-4000-8000-000000000001', accessToken: 'secret-access-token' };
 const assignment = {
   id: 'assignment-1', routeId: 'route-1', deliverySlotId: 'slot-1', agentMembershipId: 'agent-1',
@@ -52,6 +54,48 @@ it('fetches scheduled deliveries for the canonical assignment date', async () =>
   expect(get).toHaveBeenCalledWith('/v1/agent/vendors/{vendorId}/scheduled-deliveries', {
     headers: { authorization: 'Bearer secret-access-token' },
     params: { path: { vendorId: request.vendorId }, query: { limit: 25, serviceDate: '2026-07-22' } },
+  });
+});
+
+it('creates a lease for the complete three-field route version set', async () => {
+  const body = {
+    serviceDate: '2026-07-22',
+    routes: [{
+      routeAssignmentId: 'assignment-1',
+      routeId: 'route-1',
+      routeVersion: 3,
+    }],
+  };
+  const sync = {
+    routeSyncId: 'sync-1',
+    serverTime: '2026-07-22T00:00:00.000Z',
+    expiresAt: '2026-07-23T00:00:00.000Z',
+    routes: body.routes,
+  };
+  post.mockResolvedValueOnce({ data: sync });
+
+  await expect(createAgentRouteSync({ ...request, ...body })).resolves.toEqual(sync);
+  expect(post).toHaveBeenCalledWith('/v1/agent/vendors/{vendorId}/route-syncs', {
+    headers: { authorization: 'Bearer secret-access-token' },
+    params: { path: { vendorId: request.vendorId } },
+    body,
+  });
+});
+
+it('maps a rejected lease to a safe unavailable error', async () => {
+  post.mockResolvedValueOnce({
+    error: { code: 'sensitive-backend-code', message: 'sensitive payload' },
+    response: { status: 409 },
+  });
+
+  const error = await createAgentRouteSync({
+    ...request,
+    serviceDate: '2026-07-22',
+    routes: [],
+  }).catch((cause: unknown) => cause);
+  expect(error).toMatchObject({
+    kind: 'unavailable',
+    message: 'Agent data unavailable',
   });
 });
 

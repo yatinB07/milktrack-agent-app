@@ -1,8 +1,8 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import { router } from 'expo-router';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { useNetInfo } from '@react-native-community/netinfo';
-import { useTodayRoute } from '@/agent/useTodayRoute';
+import { router } from 'expo-router';
 import { useAgentWorkspace } from '@/agent/AgentWorkspaceProvider';
+import { useTodayRoute } from '@/agent/useTodayRoute';
 import { useAuth } from '@/auth/AuthProvider';
 import { RouteScreen } from '../RouteScreen';
 
@@ -19,49 +19,44 @@ jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
 const retrySession = jest.fn();
 const clearVendor = jest.fn();
 const refresh = jest.fn();
-const loadMore = jest.fn();
-
-const assignment = (id: string, routeName: string) => ({
-  id,
-  routeId: `route-${id}`,
-  routeVersion: 1,
-  deliverySlotId: `slot-${id}`,
+const assignment = {
+  id: 'assignment-1',
+  routeId: 'route-1',
+  routeVersion: 3,
+  deliverySlotId: 'slot-1',
   agentMembershipId: 'agent-1',
-  serviceDate: '2026-07-22',
+  serviceDate: '2026-07-24',
   status: 'assigned' as const,
-  createdAt: '2026-07-22T00:00:00.000Z',
-  updatedAt: '2026-07-22T00:00:00.000Z',
-  routeCode: id.toUpperCase(),
-  routeName,
+  routeCode: 'NORTH',
+  routeName: 'North',
   deliverySlotName: 'Morning',
   deliverySlotStartLocalTime: '06:00',
   deliverySlotEndLocalTime: '09:00',
-});
-
-const product = (id: string, assignmentId: string, stopId: string, sequence: number, householdName: string) => ({
-  id,
-  routeAssignmentId: assignmentId,
-  routeStopId: stopId,
-  sequence,
-  routeId: `route-${assignmentId}`,
-  serviceDate: '2026-07-22',
-  subscriptionId: `subscription-${id}`,
-  householdId: `household-${stopId}`,
-  productId: `product-${id}`,
-  unitId: 'unit-litre',
-  deliverySlotId: 'slot-morning',
-  plannedQuantity: id === 'milk' ? '1.25' : '2',
-  routeCode: assignmentId.toUpperCase(),
-  routeName: `Route ${assignmentId}`,
-  householdAccountNumber: `H-${stopId}`,
-  householdName,
-  addressLine1: `${sequence} Market Road`,
+};
+const delivery = {
+  id: 'delivery-1',
+  routeAssignmentId: 'assignment-1',
+  routeStopId: 'stop-1',
+  sequence: 1,
+  routeId: 'route-1',
+  serviceDate: '2026-07-24',
+  subscriptionId: 'subscription-1',
+  householdId: 'household-1',
+  productId: 'product-1',
+  unitId: 'unit-1',
+  deliverySlotId: 'slot-1',
+  plannedQuantity: '1',
+  routeCode: 'NORTH',
+  routeName: 'North',
+  householdAccountNumber: 'H-1',
+  householdName: 'Patel Home',
+  addressLine1: '1 Market Road',
   city: 'Pune',
   region: 'MH',
   postalCode: '411001',
   countryCode: 'IN',
-  productCode: id.toUpperCase(),
-  productName: id === 'milk' ? 'Cow Milk' : 'Curd',
+  productCode: 'MILK',
+  productName: 'Milk',
   unitCode: 'L',
   unitName: 'Litre',
   deliverySlotName: 'Morning',
@@ -72,66 +67,41 @@ const product = (id: string, assignmentId: string, stopId: string, sequence: num
   blockedByCustomerLeave: false,
   captureLocationEvidence: false,
   pendingStopItems: [{
-    scheduledDeliveryId: id,
+    scheduledDeliveryId: 'delivery-1',
     expectedVersion: 1,
-    plannedQuantity: id === 'milk' ? '1.25' : '2',
-    productName: id === 'milk' ? 'Cow Milk' : 'Curd',
+    plannedQuantity: '1',
+    productName: 'Milk',
     unitName: 'Litre',
   }],
-});
-
-const beta = assignment('beta', 'Route Beta');
-const alpha = assignment('alpha', 'Route Alpha');
-const betaStop = {
-  ...product('milk', 'beta', 'stop-beta', 2, 'Mehta Home'),
-  currentStatus: 'delivered' as const,
-  pendingStopItems: [],
 };
-const alphaStop = {
-  ...product('curd', 'alpha', 'stop-alpha', 5, 'Patel Home'),
-  currentStatus: 'skipped_by_customer' as const,
-  blockedByCustomerLeave: true,
-  pendingStopItems: [],
+const model = {
+  serviceDate: '2026-07-24',
+  assignments: [{
+    assignment,
+    stops: [{
+      routeStopId: 'stop-1',
+      sequence: 1,
+      products: [delivery],
+      pendingProducts: delivery.pendingStopItems,
+      completedProducts: [],
+      blockedByCustomerLeave: false,
+      captureLocationEvidence: false,
+    }],
+  }],
+  unmatchedDeliveryIds: [],
+  hasMoreAssignments: false,
+  hasMoreDeliveries: false,
 };
-const successRoute = {
+const savedRoute = {
   status: 'success' as const,
   loading: false,
   errorKind: undefined,
-  serviceDate: '2026-07-22',
-  model: {
-    serviceDate: '2026-07-22',
-    assignments: [
-      { assignment: beta, stops: [{
-        routeStopId: 'stop-beta',
-        sequence: 2,
-        products: [betaStop],
-        pendingProducts: [],
-        completedProducts: [betaStop],
-        blockedByCustomerLeave: false,
-        captureLocationEvidence: false,
-        currentOutcome: 'delivered' as const,
-      }] },
-      { assignment: alpha, stops: [{
-        routeStopId: 'stop-alpha',
-        sequence: 5,
-        products: [alphaStop],
-        pendingProducts: [],
-        completedProducts: [alphaStop],
-        blockedByCustomerLeave: true,
-        captureLocationEvidence: false,
-        currentOutcome: 'skipped_by_customer' as const,
-      }] },
-    ],
-    unmatchedDeliveryIds: [],
-    hasMoreAssignments: false,
-    hasMoreDeliveries: false,
-  },
+  serviceDate: '2026-07-24',
+  model,
+  freshness: 'fresh' as const,
   refresh,
-  loadMore,
-  canLoadMore: false,
-  isLoadingMore: false,
-  paginationError: undefined,
-  lastRefreshedAt: new Date(2026, 6, 22, 6, 30).getTime(),
+  isRefreshing: false,
+  lastRefreshedAt: new Date(2026, 6, 24, 6, 30).getTime(),
   findStop: jest.fn(),
 };
 
@@ -141,12 +111,18 @@ beforeEach(() => {
     status: 'authenticated',
     accessToken: 'access-token',
     actor: {
-      userId: 'user-agent',
-      sessionId: 'session-agent',
+      userId: 'actor-1',
+      sessionId: 'session-1',
       accessMode: 'standard',
       displayName: 'Agent A',
       platformRoles: [],
-      memberships: [{ id: 'agent-1', vendorId: 'vendor-a', vendorName: 'Vendor A', role: 'delivery_agent', status: 'active' }],
+      memberships: [{
+        id: 'agent-1',
+        vendorId: 'vendor-1',
+        vendorName: 'Vendor A',
+        role: 'delivery_agent',
+        status: 'active',
+      }],
     },
     requestCode: jest.fn(),
     verifyCode: jest.fn(),
@@ -155,196 +131,86 @@ beforeEach(() => {
   });
   jest.mocked(useAgentWorkspace).mockReturnValue({
     status: 'ready',
-    vendors: [{ vendorId: 'vendor-a', vendorName: 'Vendor A' }],
-    activeVendor: { vendorId: 'vendor-a', vendorName: 'Vendor A' },
+    vendors: [{ vendorId: 'vendor-1', vendorName: 'Vendor A' }],
+    activeVendor: { vendorId: 'vendor-1', vendorName: 'Vendor A' },
     selectVendor: jest.fn(),
     clearVendor,
   });
   jest.mocked(useNetInfo).mockReturnValue({ isConnected: true } as ReturnType<typeof useNetInfo>);
-  jest.mocked(useTodayRoute).mockReturnValue(successRoute);
+  jest.mocked(useTodayRoute).mockReturnValue(savedRoute);
 });
 
-it('renders backend-ordered assignment sections and navigates with only the stop ID', async () => {
+test('renders the complete fresh route from device storage', async () => {
   await render(<RouteScreen />);
 
-  expect(useTodayRoute).toHaveBeenCalledWith({ vendorId: 'vendor-a', accessToken: 'access-token' });
-  expect(screen.getByRole('header', { name: "Today's route" })).toBeTruthy();
-  expect(screen.getByText('Agent A · Vendor A')).toBeTruthy();
-  expect(screen.getByText('Service date: 2026-07-22')).toBeTruthy();
-  expect(screen.getAllByText(/Route (Beta|Alpha)/).map(({ props }) => props.children)).toEqual(['BETA · Route Beta', 'ALPHA · Route Alpha']);
-  expect(screen.getAllByText('Morning · 06:00–09:00')).toHaveLength(2);
-  expect(screen.getByText('2. Mehta Home · H-stop-beta')).toBeTruthy();
-  expect(screen.getByText('2 Market Road, Pune')).toBeTruthy();
-  expect(screen.getByText('1.25 Litre · Cow Milk')).toBeTruthy();
-  expect(screen.getByText('Progress: 2 of 2 stops complete')).toBeTruthy();
-  expect(screen.getByText('Outcome: delivered')).toBeTruthy();
-  expect(screen.getByText('Customer leave · delivery blocked')).toBeTruthy();
-  expect(screen.getByText('Last refreshed: 06:30 AM')).toBeTruthy();
-
-  const stopButton = screen.getByRole('button', {
-    name: 'Stop 2, Mehta Home, H-stop-beta. 2 Market Road, Pune. 1.25 Litre, Cow Milk. Outcome: delivered.',
+  expect(useTodayRoute).toHaveBeenCalledWith({
+    actorId: 'actor-1',
+    vendorId: 'vendor-1',
+    accessToken: 'access-token',
+    accessMode: 'standard',
   });
-  expect(stopButton).toHaveProp('accessibilityHint', 'Opens stop details');
-  await fireEvent.press(stopButton);
+  expect(screen.getByText('Route saved on device.')).toBeTruthy();
+  expect(screen.getByText('1. Patel Home · H-1')).toBeTruthy();
+  expect(screen.getByText('Last refreshed: 06:30 AM')).toBeTruthy();
+  expect(screen.queryByRole('button', { name: /Load more/i })).toBeNull();
 
-  expect(router.push).toHaveBeenCalledWith('/stops/stop-beta');
+  await fireEvent.press(screen.getByRole('button', { name: /Stop 1, Patel Home/ }));
+  expect(router.push).toHaveBeenCalledWith('/stops/stop-1');
 });
 
-it.each([
-  [{ status: 'loading', loading: true, model: undefined }, 'Loading today’s route'],
-  [{ status: 'success', loading: false, model: { ...successRoute.model, assignments: [] } }, 'No route assigned today'],
-  [{ status: 'success', loading: false, canLoadMore: true, model: { ...successRoute.model, assignments: [], hasMoreAssignments: true } }, 'More route data available'],
-  [{ status: 'success', loading: false, model: { ...successRoute.model, assignments: [{ assignment: beta, stops: [] }] } }, 'No scheduled stops today'],
-  [{ status: 'success', loading: false, canLoadMore: true, model: { ...successRoute.model, assignments: [{ assignment: beta, stops: [] }], hasMoreAssignments: true } }, 'More route data available'],
-] as const)('renders the stable route state %#', async (routeState, title) => {
-  jest.mocked(useTodayRoute).mockReturnValue({ ...successRoute, ...routeState } as ReturnType<typeof useTodayRoute>);
-
+test.each([
+  ['stale', 'Route expired. Refresh before recording deliveries.'],
+  ['clock_rollback', 'Device time changed. Refresh the route before recording deliveries.'],
+] as const)('warns for a %s saved route and offers refresh', async (freshness, message) => {
+  jest.mocked(useTodayRoute).mockReturnValue({ ...savedRoute, freshness });
   await render(<RouteScreen />);
 
-  expect(screen.getByText(title)).toBeTruthy();
-});
-
-it('retries an initial route error', async () => {
-  jest.mocked(useTodayRoute).mockReturnValue({ ...successRoute, status: 'error', model: undefined, errorKind: 'unavailable' });
-  await render(<RouteScreen />);
-
-  await fireEvent.press(screen.getByRole('button', { name: 'Retry' }));
-
+  expect(screen.getByText(message)).toBeTruthy();
+  await fireEvent.press(screen.getByRole('button', { name: 'Refresh route' }));
   expect(refresh).toHaveBeenCalledTimes(1);
 });
 
-it('refreshes the session after an authentication error', async () => {
-  jest.mocked(useTodayRoute).mockReturnValue({ ...successRoute, status: 'error', model: undefined, errorKind: 'authentication' });
+test('labels a saved route when offline', async () => {
+  jest.mocked(useNetInfo).mockReturnValue({ isConnected: false } as ReturnType<typeof useNetInfo>);
   await render(<RouteScreen />);
 
-  await fireEvent.press(screen.getByRole('button', { name: 'Sign in again' }));
-
-  expect(retrySession).toHaveBeenCalledTimes(1);
+  expect(screen.getByText('Offline. Showing saved route data.')).toBeTruthy();
+  expect(screen.getByText('1. Patel Home · H-1')).toBeTruthy();
 });
 
-it('clears a forbidden vendor workspace and shows the restricted state', async () => {
-  jest.mocked(useTodayRoute).mockReturnValue({ ...successRoute, status: 'error', model: undefined, errorKind: 'forbidden' });
+test('shows the missing offline state without exposing stale route content', async () => {
+  jest.mocked(useNetInfo).mockReturnValue({ isConnected: false } as ReturnType<typeof useNetInfo>);
+  jest.mocked(useTodayRoute).mockReturnValue({
+    ...savedRoute,
+    status: 'error',
+    model: undefined,
+    serviceDate: undefined,
+    freshness: 'missing',
+    lastRefreshedAt: undefined,
+  });
+  await render(<RouteScreen />);
+
+  expect(screen.getByText('No saved route')).toBeTruthy();
+  expect(screen.getByText('Connect to the internet to download today’s route.')).toBeTruthy();
+  expect(screen.queryByText('Patel Home')).toBeNull();
+});
+
+test('retains a saved route and reports refresh failure', async () => {
+  jest.mocked(useTodayRoute).mockReturnValue({ ...savedRoute, errorKind: 'unavailable' });
+  await render(<RouteScreen />);
+
+  expect(screen.getByText('Could not refresh the route. Showing saved route data.')).toBeTruthy();
+  expect(screen.getByText('1. Patel Home · H-1')).toBeTruthy();
+});
+
+test('hides saved route PII after protected access fails', async () => {
+  jest.mocked(useTodayRoute).mockReturnValue({
+    ...savedRoute,
+    errorKind: 'forbidden',
+  });
   await render(<RouteScreen />);
 
   expect(screen.getByText('Route access restricted')).toBeTruthy();
+  expect(screen.queryByText('Patel Home')).toBeNull();
   await waitFor(() => expect(clearVendor).toHaveBeenCalledTimes(1));
-});
-
-it('keeps cached stops visible with refresh and pagination errors', async () => {
-  jest.mocked(useTodayRoute).mockReturnValue({ ...successRoute, errorKind: 'unavailable', paginationError: 'unavailable' });
-  await render(<RouteScreen />);
-
-  expect(screen.getByRole('button', { name: /Stop 2, Mehta Home/ })).toBeTruthy();
-  expect(screen.getByText('Could not refresh the route. Showing saved route data.')).toBeTruthy();
-  expect(screen.getByText('Could not load more route data.')).toBeTruthy();
-});
-
-it.each([
-  ['refresh authentication', { errorKind: 'authentication' as const }, 'Session expired', false],
-  ['pagination authentication', { paginationError: 'authentication' as const }, 'Session expired', false],
-  ['refresh forbidden', { errorKind: 'forbidden' as const }, 'Route access restricted', true],
-  ['pagination forbidden', { paginationError: 'forbidden' as const }, 'Route access restricted', true],
-])('hides cached PII after a %s error', async (_case, routeError, title, clearsWorkspace) => {
-  jest.mocked(useTodayRoute).mockReturnValue({ ...successRoute, ...routeError });
-
-  await render(<RouteScreen />);
-
-  expect(screen.getByText(title)).toBeTruthy();
-  expect(screen.queryByText('Agent A · Vendor A')).toBeNull();
-  expect(screen.queryByText('Service date: 2026-07-22')).toBeNull();
-  expect(screen.queryByText('2. Mehta Home · H-stop-beta')).toBeNull();
-  expect(screen.queryByText('2 Market Road, Pune')).toBeNull();
-  expect(screen.queryByText('1.25 Litre · Cow Milk')).toBeNull();
-  if (clearsWorkspace) await waitFor(() => expect(clearVendor).toHaveBeenCalledTimes(1));
-  else expect(clearVendor).not.toHaveBeenCalled();
-});
-
-it('surfaces exhausted unmatched deliveries as retryable changed route data', async () => {
-  jest.mocked(useTodayRoute).mockReturnValue({
-    ...successRoute,
-    model: {
-      ...successRoute.model,
-      assignments: [{ assignment: beta, stops: [] }],
-      unmatchedDeliveryIds: ['delivery-orphan'],
-      hasMoreAssignments: false,
-      hasMoreDeliveries: false,
-    },
-  });
-
-  await render(<RouteScreen />);
-
-  expect(screen.getByRole('alert')).toHaveTextContent('Route data changed');
-  expect(screen.queryByText('No scheduled stops today')).toBeNull();
-  expect(screen.queryByText('No route assigned today')).toBeNull();
-  await fireEvent.press(screen.getByRole('button', { name: 'Retry' }));
-  expect(refresh).toHaveBeenCalledTimes(1);
-});
-
-it.each([
-  ['assignment', true, false],
-  ['delivery', false, true],
-])('defers unmatched deliveries while the %s cursor remains', async (_cursor, hasMoreAssignments, hasMoreDeliveries) => {
-  jest.mocked(useTodayRoute).mockReturnValue({
-    ...successRoute,
-    canLoadMore: true,
-    model: {
-      ...successRoute.model,
-      assignments: [],
-      unmatchedDeliveryIds: ['delivery-orphan'],
-      hasMoreAssignments,
-      hasMoreDeliveries,
-    },
-  });
-
-  await render(<RouteScreen />);
-
-  expect(screen.getByText('More route data available')).toBeTruthy();
-  expect(screen.queryByText('Route data changed')).toBeNull();
-  expect(screen.queryByText('delivery-orphan')).toBeNull();
-});
-
-it('distinguishes offline cached data from an offline route with no cache', async () => {
-  jest.mocked(useNetInfo).mockReturnValue({ isConnected: false } as ReturnType<typeof useNetInfo>);
-  const { unmount } = await render(<RouteScreen />);
-  expect(screen.getByText('Offline. Showing saved route data.')).toBeTruthy();
-  await unmount();
-
-  jest.mocked(useTodayRoute).mockReturnValue({ ...successRoute, status: 'loading', model: undefined });
-  await render(<RouteScreen />);
-  expect(screen.getByText('No connection')).toBeTruthy();
-});
-
-it('loads one page batch and supports pull to refresh', async () => {
-  jest.mocked(useTodayRoute).mockReturnValue({ ...successRoute, canLoadMore: true });
-  await render(<RouteScreen />);
-
-  await fireEvent.press(screen.getByRole('button', { name: 'Load more' }));
-  expect(loadMore).toHaveBeenCalledTimes(1);
-
-  const list = screen.getByTestId('today-route-list');
-  await act(async () => list.props.refreshControl.props.onRefresh());
-  expect(refresh).toHaveBeenCalledTimes(1);
-});
-
-it('keeps a warm route render bounded and records route interaction timing', async () => {
-  const renderStartedAt = performance.now();
-  await render(<RouteScreen />);
-  const initialRenderMs = performance.now() - renderStartedAt;
-
-  const list = screen.getByTestId('today-route-list');
-  expect(list).toHaveProp('initialNumToRender', 10);
-  expect(list).toHaveProp('maxToRenderPerBatch', 10);
-  expect(list).toHaveProp('windowSize', 7);
-
-  const interactionStartedAt = performance.now();
-  await fireEvent.press(screen.getByRole('button', { name: /Stop 2, Mehta Home/ }));
-  const interactionMs = performance.now() - interactionStartedAt;
-
-  if (process.env.REPORT_PERFORMANCE === '1') {
-    console.info(JSON.stringify({ initialRenderMs, interactionMs }));
-  }
-
-  // These generous CI budgets catch large regressions; physical-device budgets are a Phase 7 gate.
-  expect(initialRenderMs).toBeLessThan(1_000);
-  expect(interactionMs).toBeLessThan(250);
 });

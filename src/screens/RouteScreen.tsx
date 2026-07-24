@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { Pressable, RefreshControl, SectionList, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,13 +22,15 @@ export function RouteScreen() {
   if (auth.status === 'service-unavailable') return <StatusScreen title="MilkTrack is unavailable" body="Your session is preserved. Try again when the service is available." onRetry={auth.retrySession} />;
   if (auth.status === 'permission-denied') return <StatusScreen title="Delivery access restricted" body="This account does not have delivery-agent permission." onRetry={auth.retrySession} />;
   if (auth.status === 'access-unavailable') return <StatusScreen title="No delivery assignment" body="The assignment may be missing, inactive, or suspended. Contact your vendor administrator." onRetry={auth.retrySession} />;
-  if (auth.status !== 'authenticated' || !auth.accessToken || !workspace.activeVendor) {
+  if (auth.status !== 'authenticated' || !auth.accessToken || !auth.actor || !workspace.activeVendor) {
     return <StatusScreen title="Loading today’s route" body="Preparing your delivery workspace." />;
   }
 
   return <ActiveRouteScreen
     accessToken={auth.accessToken}
-    agentName={auth.actor?.displayName ?? 'Delivery agent'}
+    accessMode={auth.actor.accessMode}
+    actorId={auth.actor.userId}
+    agentName={auth.actor.displayName}
     vendorId={workspace.activeVendor.vendorId}
     vendorName={workspace.activeVendor.vendorName}
     clearVendor={workspace.clearVendor}
@@ -36,17 +38,18 @@ export function RouteScreen() {
   />;
 }
 
-function ActiveRouteScreen({ accessToken, agentName, vendorId, vendorName, clearVendor, retrySession }: Readonly<{
+function ActiveRouteScreen({ accessMode, accessToken, actorId, agentName, vendorId, vendorName, clearVendor, retrySession }: Readonly<{
+  accessMode: 'standard' | 'offline_recovery';
   accessToken: string;
+  actorId: string;
   agentName: string;
   vendorId: string;
   vendorName: string;
   clearVendor(): Promise<void>;
   retrySession(): Promise<void>;
 }>) {
-  const route = useTodayRoute({ vendorId, accessToken });
+  const route = useTodayRoute({ actorId, vendorId, accessToken, accessMode });
   const netInfo = useNetInfo();
-  const [refreshing, setRefreshing] = useState(false);
   const sections = route.model?.assignments.map((group) => ({
     group,
     data: group.stops,
@@ -57,19 +60,13 @@ function ActiveRouteScreen({ accessToken, agentName, vendorId, vendorName, clear
     0,
   );
   const offline = netInfo.isConnected === false;
-  const errors = [route.errorKind, route.paginationError];
-  const accessError = errors.includes('forbidden')
+  const accessError = route.errorKind === 'forbidden'
     ? 'forbidden'
-    : errors.includes('authentication') ? 'authentication' : undefined;
+    : route.errorKind === 'authentication' ? 'authentication' : undefined;
 
   useEffect(() => {
     if (accessError === 'forbidden') void clearVendor();
   }, [accessError, clearVendor]);
-
-  const refresh = async () => {
-    setRefreshing(true);
-    try { await route.refresh(); } finally { setRefreshing(false); }
-  };
 
   if (accessError) {
     const authentication = accessError === 'authentication';
@@ -86,7 +83,7 @@ function ActiveRouteScreen({ accessToken, agentName, vendorId, vendorName, clear
 
   if (!route.model) {
     const state: { title: string; body: string; actionLabel?: string; onAction?: () => Promise<void> } = offline
-      ? { title: 'No connection', body: 'Connect to the internet to load today’s route.' }
+      ? { title: 'No saved route', body: 'Connect to the internet to download today’s route.' }
       : route.status === 'loading'
         ? { title: 'Loading today’s route', body: 'Checking today’s route and scheduled stops.' }
         : { title: 'Route unavailable', body: 'Today’s route could not be loaded.', actionLabel: 'Retry', onAction: route.refresh };
@@ -99,13 +96,7 @@ function ActiveRouteScreen({ accessToken, agentName, vendorId, vendorName, clear
     </Screen>;
   }
 
-  const hasMoreRouteData = route.model.hasMoreAssignments || route.model.hasMoreDeliveries;
-  const routeDataChanged = route.model.unmatchedDeliveryIds.length > 0 && !hasMoreRouteData;
-  const emptyState: { title: string; body: string; actionLabel?: string; onAction?: () => Promise<void> } | undefined = routeDataChanged
-    ? undefined
-    : stopCount === 0 && hasMoreRouteData
-    ? { title: 'More route data available', body: 'Load the next page to check for scheduled stops.' }
-    : sections.length === 0
+  const emptyState: { title: string; body: string; actionLabel?: string; onAction?: () => Promise<void> } | undefined = sections.length === 0
       ? { title: 'No route assigned today', body: 'There is no route assignment for this service date.', actionLabel: 'Check for route', onAction: route.refresh }
       : stopCount === 0
         ? { title: 'No scheduled stops today', body: 'The assigned route has no scheduled deliveries.' }
@@ -126,17 +117,19 @@ function ActiveRouteScreen({ accessToken, agentName, vendorId, vendorName, clear
       <AppText accessibilityLiveRegion="polite">Progress: {completedStops} of {stopCount} stops complete</AppText>
       <ConnectivityBanner />
       {offline ? <Banner tone="warning" text="Offline. Showing saved route data." /> : null}
+      {route.freshness === 'fresh' ? <Banner tone="success" text="Route saved on device." /> : null}
+      {route.freshness === 'stale' ? <Banner tone="warning" text="Route expired. Refresh before recording deliveries." /> : null}
+      {route.freshness === 'clock_rollback' ? <Banner tone="warning" text="Device time changed. Refresh the route before recording deliveries." /> : null}
       {route.errorKind ? <Banner tone="warning" text="Could not refresh the route. Showing saved route data." /> : null}
-      {route.paginationError ? <Banner tone="warning" text="Could not load more route data." /> : null}
-      {routeDataChanged ? <Banner tone="error" text="Route data changed" /> : null}
       {route.lastRefreshedAt ? <AppText accessibilityLiveRegion="polite">Last refreshed: {new Date(route.lastRefreshedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</AppText> : null}
     </View>}
     ListFooterComponent={<View style={styles.footer}>
       {emptyState ? <StateMessage title={emptyState.title} body={emptyState.body} actionLabel={emptyState.actionLabel} onAction={emptyState.onAction ? () => void emptyState.onAction?.() : undefined} /> : null}
-      {routeDataChanged ? <Button label="Retry" onPress={() => void route.refresh()} /> : null}
-      {route.canLoadMore ? <Button label={route.isLoadingMore ? 'Loading more…' : 'Load more'} disabled={route.isLoadingMore} onPress={() => void route.loadMore()} /> : null}
+      {route.freshness === 'stale' || route.freshness === 'clock_rollback'
+        ? <Button label="Refresh route" disabled={route.isRefreshing} onPress={() => void route.refresh()} />
+        : null}
     </View>}
-    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} />}
+    refreshControl={<RefreshControl refreshing={route.isRefreshing} onRefresh={() => void route.refresh()} />}
     renderSectionHeader={({ section }) => <AssignmentHeader group={section.group} />}
     renderItem={({ item }) => <StopRow stop={item} />}
   /></SafeAreaView>;

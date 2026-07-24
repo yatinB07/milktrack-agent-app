@@ -11,6 +11,8 @@ export type AgentRouteAssignmentPageRequest = AgentDataRequest & (
 export type AgentScheduledDeliveryPageRequest = AgentDataRequest & Readonly<{ serviceDate: string; cursor?: string }>;
 export type AgentRouteAssignmentPage = components['schemas']['AgentRouteAssignmentListResponseDto'];
 export type AgentScheduledDeliveryPage = components['schemas']['ScheduledDeliveryListResponseDto'];
+export type AgentRouteSyncRequest = AgentDataRequest & components['schemas']['CreateRouteSyncRequestDto'];
+export type AgentRouteSync = components['schemas']['RouteSyncResponseDto'];
 export type AgentDataErrorKind = 'authentication' | 'forbidden' | 'unavailable';
 
 export class AgentDataError extends Error {
@@ -49,6 +51,18 @@ export async function fetchAgentScheduledDeliveryPage({
   const { data, response } = await available(() => api.GET('/v1/agent/vendors/{vendorId}/scheduled-deliveries', {
     headers: { authorization: `Bearer ${accessToken}` },
     params: { path: { vendorId }, query: { limit: PAGE_LIMIT, serviceDate, ...(cursor ? { cursor } : {}) } },
+  }));
+  if (!data) throw failure(response.status);
+  return data;
+}
+
+export async function createAgentRouteSync({
+  vendorId, accessToken, serviceDate, routes,
+}: AgentRouteSyncRequest): Promise<AgentRouteSync> {
+  const { data, response } = await available(() => api.POST('/v1/agent/vendors/{vendorId}/route-syncs', {
+    headers: { authorization: `Bearer ${accessToken}` },
+    params: { path: { vendorId } },
+    body: { serviceDate, routes },
   }));
   if (!data) throw failure(response.status);
   return data;

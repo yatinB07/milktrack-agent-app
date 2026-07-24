@@ -1,7 +1,18 @@
 import type { AgentRouteAssignmentPage, AgentScheduledDeliveryPage } from './api';
+import type { CachedRoutePayload } from '@/offline/types';
 
-type Assignment = AgentRouteAssignmentPage['items'][number];
+type Assignment = Omit<AgentRouteAssignmentPage['items'][number], 'createdAt' | 'updatedAt'>;
 type Delivery = AgentScheduledDeliveryPage['items'][number];
+type AssignmentPage = Readonly<{
+  serviceDate: string;
+  items: readonly Assignment[];
+  nextCursor?: string;
+}>;
+type DeliveryPage = Readonly<{
+  serviceDate: string;
+  items: readonly Delivery[];
+  nextCursor?: string;
+}>;
 
 export class RouteDataUnavailableError extends Error {}
 
@@ -33,8 +44,8 @@ export function projectTodayRoute({
   assignmentPages,
   deliveryPages,
 }: Readonly<{
-  assignmentPages: readonly AgentRouteAssignmentPage[];
-  deliveryPages: readonly AgentScheduledDeliveryPage[];
+  assignmentPages: readonly AssignmentPage[];
+  deliveryPages: readonly DeliveryPage[];
 }>): TodayRoute {
   const assignments = new Map<string, Assignment>();
   for (const page of assignmentPages) {
@@ -75,6 +86,16 @@ export function projectTodayRoute({
     hasMoreAssignments: assignmentPages.at(-1)?.nextCursor !== undefined,
     hasMoreDeliveries: deliveryPages.at(-1)?.nextCursor !== undefined,
   };
+}
+
+export function projectCachedTodayRoute(
+  route: CachedRoutePayload,
+  serviceDate: string,
+): TodayRoute {
+  return projectTodayRoute({
+    assignmentPages: [{ serviceDate, items: route.assignments }],
+    deliveryPages: [{ serviceDate, items: route.deliveries }],
+  });
 }
 
 export function findTodayRouteStop(route: TodayRoute, routeStopId: string) {

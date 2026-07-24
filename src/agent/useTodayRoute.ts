@@ -1,127 +1,187 @@
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useNetInfo } from '@react-native-community/netinfo';
+import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { getOrCreateDeviceId } from '@/auth/storage';
+import { getLeaseFreshness } from '@/offline/clock';
+import { refreshRouteSnapshot } from '@/offline/route-refresh';
+import { getRouteSnapshot, type RouteSnapshot } from '@/offline/route-store';
+import type { VendorRouteScope } from '@/offline/types';
 import {
   AgentDataError,
-  fetchAgentRouteAssignmentPage,
-  fetchAgentScheduledDeliveryPage,
   type AgentDataErrorKind,
   type AgentDataRequest,
 } from './api';
-import { findTodayRouteStop, projectTodayRoute, RouteDataUnavailableError } from './model';
-import { agentRouteAssignmentsQuery, agentScheduledDeliveriesQuery } from './queries';
+import { findTodayRouteStop, projectCachedTodayRoute } from './model';
 
 export type TodayRouteStatus = 'loading' | 'success' | 'error';
+export type TodayRouteFreshness = 'fresh' | 'stale' | 'clock_rollback' | 'missing';
+export type TodayRouteRequest = AgentDataRequest &
+  Readonly<{
+    actorId?: string;
+    accessMode?: 'standard' | 'offline_recovery';
+  }>;
 
-export function useTodayRoute(request: AgentDataRequest) {
-  const queryClient = useQueryClient();
-  const [refreshError, setRefreshError] = useState<AgentDataErrorKind>();
-  const [paginationError, setPaginationError] = useState<AgentDataErrorKind>();
-  const previousServiceDate = useRef<string | undefined>(undefined);
-  const assignmentOptions = agentRouteAssignmentsQuery(request);
-  const assignments = useInfiniteQuery(assignmentOptions);
-  const serviceDate = assignments.data?.pages[0]?.serviceDate;
-  const deliveryOptions = agentScheduledDeliveriesQuery({ ...request, serviceDate: serviceDate ?? '' });
-  const deliveries = useInfiniteQuery({ ...deliveryOptions, enabled: serviceDate !== undefined });
-  const {
-    fetchNextPage: fetchNextAssignmentPage,
-    hasNextPage: hasMoreAssignments,
-    isFetchingNextPage: isLoadingMoreAssignments,
-  } = assignments;
-  const {
-    fetchNextPage: fetchNextDeliveryPage,
-    hasNextPage: hasMoreDeliveries,
-    isFetchingNextPage: isLoadingMoreDeliveries,
-  } = deliveries;
+export function useTodayRoute(request: TodayRouteRequest) {
+  const db = useSQLiteContext();
+  const netInfo = useNetInfo();
+  const scopeKey = [
+    request.actorId,
+    request.vendorId,
+    request.accessMode,
+  ].join(':');
+  const blocked = !request.actorId || request.accessMode === 'offline_recovery';
+  const [snapshotState, setSnapshotState] = useState<Readonly<{
+    scopeKey: string;
+    snapshot: RouteSnapshot | null;
+  }>>();
+  const [initializedScope, setInitializedScope] = useState<string>();
+  const [refreshErrorState, setRefreshErrorState] = useState<Readonly<{
+    scopeKey: string;
+    error?: AgentDataErrorKind;
+  }>>();
+  const [refreshingScope, setRefreshingScope] = useState<string | undefined>(undefined);
+  const activeScope = useRef<string | undefined>(undefined);
+  const refreshGeneration = useRef(0);
+
+  const refreshScope = useCallback(async (
+    scope: VendorRouteScope,
+    targetScopeKey: string,
+    accessToken: string,
+    runKey: string,
+  ) => {
+    setRefreshErrorState({ scopeKey: targetScopeKey });
+    setRefreshingScope(targetScopeKey);
+    try {
+      const refreshed = await refreshRouteSnapshot({
+        ...scope,
+        db,
+        vendorId: request.vendorId,
+        accessToken,
+      });
+      if (activeScope.current !== runKey) return;
+      setSnapshotState({ scopeKey: targetScopeKey, snapshot: refreshed.snapshot });
+    } catch (error) {
+      if (activeScope.current !== runKey) return;
+      setRefreshErrorState({ scopeKey: targetScopeKey, error: kind(error) });
+    } finally {
+      if (activeScope.current === runKey) setRefreshingScope(undefined);
+    }
+  }, [db, request.vendorId]);
 
   useEffect(() => {
-    const oldServiceDate = previousServiceDate.current;
-    previousServiceDate.current = serviceDate;
-    if (oldServiceDate && serviceDate && oldServiceDate !== serviceDate) {
-      queryClient.removeQueries({
-        queryKey: agentScheduledDeliveriesQuery({ ...request, serviceDate: oldServiceDate }).queryKey,
-        exact: true,
-      });
-    }
-  }, [queryClient, request, serviceDate]);
+    let active = true;
+    const runKey = `${scopeKey}:${++refreshGeneration.current}`;
+    activeScope.current = runKey;
 
-  const dateMismatch = serviceDate !== undefined && Boolean(
-    assignments.data?.pages.some((page) => page.serviceDate !== serviceDate)
-    || deliveries.data?.pages.some((page) => page.serviceDate !== serviceDate),
-  );
-  const projectedRoute = useMemo(() => {
-    if (!assignments.data || !deliveries.data || !serviceDate) return undefined;
-    const assignmentPages = matchingPrefix(assignments.data.pages, serviceDate);
-    const deliveryPages = matchingPrefix(deliveries.data.pages, serviceDate);
-    if (!assignmentPages.length || !deliveryPages.length) return undefined;
-    try {
-      return projectTodayRoute({ assignmentPages, deliveryPages });
-    } catch (error) {
-      if (error instanceof RouteDataUnavailableError) return null;
-      throw error;
+    if (blocked) {
+      return () => {
+        active = false;
+        if (activeScope.current === runKey) activeScope.current = undefined;
+      };
     }
-  }, [assignments.data, deliveries.data, serviceDate]);
-  const model = projectedRoute ?? undefined;
-  const dataUnavailable = projectedRoute === null;
-  const status: TodayRouteStatus = dateMismatch || dataUnavailable
-    ? 'error'
-    : model
-      ? 'success'
-      : assignments.isError || deliveries.isError
-      ? 'error'
-      : 'loading';
-  const errorKind = refreshError ?? (dateMismatch || dataUnavailable
-    ? 'unavailable'
-    : status === 'error'
-      ? kind(assignments.error ?? deliveries.error)
-      : undefined);
 
-  const loadMore = useCallback(async () => {
-    setPaginationError(undefined);
-    try {
-      const results = await Promise.all([
-        ...(hasMoreAssignments ? [fetchNextAssignmentPage()] : []),
-        ...(hasMoreDeliveries ? [fetchNextDeliveryPage()] : []),
-      ]);
-      const failed = results.find((result) => result.isError);
-      if (failed) setPaginationError(kind(failed.error));
-    } catch (error) {
-      setPaginationError(kind(error));
-    }
-  }, [fetchNextAssignmentPage, fetchNextDeliveryPage, hasMoreAssignments, hasMoreDeliveries]);
+    void (async () => {
+      try {
+        const scope = {
+          actorId: request.actorId!,
+          vendorId: request.vendorId,
+          deviceId: await getOrCreateDeviceId(),
+        };
+        const local = await getRouteSnapshot(db, scope);
+        if (!active) return;
+        setSnapshotState({ scopeKey, snapshot: local });
+        setInitializedScope(scopeKey);
+        if (netInfo.isConnected === true) {
+          await refreshScope(scope, scopeKey, request.accessToken, runKey);
+        }
+      } catch (error) {
+        if (!active) return;
+        setRefreshErrorState({ scopeKey, error: kind(error) });
+        setInitializedScope(scopeKey);
+      }
+    })();
+
+    return () => {
+      active = false;
+      if (activeScope.current === runKey) activeScope.current = undefined;
+    };
+  }, [
+    db,
+    netInfo.isConnected,
+    refreshScope,
+    blocked,
+    request.accessMode,
+    request.accessToken,
+    request.actorId,
+    request.vendorId,
+    scopeKey,
+  ]);
 
   const refresh = useCallback(async () => {
-    setRefreshError(undefined);
-    setPaginationError(undefined);
-    try {
-      const nextAssignments = await fetchAgentRouteAssignmentPage(request);
-      const nextServiceDate = nextAssignments.serviceDate;
-      const nextDeliveries = await fetchAgentScheduledDeliveryPage({ ...request, serviceDate: nextServiceDate });
-      if (nextDeliveries.serviceDate !== nextServiceDate) throw new AgentDataError('unavailable');
-      const nextDeliveryOptions = agentScheduledDeliveriesQuery({ ...request, serviceDate: nextServiceDate });
-
-      queryClient.setQueryData(nextDeliveryOptions.queryKey, { pages: [nextDeliveries], pageParams: [undefined] });
-      queryClient.setQueryData(assignmentOptions.queryKey, { pages: [nextAssignments], pageParams: [undefined] });
-    } catch (error) {
-      setRefreshError(kind(error));
+    if (
+      !request.actorId
+      || request.accessMode === 'offline_recovery'
+      || netInfo.isConnected !== true
+    ) {
+      setRefreshErrorState({ scopeKey, error: 'unavailable' });
+      return;
     }
-  }, [assignmentOptions.queryKey, queryClient, request]);
+    const runKey = `${scopeKey}:${++refreshGeneration.current}`;
+    activeScope.current = runKey;
+    await refreshScope({
+      actorId: request.actorId,
+      vendorId: request.vendorId,
+      deviceId: await getOrCreateDeviceId(),
+    }, scopeKey, request.accessToken, runKey);
+  }, [
+    netInfo.isConnected,
+    refreshScope,
+    request.accessMode,
+    request.accessToken,
+    request.actorId,
+    request.vendorId,
+    scopeKey,
+  ]);
 
-  const lastRefreshedAt = model && assignments.dataUpdatedAt && deliveries.dataUpdatedAt
-    ? Math.min(assignments.dataUpdatedAt, deliveries.dataUpdatedAt)
+  const snapshot = snapshotState?.scopeKey === scopeKey
+    ? snapshotState.snapshot
+    : null;
+  const initialized = blocked || initializedScope === scopeKey;
+  const refreshError = refreshErrorState?.scopeKey === scopeKey
+    ? refreshErrorState.error
     : undefined;
+  const isRefreshing = refreshingScope === scopeKey;
+  const projected = useMemo(() => {
+    if (!snapshot) return {};
+    try {
+      return {
+        model: projectCachedTodayRoute(snapshot.route, snapshot.serviceDate),
+      };
+    } catch {
+      return { invalid: true };
+    }
+  }, [snapshot]);
+  const model = projected.model;
+  const freshness: TodayRouteFreshness = snapshot
+    ? getLeaseFreshness(snapshot.lease)
+    : 'missing';
+  const status: TodayRouteStatus = !initialized
+    ? 'loading'
+    : model
+      ? 'success'
+      : 'error';
+  const errorKind = refreshError ?? (projected.invalid ? 'unavailable' : undefined);
 
   return {
     status,
     loading: status === 'loading',
     errorKind,
-    serviceDate,
+    serviceDate: snapshot?.serviceDate,
     model,
+    freshness,
     refresh,
-    loadMore,
-    canLoadMore: Boolean(hasMoreAssignments || hasMoreDeliveries),
-    isLoadingMore: isLoadingMoreAssignments || isLoadingMoreDeliveries,
-    paginationError,
-    lastRefreshedAt,
+    isRefreshing,
+    lastRefreshedAt: snapshot?.lease.savedAtWallMs,
     findStop: useCallback((routeStopId: string) => model
       ? findTodayRouteStop(model, routeStopId)
       : undefined, [model]),
@@ -130,9 +190,4 @@ export function useTodayRoute(request: AgentDataRequest) {
 
 function kind(error: unknown): AgentDataErrorKind {
   return error instanceof AgentDataError ? error.kind : 'unavailable';
-}
-
-function matchingPrefix<T extends Readonly<{ serviceDate: string }>>(pages: readonly T[], serviceDate: string) {
-  const mismatch = pages.findIndex((page) => page.serviceDate !== serviceDate);
-  return mismatch === -1 ? pages : pages.slice(0, mismatch);
 }
