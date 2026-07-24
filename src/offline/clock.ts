@@ -1,7 +1,7 @@
 import type { RouteLease } from './types';
 
 export type Clock = () => number;
-export const systemClock: Clock = Date.now;
+export const systemClock: Clock = () => Date.now();
 
 export type LeaseFreshness = 'fresh' | 'stale' | 'clock_rollback';
 

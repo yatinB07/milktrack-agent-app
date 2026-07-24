@@ -46,6 +46,10 @@ describe('offline lease clock', () => {
   });
 
   test('uses the wall clock by default', () => {
-    expect(systemClock()).toBe(Date.now());
+    const now = jest.spyOn(Date, 'now').mockReturnValue(1_721_776_800_000);
+
+    expect(systemClock()).toBe(1_721_776_800_000);
+
+    now.mockRestore();
   });
 });
