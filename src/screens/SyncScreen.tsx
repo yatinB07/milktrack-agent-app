@@ -1,13 +1,18 @@
-import { StyleSheet, View } from 'react-native';
+import { router } from 'expo-router';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { useAgentWorkspace } from '@/agent/AgentWorkspaceProvider';
-import type { SyncVendorGroup } from '@/offline/AgentSyncProvider';
+import type {
+  OfflineActionView,
+  SyncVendorGroup,
+} from '@/offline/AgentSyncProvider';
 import { useAgentSync } from '@/offline/AgentSyncProvider';
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
 import { ConnectivityBanner } from '@/components/ConnectivityBanner';
 import { Screen } from '@/components/Screen';
 import { colors, radii, spacing } from '@/theme/tokens';
+import { stateLabel } from './QueuedActionScreen';
 
 const syncStatus = {
   idle: 'Ready to sync',
@@ -31,6 +36,12 @@ export function SyncScreen() {
       {groups.length === 0 ? 'No saved synchronization actions.' : `${groups.length} vendor synchronization queues.`}
     </AppText>
     <Button label="Sync now" onPress={() => void sync.syncNow()} />
+    {sync.actions.length > 0
+      ? <AppText accessibilityRole="header" variant="h2">Synchronization actions</AppText>
+      : null}
+    {[...sync.actions]
+      .sort((left, right) => left.localSequence - right.localSequence)
+      .map((action) => <ActionRow key={action.actionId} action={action} />)}
     {groups.map((group) => <VendorQueue
       key={group.vendorId}
       group={group}
@@ -39,6 +50,24 @@ export function SyncScreen() {
         : undefined}
     />)}
   </Screen>;
+}
+
+function ActionRow({ action }: Readonly<{ action: OfflineActionView }>) {
+  const status = stateLabel(action.state);
+  return <Pressable
+    accessible
+    accessibilityRole="button"
+    accessibilityLabel={`${status}. ${action.display.householdName}. ${action.display.routeName}. Stop ${action.display.sequence}.`}
+    accessibilityHint="Opens synchronization details"
+    onPress={() => router.push(action.state === 'conflict'
+      ? `/sync-conflicts/${action.actionId}`
+      : `/sync-actions/${action.actionId}`)}
+    style={styles.action}
+  >
+    <AppText variant="h3">{status}</AppText>
+    <AppText>{action.display.householdName} · {action.display.householdAccountNumber}</AppText>
+    <AppText>{action.display.routeName} · Stop {action.display.sequence}</AppText>
+  </Pressable>;
 }
 
 function VendorQueue({ group, vendorName }: Readonly<{
@@ -72,6 +101,15 @@ const styles = StyleSheet.create({
     borderRadius: radii.panel,
     borderWidth: 1,
     gap: spacing.sm,
+    padding: spacing.lg,
+  },
+  action: {
+    minHeight: 48,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.panel,
+    borderWidth: 1,
+    gap: spacing.xs,
     padding: spacing.lg,
   },
 });

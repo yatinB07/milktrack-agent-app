@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react-native';
 
-import type { OfflineAction } from '@/offline/action-store';
+import type { OfflineActionView } from '@/offline/AgentSyncProvider';
 import { useAgentSync } from '@/offline/AgentSyncProvider';
 import { ConflictScreen } from '../ConflictScreen';
 
-jest.mock('@/offline/AgentSyncProvider');
+jest.mock('@/offline/AgentSyncProvider', () => ({ useAgentSync: jest.fn() }));
 jest.mock('expo-router', () => ({ router: { back: jest.fn() } }));
 
 const conflict = {
@@ -18,12 +18,12 @@ const conflict = {
     householdName: 'Patel Home', householdAccountNumber: 'H-100', outcome: 'delivered',
     plannedItems: [{ productName: 'Milk', unitName: 'Litre', plannedQuantity: '2' }],
   },
-} as unknown as OfflineAction;
+} as unknown as OfflineActionView;
 
 beforeEach(() => {
   jest.clearAllMocks();
   jest.mocked(useAgentSync).mockReturnValue({
-    status: 'idle', groups: [], getAction: jest.fn(() => conflict), syncNow: jest.fn(), retryNow: jest.fn(),
+    status: 'idle', groups: [], actions: [conflict], getAction: jest.fn(() => conflict), syncNow: jest.fn(), retryNow: jest.fn(),
   });
 });
 
@@ -41,7 +41,7 @@ it('shows immutable local and safe server facts with billing-safe vendor review 
 
 it('hides unavailable conflict data without exposing local household facts', async () => {
   jest.mocked(useAgentSync).mockReturnValue({
-    status: 'idle', groups: [], getAction: jest.fn(() => undefined), syncNow: jest.fn(), retryNow: jest.fn(),
+    status: 'idle', groups: [], actions: [], getAction: jest.fn(() => undefined), syncNow: jest.fn(), retryNow: jest.fn(),
   });
   await render(<ConflictScreen actionId="outside-scope" />);
 

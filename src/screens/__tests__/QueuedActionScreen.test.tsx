@@ -1,14 +1,14 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
-import type { OfflineAction } from '@/offline/action-store';
+import type { OfflineActionView } from '@/offline/AgentSyncProvider';
 import { useAgentSync } from '@/offline/AgentSyncProvider';
 import { QueuedActionScreen } from '../QueuedActionScreen';
 
-jest.mock('@/offline/AgentSyncProvider');
+jest.mock('@/offline/AgentSyncProvider', () => ({ useAgentSync: jest.fn() }));
 jest.mock('expo-router', () => ({ router: { back: jest.fn() } }));
 
 const retryNow = jest.fn();
-const action = (state: OfflineAction['state'] = 'failed_retryable') => ({
+const action = (state: OfflineActionView['state'] = 'failed_retryable') => ({
   actionId: 'action-1', vendorId: 'vendor-a', routeStopId: 'stop-9', serviceDate: '2026-07-24',
   routeSyncId: 'lease-7', localSequence: 12, occurredAt: '2026-07-24T05:30:00.000Z',
   state, attemptCount: 2, nextAttemptAtMs: 1_784_766_000_000,
@@ -19,12 +19,12 @@ const action = (state: OfflineAction['state'] = 'failed_retryable') => ({
     householdName: 'Patel Home', householdAccountNumber: 'H-100', outcome: 'delivered',
     plannedItems: [{ productName: 'Milk', unitName: 'Litre', plannedQuantity: '2' }],
   },
-} as unknown as OfflineAction);
+} as unknown as OfflineActionView);
 
 beforeEach(() => {
   jest.clearAllMocks();
   jest.mocked(useAgentSync).mockReturnValue({
-    status: 'idle', groups: [], getAction: jest.fn(() => action()), syncNow: jest.fn(), retryNow,
+    status: 'idle', groups: [], actions: [action()], getAction: jest.fn(() => action()), syncNow: jest.fn(), retryNow,
   });
 });
 
@@ -61,7 +61,7 @@ it('disables retry while it is running and hides it for non-retryable queue stat
   await view.unmount();
 
   jest.mocked(useAgentSync).mockReturnValue({
-    status: 'idle', groups: [], getAction: jest.fn(() => action('pending')), syncNow: jest.fn(), retryNow,
+    status: 'idle', groups: [], actions: [action('pending')], getAction: jest.fn(() => action('pending')), syncNow: jest.fn(), retryNow,
   });
   await render(<QueuedActionScreen actionId="action-1" />);
   expect(screen.getByText('Saved on device')).toBeTruthy();
@@ -70,7 +70,7 @@ it('disables retry while it is running and hides it for non-retryable queue stat
 
 it('hides out-of-scope action facts behind a neutral unavailable state', async () => {
   jest.mocked(useAgentSync).mockReturnValue({
-    status: 'idle', groups: [], getAction: jest.fn(() => undefined), syncNow: jest.fn(), retryNow,
+    status: 'idle', groups: [], actions: [], getAction: jest.fn(() => undefined), syncNow: jest.fn(), retryNow,
   });
   await render(<QueuedActionScreen actionId="outside-scope" />);
 

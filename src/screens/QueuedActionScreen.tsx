@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import type { OfflineAction } from '@/offline/action-store';
+import type { OfflineActionView } from '@/offline/AgentSyncProvider';
 import { useAgentSync } from '@/offline/AgentSyncProvider';
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
@@ -41,7 +41,7 @@ function RetryButton({ retry }: Readonly<{ retry(): Promise<void> }>) {
 export function ActionFacts({
   action,
   showServerResponse = true,
-}: Readonly<{ action: OfflineAction; showServerResponse?: boolean }>) {
+}: Readonly<{ action: OfflineActionView; showServerResponse?: boolean }>) {
   return <View style={styles.panel}>
     <AppText>Outcome: {outcomeLabel(action.display.outcome)}</AppText>
     <AppText>Service date: {action.serviceDate}</AppText>
@@ -67,7 +67,7 @@ export function Unavailable() {
   </Screen>;
 }
 
-export function stateLabel(state: OfflineAction['state']) {
+export function stateLabel(state: OfflineActionView['state']) {
   if (state === 'pending') return 'Saved on device';
   if (state === 'sending') return 'Sending to MilkTrack';
   if (state === 'synced') return 'Sent to MilkTrack';
@@ -75,7 +75,7 @@ export function stateLabel(state: OfflineAction['state']) {
   return 'Vendor review required';
 }
 
-export function outcomeLabel(outcome: OfflineAction['display']['outcome']) {
+export function outcomeLabel(outcome: OfflineActionView['display']['outcome']) {
   if (outcome === 'delivered') return 'Delivered';
   if (outcome === 'missed') return 'Missed';
   return 'Customer on leave / Skip delivery';
