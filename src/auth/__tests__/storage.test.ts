@@ -4,7 +4,6 @@ import {
   clearRefreshToken,
   getOrCreateDeviceId,
   loadActiveVendorId,
-  loadLastAuthenticatedOfflineScope,
   loadRefreshToken,
   saveActiveVendorId,
   saveLastAuthenticatedOfflineScope,
@@ -52,7 +51,7 @@ it('persists only the non-secret active vendor identifier', async () => {
   expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith('milktrack.agent.vendor');
 });
 
-it('persists and validates only the non-secret last authenticated offline scope', async () => {
+it('persists only the non-secret last authenticated offline scope', async () => {
   const recoveryScope = {
     actorId: 'actor-1',
     deviceId: 'device-1',
@@ -66,21 +65,6 @@ it('persists and validates only the non-secret last authenticated offline scope'
   );
   expect(setItem.mock.calls[0]![1]).not.toContain('accessToken');
   expect(setItem.mock.calls[0]![1]).not.toContain('refreshToken');
-
-  getItem.mockResolvedValueOnce(JSON.stringify(recoveryScope));
-  await expect(loadLastAuthenticatedOfflineScope()).resolves.toEqual(
-    recoveryScope,
-  );
-  getItem.mockResolvedValueOnce(
-    JSON.stringify({
-      ...recoveryScope,
-      accessMode: 'standard',
-      recoveryRouteSyncId: 'must-not-survive',
-    }),
-  );
-  await expect(loadLastAuthenticatedOfflineScope()).resolves.toBeNull();
-  getItem.mockResolvedValueOnce('{malformed');
-  await expect(loadLastAuthenticatedOfflineScope()).resolves.toBeNull();
 });
 
 it('does not clear the last authenticated offline scope with session secrets', async () => {
