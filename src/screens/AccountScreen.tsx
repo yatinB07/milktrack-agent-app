@@ -10,7 +10,8 @@ import { useAgentSync } from '@/offline/AgentSyncProvider';
 export function AccountScreen() {
   const { actor, signOut } = useAuth();
   const { status, vendors, activeVendor } = useAgentWorkspace();
-  const blockingCount = useAgentSync().actions.filter((action) =>
+  const { actions, actionsHydrated } = useAgentSync();
+  const blockingCount = actions.filter((action) =>
     action.state === 'pending' || action.state === 'sending' || action.state === 'failed_retryable',
   ).length;
   const canSwitch = status === 'selection-required' || vendors.length > 1;
@@ -18,7 +19,12 @@ export function AccountScreen() {
     <AppText accessibilityRole="header" variant="h1">Account</AppText>
     {canSwitch ? <Button label="Switch workspace" onPress={() => router.push('/agent-workspace')} /> : null}
     <StateMessage title={actor?.displayName ?? 'Agent account'} body={activeVendor?.vendorName ?? 'No active vendor assignment'} />
-    {blockingCount > 0
+    {!actionsHydrated
+      ? <StateMessage
+          title="Sign out unavailable"
+          body="Checking saved actions on this device before signing out."
+        />
+      : blockingCount > 0
       ? <StateMessage
           title="Sign out unavailable"
           body={`${blockingCount} unsynchronized action${blockingCount === 1 ? '' : 's'} must be synchronized before signing out.`}

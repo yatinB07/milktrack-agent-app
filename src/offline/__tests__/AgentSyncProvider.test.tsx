@@ -1,4 +1,4 @@
-import { act, render, waitFor } from '@testing-library/react-native';
+import { act, render, screen, waitFor } from '@testing-library/react-native';
 import { Component, useEffect, type ReactNode } from 'react';
 import { AppState, Text } from 'react-native';
 import { addEventListener as addNetInfoListener } from '@react-native-community/netinfo';
@@ -9,13 +9,29 @@ import {
   type AgentSyncView,
 } from '../AgentSyncProvider';
 import { createSyncRunner } from '../sync-runner';
+import { AccountScreen } from '@/screens/AccountScreen';
 
 const mockDatabase = { db: true };
+const mockSignOut = jest.fn();
 jest.mock('expo-sqlite', () => ({ useSQLiteContext: () => mockDatabase }));
 jest.mock('@react-native-community/netinfo', () => ({
   addEventListener: jest.fn(),
 }));
 jest.mock('../sync-runner', () => ({ createSyncRunner: jest.fn() }));
+jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
+jest.mock('@/auth/AuthProvider', () => ({
+  useAuth: () => ({
+    actor: { displayName: 'Agent A' },
+    signOut: mockSignOut,
+  }),
+}));
+jest.mock('@/agent/AgentWorkspaceProvider', () => ({
+  useAgentWorkspace: () => ({
+    status: 'ready',
+    vendors: [{ vendorId: 'vendor-1', vendorName: 'Vendor One' }],
+    activeVendor: { vendorId: 'vendor-1', vendorName: 'Vendor One' },
+  }),
+}));
 
 const createRunner = createSyncRunner as jest.Mock;
 const listenToNetInfo = addNetInfoListener as jest.Mock;
@@ -107,6 +123,38 @@ describe('agent synchronization view contract', () => {
     expect(action).not.toHaveProperty('retentionDeleteAfterWallMs');
     expect(action).not.toHaveProperty('createdAtMs');
     expect(action).not.toHaveProperty('updatedAtMs');
+  });
+
+  test('keeps sign out unavailable until the initial scoped snapshot is hydrated', async () => {
+    const initialSnapshot = deferred<{
+      groups: [];
+      actions: [];
+    }>();
+    const runner = mockRunner();
+    runner.getSnapshot.mockReturnValue(initialSnapshot.promise);
+    createRunner.mockReturnValue(runner);
+
+    await render(
+      <AgentSyncProvider
+        scope={{
+          actorId: 'actor-1',
+          deviceId: 'device-1',
+          accessMode: 'standard',
+        }}
+        accessToken="access-1"
+      >
+        <AccountScreen />
+      </AgentSyncProvider>,
+    );
+
+    expect(screen.getByText('Sign out unavailable')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Sign out' })).toBeNull();
+
+    initialSnapshot.resolve({ groups: [], actions: [] });
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Sign out' })).toBeTruthy(),
+    );
   });
 
   test('joins foreground, reconnect, manual, retry, and refreshed-token wakes to the same runner', async () => {

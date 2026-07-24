@@ -24,7 +24,7 @@ const action = (state: OfflineActionView['state'] = 'failed_retryable') => ({
 beforeEach(() => {
   jest.clearAllMocks();
   jest.mocked(useAgentSync).mockReturnValue({
-    status: 'idle', groups: [], actions: [action()], getAction: jest.fn(() => action()), syncNow: jest.fn(), retryNow,
+    status: 'idle', actionsHydrated: true, groups: [], actions: [action()], getAction: jest.fn(() => action()), syncNow: jest.fn(), retryNow,
   });
 });
 
@@ -61,7 +61,7 @@ it('disables retry while it is running and hides it for non-retryable queue stat
   await view.unmount();
 
   jest.mocked(useAgentSync).mockReturnValue({
-    status: 'idle', groups: [], actions: [action('pending')], getAction: jest.fn(() => action('pending')), syncNow: jest.fn(), retryNow,
+    status: 'idle', actionsHydrated: true, groups: [], actions: [action('pending')], getAction: jest.fn(() => action('pending')), syncNow: jest.fn(), retryNow,
   });
   await render(<QueuedActionScreen actionId="action-1" />);
   expect(screen.getByText('Saved on device')).toBeTruthy();
@@ -70,7 +70,7 @@ it('disables retry while it is running and hides it for non-retryable queue stat
 
 it('hides out-of-scope action facts behind a neutral unavailable state', async () => {
   jest.mocked(useAgentSync).mockReturnValue({
-    status: 'idle', groups: [], actions: [], getAction: jest.fn(() => undefined), syncNow: jest.fn(), retryNow,
+    status: 'idle', actionsHydrated: true, groups: [], actions: [], getAction: jest.fn(() => undefined), syncNow: jest.fn(), retryNow,
   });
   await render(<QueuedActionScreen actionId="outside-scope" />);
 

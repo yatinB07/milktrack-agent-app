@@ -60,6 +60,7 @@ const pendingAction = {
 } as OfflineActionView;
 const baseSyncView = {
   status: 'idle' as const,
+  actionsHydrated: true,
   groups: [
     {
       vendorId: 'vendor-b', pending: 1, sending: 1, synced: 2,

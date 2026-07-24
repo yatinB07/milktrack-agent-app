@@ -45,6 +45,7 @@ export type OfflineActionView = Pick<
 
 export type AgentSyncView = Readonly<{
   status: SyncStatus;
+  actionsHydrated: boolean;
   groups: readonly SyncVendorGroup[];
   actions: readonly OfflineActionView[];
   getAction(actionId: string): OfflineActionView | undefined;
@@ -88,6 +89,7 @@ function ScopedAgentSyncProvider({
 }: AgentSyncProviderProps) {
   const db = useSQLiteContext();
   const [status, setStatus] = useState<SyncStatus>('idle');
+  const [actionsHydrated, setActionsHydrated] = useState(false);
   const [groups, setGroups] = useState<readonly SyncVendorGroup[]>([]);
   const [actions, setActions] = useState<readonly OfflineActionView[]>([]);
   const recoveryRouteSyncId =
@@ -126,6 +128,7 @@ function ScopedAgentSyncProvider({
     const snapshot = await runner.getSnapshot();
     setGroups(snapshot.groups);
     setActions(snapshot.actions.map(toActionView));
+    setActionsHydrated(true);
     setStatus(runner.status);
   };
   const syncNow = async () => {
@@ -147,6 +150,7 @@ function ScopedAgentSyncProvider({
         if (!active) return;
         setGroups(snapshot.groups);
         setActions(snapshot.actions.map(toActionView));
+        setActionsHydrated(true);
         setStatus(runner.status);
       })
       .catch(() => {
@@ -164,6 +168,7 @@ function ScopedAgentSyncProvider({
         if (!active) return;
         setGroups(snapshot.groups);
         setActions(snapshot.actions.map(toActionView));
+        setActionsHydrated(true);
         setStatus(runner.status);
       });
     const wake = () => {
@@ -196,6 +201,7 @@ function ScopedAgentSyncProvider({
 
   const value: AgentSyncView = {
     status,
+    actionsHydrated,
     groups,
     actions,
     getAction: (actionId) =>

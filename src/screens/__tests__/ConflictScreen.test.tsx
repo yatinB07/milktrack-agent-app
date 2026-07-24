@@ -23,7 +23,7 @@ const conflict = {
 beforeEach(() => {
   jest.clearAllMocks();
   jest.mocked(useAgentSync).mockReturnValue({
-    status: 'idle', groups: [], actions: [conflict], getAction: jest.fn(() => conflict), syncNow: jest.fn(), retryNow: jest.fn(),
+    status: 'idle', actionsHydrated: true, groups: [], actions: [conflict], getAction: jest.fn(() => conflict), syncNow: jest.fn(), retryNow: jest.fn(),
   });
 });
 
@@ -41,7 +41,7 @@ it('shows immutable local and safe server facts with billing-safe vendor review 
 
 it('hides unavailable conflict data without exposing local household facts', async () => {
   jest.mocked(useAgentSync).mockReturnValue({
-    status: 'idle', groups: [], actions: [], getAction: jest.fn(() => undefined), syncNow: jest.fn(), retryNow: jest.fn(),
+    status: 'idle', actionsHydrated: true, groups: [], actions: [], getAction: jest.fn(() => undefined), syncNow: jest.fn(), retryNow: jest.fn(),
   });
   await render(<ConflictScreen actionId="outside-scope" />);
 
