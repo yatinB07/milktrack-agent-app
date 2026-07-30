@@ -1,5 +1,3 @@
-import { existsSync } from 'node:fs';
-import { resolve } from 'node:path';
 import app from '../../../app.json';
 
 it('uses the branded native splash contract', () => {
@@ -12,5 +10,5 @@ it('uses the branded native splash contract', () => {
       resizeMode: 'contain',
     }),
   ]);
-  expect(existsSync(resolve(process.cwd(), 'assets/images/splash-icon.png'))).toBe(true);
+  expect(require('../../../assets/images/splash-icon.png')).toBeTruthy();
 });
