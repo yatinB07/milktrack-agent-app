@@ -2,8 +2,10 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { useAgentWorkspace } from '@/agent/AgentWorkspaceProvider';
 import { AppText } from '@/components/AppText';
+import { AppHeader } from '@/components/AppHeader';
 import { Banner } from '@/components/Banner';
-import { Button } from '@/components/Button';
+import { Card } from '@/components/Card';
+import { ListRow } from '@/components/ListRow';
 import { Screen } from '@/components/Screen';
 import { StateMessage } from '@/components/StateMessage';
 
@@ -25,9 +27,12 @@ export function AgentWorkspaceScreen() {
   if (status === 'access-unavailable') return <Screen><StateMessage title="No delivery workspace" body="Ask your vendor administrator for an active delivery-agent assignment." /></Screen>;
 
   return <Screen>
-    <AppText accessibilityRole="header" variant="h1">Choose workspace</AppText>
-    <AppText>Select the vendor whose route you are delivering.</AppText>
+    <AppHeader title="Choose workspace" subtitle="Choose the vendor workspace for today’s assigned route." />
     {selectionFailed ? <Banner tone="error" text="Workspace selection failed. Try again." /> : null}
-    {vendors.map((vendor) => <Button key={vendor.vendorId} label={vendor.vendorName} onPress={() => void chooseVendor(vendor.vendorId)} />)}
+    <Card>
+      <AppText variant="h2">Assigned vendors</AppText>
+      <AppText variant="secondary">Only active vendor assignments are available on this device.</AppText>
+      {vendors.map((vendor) => <ListRow key={vendor.vendorId} title={vendor.vendorName} subtitle="Open today’s route" onPress={() => void chooseVendor(vendor.vendorId)} />)}
+    </Card>
   </Screen>;
 }

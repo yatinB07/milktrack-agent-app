@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { useAgentWorkspace } from '@/agent/AgentWorkspaceProvider';
 import { AgentWorkspaceScreen } from '../AgentWorkspaceScreen';
 
+jest.mock('expo-sqlite', () => ({ useSQLiteContext: jest.fn() }), { virtual: true });
 jest.mock('@/agent/AgentWorkspaceProvider');
 jest.mock('expo-router', () => ({ router: { replace: jest.fn() } }));
 
@@ -73,4 +74,10 @@ it('stays on the selector with an alert and allows retry after selection fails',
   await fireEvent.press(screen.getByRole('button', { name: 'Vendor B' }));
   await waitFor(() => expect(selectVendor).toHaveBeenCalledTimes(2));
   expect(router.replace).toHaveBeenCalledWith('/(tabs)');
+});
+
+it('uses the approved workspace-selection guidance', async () => {
+  await render(<AgentWorkspaceScreen />);
+
+  expect(screen.getByText('Choose the vendor workspace for today’s assigned route.')).toBeTruthy();
 });

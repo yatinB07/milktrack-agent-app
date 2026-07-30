@@ -36,3 +36,10 @@ it('uses security-safe access copy for an authentication denial', async () => {
 
   expect(screen.getByText('The code is invalid or expired, or account access is unavailable.')).toBeTruthy();
 });
+
+it('renders a secure-device note within the verification hierarchy', async () => {
+  await render(<OtpScreen onVerify={jest.fn()} />);
+
+  expect(screen.getByRole('header', { name: 'Verify your phone' })).toBeTruthy();
+  expect(screen.getByText('For delivery security, only continue on a device you trust.')).toBeTruthy();
+});

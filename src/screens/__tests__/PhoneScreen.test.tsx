@@ -37,3 +37,10 @@ it('lets the same phone request recovery for a selected saved route', async () =
     'route-sync-2',
   );
 });
+
+it('renders the agent identity hierarchy with field guidance', async () => {
+  await render(<PhoneScreen onContinue={jest.fn()} />);
+
+  expect(screen.getByRole('header', { name: 'MilkTrack Agent' })).toBeTruthy();
+  expect(screen.getByText('Use the phone number assigned to your delivery account.')).toBeTruthy();
+});

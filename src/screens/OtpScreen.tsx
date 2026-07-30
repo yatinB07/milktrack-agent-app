@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { AppText } from '@/components/AppText';
+import { AppHeader } from '@/components/AppHeader';
 import { Button } from '@/components/Button';
+import { Card } from '@/components/Card';
 import { Field } from '@/components/Field';
 import { Screen } from '@/components/Screen';
 import { colors, spacing } from '@/theme/tokens';
@@ -43,7 +45,16 @@ export function OtpScreen({ onVerify, onResend, maskedPhone = 'your phone', expi
     } finally { setResending(false); }
   };
   const fieldError = retryAfter ? `Try again in ${retryAfter} seconds` : error;
-  return <Screen><AppText variant="h1">Verify your phone</AppText><AppText>Enter the code for {maskedPhone}.</AppText><Field label="Six-digit code" value={code} error={fieldError} keyboardType="number-pad" textContentType="oneTimeCode" autoComplete="sms-otp" maxLength={6} onChangeText={(value) => setCode(value.replace(/\D/g, '').slice(0, 6))} /><Pressable accessibilityRole="button" disabled={busy || resending || retryAfter > 0} onPress={() => void resend()} style={styles.change}><AppText variant="action" style={styles.link}>{resending ? 'Resending…' : 'Resend code'}</AppText></Pressable><AppText variant="secondary" style={styles.secondary}>Only continue on a device you trust.</AppText><Button label={busy ? 'Verifying…' : 'Verify'} disabled={busy} onPress={() => void submit()} /><Pressable accessibilityRole="button" onPress={onChangeNumber} style={styles.change}><AppText variant="action" style={styles.link}>Change number</AppText></Pressable></Screen>;
+  return <Screen>
+    <AppHeader title="Verify your phone" subtitle={`Enter the six-digit code sent to ${maskedPhone}.`} />
+    <Card>
+      <Field label="Six-digit code" helper="The code expires shortly for your security." value={code} error={fieldError} keyboardType="number-pad" textContentType="oneTimeCode" autoComplete="sms-otp" maxLength={6} onChangeText={(value) => setCode(value.replace(/\D/g, '').slice(0, 6))} />
+      <Pressable accessibilityRole="button" disabled={busy || resending || retryAfter > 0} onPress={() => void resend()} style={styles.change}><AppText variant="action" style={styles.link}>{resending ? 'Resending…' : 'Resend code'}</AppText></Pressable>
+      <AppText variant="secondary" style={styles.secondary}>For delivery security, only continue on a device you trust.</AppText>
+      <Button label="Verify" loading={busy} onPress={() => void submit()} />
+    </Card>
+    <Pressable accessibilityRole="button" onPress={onChangeNumber} style={styles.change}><AppText variant="action" style={styles.link}>Change number</AppText></Pressable>
+  </Screen>;
 }
 
 const styles = StyleSheet.create({ secondary: { color: colors.secondary }, change: { minHeight: 48, alignItems: 'center', justifyContent: 'center', marginTop: spacing.sm }, link: { color: colors.primary } });
