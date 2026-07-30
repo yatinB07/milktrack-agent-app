@@ -1,7 +1,7 @@
 import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useAgentWorkspace } from '@/agent/AgentWorkspaceProvider';
 import { DeliveredOutcomeForm } from '@/agent/outcomes/DeliveredOutcomeForm';
 import { MissedOutcomeForm } from '@/agent/outcomes/MissedOutcomeForm';
@@ -11,10 +11,13 @@ import { useStopOutcome } from '@/agent/outcomes/useStopOutcome';
 import { useTodayRoute } from '@/agent/useTodayRoute';
 import { useAuth } from '@/auth/AuthProvider';
 import { AppText } from '@/components/AppText';
+import { AppHeader } from '@/components/AppHeader';
 import { Banner } from '@/components/Banner';
 import { Button } from '@/components/Button';
+import { Card } from '@/components/Card';
 import { Screen } from '@/components/Screen';
-import { colors, radii, spacing } from '@/theme/tokens';
+import { SectionHeader } from '@/components/SectionHeader';
+import { spacing } from '@/theme/tokens';
 
 type ActionMode = 'none' | 'delivered' | 'skipped_by_agent' | 'missed';
 
@@ -143,34 +146,31 @@ function ReadyStopScreen({ routeStopId, vendorId, accessToken, actorId, deviceId
     {route.status === 'error' && route.errorKind === 'unavailable'
       ? <Banner tone="warning" text="Showing saved route data. Some details may be out of date." />
       : null}
-    <AppText accessibilityRole="header" variant="h1">Stop {stop.sequence} · {first.householdName}</AppText>
-    <AppText variant="secondary">Account {first.householdAccountNumber}</AppText>
-    <View style={styles.panel}>
-      <AppText accessibilityRole="header" variant="h2">Address</AppText>
+    <AppHeader title={`Stop ${stop.sequence} · ${first.householdName}`} subtitle={`Account ${first.householdAccountNumber}`} />
+    <Card>
+      <SectionHeader title="Delivery details" />
+      <AppText accessibilityRole="header" variant="h3">Address</AppText>
       <AppText style={styles.wrapping}>{address}</AppText>
       {mapsFailed ? <Banner tone="error" text="Maps could not be opened. Try again." /> : null}
-      <Pressable
-        accessibilityRole="button"
+      <Button
+        label="Open in maps"
+        variant="secondary"
         accessibilityHint="Opens the address in another app."
-        accessibilityState={{ disabled: openingMaps }}
-        disabled={openingMaps}
+        loading={openingMaps}
         onPress={() => void openMaps()}
-        style={({ pressed }) => [styles.mapButton, pressed && styles.mapButtonPressed, openingMaps && styles.disabled]}
-      >
-        <AppText variant="action" style={styles.mapButtonLabel}>Open in maps</AppText>
-      </Pressable>
-    </View>
-    <View style={styles.panel}>
-      <AppText accessibilityRole="header" variant="h2">Route and slot</AppText>
+      />
+    </Card>
+    <Card>
+      <SectionHeader title="Route and slot" />
       <AppText style={styles.wrapping}>{first.routeName} ({first.routeCode})</AppText>
       <AppText style={styles.wrapping}>{first.deliverySlotName} · {first.deliverySlotStartLocalTime}–{first.deliverySlotEndLocalTime}</AppText>
-    </View>
+    </Card>
     <View style={styles.section}>
-      <AppText accessibilityRole="header" variant="h2">Planned products</AppText>
-      {stop.products.map((product) => <View key={product.id} style={styles.product}>
+      <SectionHeader title="Planned products" />
+      {stop.products.map((product) => <Card key={product.id}>
         <AppText variant="h3" style={styles.wrapping}>{product.productName}</AppText>
         <AppText>{product.plannedQuantity} {product.unitName}</AppText>
-      </View>)}
+      </Card>)}
     </View>
     {stop.blockedByCustomerLeave
       ? <Banner tone="warning" text="Customer leave · delivery blocked" />
@@ -248,10 +248,13 @@ function StopState({ title, body, actionLabel, onAction }: Readonly<{
 }>) {
   return <Screen>
     <BackButton />
-    <AppText accessibilityRole="header" variant="h1">{title}</AppText>
-    <AppText>{body}</AppText>
-    {actionLabel ? <Button label={actionLabel} onPress={onAction} /> : null}
+    <AppHeader title={title} />
+    <StateCard body={body} actionLabel={actionLabel} onAction={onAction} />
   </Screen>;
+}
+
+function StateCard({ body, actionLabel, onAction }: Readonly<{ body: string; actionLabel?: string; onAction?: () => void }>) {
+  return <Card><AppText>{body}</AppText>{actionLabel ? <Button label={actionLabel} onPress={onAction} /> : null}</Card>;
 }
 
 function BackButton() {
@@ -259,12 +262,6 @@ function BackButton() {
 }
 
 const styles = StyleSheet.create({
-  panel: { gap: spacing.md, borderWidth: 1, borderColor: colors.border, borderRadius: radii.panel, backgroundColor: colors.surface, padding: spacing.lg },
   section: { gap: spacing.md },
-  product: { gap: spacing.xs, borderWidth: 1, borderColor: colors.border, borderRadius: radii.panel, backgroundColor: colors.surface, padding: spacing.lg },
-  mapButton: { minHeight: 48, minWidth: 48, alignItems: 'center', justifyContent: 'center', borderRadius: radii.control, backgroundColor: colors.primary, paddingHorizontal: spacing.xl, paddingVertical: spacing.md },
-  mapButtonPressed: { backgroundColor: colors.primaryPressed },
-  mapButtonLabel: { color: colors.surface },
-  disabled: { opacity: 0.5 },
   wrapping: { flexShrink: 1 },
 });

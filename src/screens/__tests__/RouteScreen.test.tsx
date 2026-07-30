@@ -10,6 +10,7 @@ import {
 } from '@/offline/AgentSyncProvider';
 import { RouteScreen } from '../RouteScreen';
 
+jest.mock('expo-sqlite', () => ({ useSQLiteContext: jest.fn() }), { virtual: true });
 jest.mock('@/agent/useTodayRoute');
 jest.mock('@/agent/AgentWorkspaceProvider');
 jest.mock('@/auth/AuthProvider');
@@ -218,6 +219,13 @@ test('renders the complete fresh route from device storage', async () => {
 
   await fireEvent.press(screen.getByRole('button', { name: /Stop 1, Patel Home/ }));
   expect(router.push).toHaveBeenCalledWith('/stops/stop-1');
+});
+
+test('renders the approved route identity hierarchy', async () => {
+  await render(<RouteScreen />);
+
+  expect(screen.getByRole('header', { name: "Today's route" })).toBeTruthy();
+  expect(screen.getByText('Route ready')).toBeTruthy();
 });
 
 test.each([

@@ -8,10 +8,13 @@ import type { TodayRouteAssignment, TodayRouteStop } from '@/agent/model';
 import { useTodayRoute } from '@/agent/useTodayRoute';
 import { useAuth } from '@/auth/AuthProvider';
 import { AppText } from '@/components/AppText';
+import { AppHeader } from '@/components/AppHeader';
 import { Banner } from '@/components/Banner';
 import { Button } from '@/components/Button';
+import { Card } from '@/components/Card';
 import { ConnectivityBanner } from '@/components/ConnectivityBanner';
 import { Screen } from '@/components/Screen';
+import { StatusPill } from '@/components/StatusPill';
 import { StateMessage } from '@/components/StateMessage';
 import {
   useAgentSync,
@@ -80,7 +83,7 @@ function ActiveRouteScreen({ accessMode, accessToken, actorId, agentName, vendor
   if (accessError) {
     const authentication = accessError === 'authentication';
     return <Screen>
-      <AppText accessibilityRole="header" variant="h1">Today&apos;s route</AppText>
+      <AppHeader title="Today's route" />
       <ConnectivityBanner />
       <StateMessage
         title={authentication ? 'Session expired' : 'Route access restricted'}
@@ -97,9 +100,8 @@ function ActiveRouteScreen({ accessMode, accessToken, actorId, agentName, vendor
         ? { title: 'Loading today’s route', body: 'Checking today’s route and scheduled stops.' }
         : { title: 'Route unavailable', body: 'Today’s route could not be loaded.', actionLabel: 'Retry', onAction: route.refresh };
     return <Screen>
-      <AppText accessibilityRole="header" variant="h1">Today&apos;s route</AppText>
-      <AppText>{agentName} · {vendorName}</AppText>
-      <AppText>Service date: {route.serviceDate ?? 'Not available'}</AppText>
+      <AppHeader title="Today's route" subtitle={`${agentName} · ${vendorName}`} />
+      <Card><AppText>Service date: {route.serviceDate ?? 'Not available'}</AppText></Card>
       <ConnectivityBanner />
       <StateMessage {...state} onAction={state.onAction ? () => void state.onAction?.() : undefined} />
     </Screen>;
@@ -120,10 +122,12 @@ function ActiveRouteScreen({ accessMode, accessToken, actorId, agentName, vendor
     windowSize={7}
     contentContainerStyle={styles.content}
     ListHeaderComponent={<View style={styles.header}>
-      <AppText accessibilityRole="header" variant="h1">Today&apos;s route</AppText>
-      <AppText>{agentName} · {vendorName}</AppText>
+      <AppHeader title="Today's route" subtitle={`${agentName} · ${vendorName}`} />
+      <Card>
       <AppText>Service date: {route.model.serviceDate ?? route.serviceDate ?? 'Not available'}</AppText>
       <AppText accessibilityLiveRegion="polite">Progress: {completedStops} of {stopCount} stops complete</AppText>
+      <StatusPill label={offline ? 'Offline route' : route.freshness === 'fresh' ? 'Route ready' : 'Route needs refresh'} tone={offline || route.freshness !== 'fresh' ? 'warning' : 'success'} />
+      </Card>
       <ConnectivityBanner />
       {offline ? <Banner tone="warning" text="Offline. Showing saved route data." /> : null}
       {route.freshness === 'fresh' ? <Banner tone="success" text="Route saved on device." /> : null}
@@ -229,8 +233,8 @@ function localActionMessage(action: OfflineActionView) {
 
 function StatusScreen({ title, body, onRetry }: Readonly<{ title: string; body: string; onRetry?: () => Promise<void> }>) {
   return <Screen>
-    <AppText accessibilityRole="header" variant="h1">Today&apos;s route</AppText>
-    <StateMessage title={title} body={body} {...(onRetry ? { actionLabel: 'Retry', onAction: () => void onRetry() } : {})} />
+    <AppHeader title="Today's route" />
+    <StateMessage kind={title.includes('restricted') ? 'restricted' : 'unavailable'} title={title} body={body} {...(onRetry ? { actionLabel: 'Retry', onAction: () => void onRetry() } : {})} />
   </Screen>;
 }
 

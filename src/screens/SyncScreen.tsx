@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 
 import { useAgentWorkspace } from '@/agent/AgentWorkspaceProvider';
 import type {
@@ -8,7 +8,9 @@ import type {
 } from '@/offline/AgentSyncProvider';
 import { useAgentSync } from '@/offline/AgentSyncProvider';
 import { AppText } from '@/components/AppText';
+import { AppHeader } from '@/components/AppHeader';
 import { Button } from '@/components/Button';
+import { Card } from '@/components/Card';
 import { ConnectivityBanner } from '@/components/ConnectivityBanner';
 import { Screen } from '@/components/Screen';
 import { colors, radii, spacing } from '@/theme/tokens';
@@ -29,13 +31,15 @@ export function SyncScreen() {
   );
 
   return <Screen>
-    <AppText accessibilityRole="header" variant="h1">Synchronization</AppText>
+    <AppHeader title="Synchronization" subtitle="Saved delivery actions stay on this device until synchronized." />
     <ConnectivityBanner />
-    <AppText accessibilityLiveRegion="polite">Sync status: {syncStatus[sync.status]}</AppText>
-    <AppText accessibilityLabel="Synchronization queue changed" accessibilityLiveRegion="polite">
-      {groups.length === 0 ? 'No saved synchronization actions.' : `${groups.length} vendor synchronization queues.`}
-    </AppText>
-    <Button label="Sync now" onPress={() => void sync.syncNow()} />
+    <Card>
+      <AppText accessibilityLiveRegion="polite">Sync status: {syncStatus[sync.status]}</AppText>
+      <AppText accessibilityLabel="Synchronization queue changed" accessibilityLiveRegion="polite">
+        {groups.length === 0 ? 'No saved synchronization actions.' : `${groups.length} vendor synchronization queues.`}
+      </AppText>
+      <Button label="Sync now" onPress={() => void sync.syncNow()} />
+    </Card>
     {sync.actions.length > 0
       ? <AppText accessibilityRole="header" variant="h2">Synchronization actions</AppText>
       : null}
@@ -74,14 +78,14 @@ function VendorQueue({ group, vendorName }: Readonly<{
   group: SyncVendorGroup;
   vendorName?: string;
 }>) {
-  return <View style={styles.group}>
+  return <Card>
     <AppText accessibilityRole="header" variant="h2">{vendorName ?? 'Vendor workspace unavailable'}</AppText>
     <AppText>Queue: {group.pending} Saved on device · {group.sending} Sending · {group.synced} Sent to MilkTrack · {group.failedRetryable} Needs retry · {group.conflict} Vendor review required</AppText>
     <AppText>Route freshness: {freshnessLabel(group.routeFreshness)}</AppText>
     <AppText>Oldest queued: {formatTime(group.oldestPendingAtMs)}</AppText>
     <AppText>Last reported route: {formatTime(group.lastRouteSyncAtMs)}</AppText>
     <AppText>Last reported action: {formatTime(group.lastActionSyncAtMs)}</AppText>
-  </View>;
+  </Card>;
 }
 
 function freshnessLabel(freshness: SyncVendorGroup['routeFreshness']) {
@@ -95,14 +99,6 @@ function formatTime(value: number | null) {
 }
 
 const styles = StyleSheet.create({
-  group: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.panel,
-    borderWidth: 1,
-    gap: spacing.sm,
-    padding: spacing.lg,
-  },
   action: {
     minHeight: 48,
     backgroundColor: colors.surface,

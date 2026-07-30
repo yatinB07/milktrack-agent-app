@@ -294,3 +294,9 @@ it('passes only routeStopId from the route and ignores injected PII parameters',
   expect(screen.getByRole('header', { name: 'Stop 7 · Sharma Household' })).toBeTruthy();
   expect(screen.queryByText('Injected Private Name')).toBeNull();
 });
+
+it('groups the delivery address in the approved detail hierarchy', async () => {
+  await render(<StopScreen routeStopId="stop-a" />);
+
+  expect(screen.getByText('Delivery details')).toBeTruthy();
+});

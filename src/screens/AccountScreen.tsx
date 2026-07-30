@@ -2,8 +2,11 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { useAgentWorkspace } from '@/agent/AgentWorkspaceProvider';
 import { AppText } from '@/components/AppText';
+import { AppHeader } from '@/components/AppHeader';
 import { Button } from '@/components/Button';
+import { Card } from '@/components/Card';
 import { Screen } from '@/components/Screen';
+import { StatusPill } from '@/components/StatusPill';
 import { StateMessage } from '@/components/StateMessage';
 import { useAuth } from '@/auth/AuthProvider';
 import { useAgentSync } from '@/offline/AgentSyncProvider';
@@ -37,9 +40,14 @@ export function AccountScreen() {
   };
   const canSwitch = status === 'selection-required' || vendors.length > 1;
   return <Screen>
-    <AppText accessibilityRole="header" variant="h1">Account</AppText>
+    <AppHeader title="Account" subtitle="Manage this delivery device and workspace." />
     {canSwitch ? <Button label="Switch workspace" onPress={() => router.push('/agent-workspace')} /> : null}
-    <StateMessage title={actor?.displayName ?? 'Agent account'} body={activeVendor?.vendorName ?? 'No active vendor assignment'} />
+    <Card>
+      <AppText variant="h2">Current workspace</AppText>
+      <AppText>{actor?.displayName ?? 'Agent account'}</AppText>
+      <AppText variant="secondary">{activeVendor?.vendorName ?? 'No active vendor assignment'}</AppText>
+      <StatusPill label={activeVendor ? 'Active assignment' : 'No active assignment'} tone={activeVendor ? 'success' : 'warning'} />
+    </Card>
     {!actionsHydrated
       ? <StateMessage
           title="Sign out unavailable"

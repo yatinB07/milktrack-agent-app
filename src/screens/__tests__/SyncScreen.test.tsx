@@ -160,3 +160,9 @@ it.each([
   expect(screen.getByText(label)).toBeTruthy();
   expect(screen.getByText('Queue: 1 Saved on device · 1 Sending · 2 Sent to MilkTrack · 3 Needs retry · 4 Vendor review required')).toBeTruthy();
 });
+
+it('uses the synchronization workspace hierarchy', async () => {
+  await render(<SyncScreen />);
+
+  expect(screen.getByText('Saved delivery actions stay on this device until synchronized.')).toBeTruthy();
+});

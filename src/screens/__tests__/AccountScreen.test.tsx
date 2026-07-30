@@ -91,3 +91,9 @@ it('keeps the existing sign out action for synchronized and conflicted actions',
   expect(screen.queryByText('Sign out unavailable')).toBeNull();
   expect(mockSignOut).toHaveBeenCalledTimes(1);
 });
+
+it('shows the current workspace within the account hierarchy', async () => {
+  await render(<AccountScreen />);
+
+  expect(screen.getByText('Current workspace')).toBeTruthy();
+});
