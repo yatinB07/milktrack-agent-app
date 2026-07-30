@@ -29,6 +29,15 @@
     "plugins": [
       "expo-router",
       [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#146B52",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 220,
+          "resizeMode": "contain"
+        }
+      ],
+      [
         "expo-location",
         {
           "locationWhenInUsePermission": "Allow MilkTrack Agent to attach an optional location to this delivery outcome."
