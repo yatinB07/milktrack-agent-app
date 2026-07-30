@@ -33,6 +33,8 @@ it('shows immutable local facts and retries only a retryable action', async () =
 
   expect(screen.getByRole('header', { name: 'Synchronization details' })).toBeTruthy();
   expect(screen.getByText('Needs retry')).toBeTruthy();
+  expect(screen.getByRole('header', { name: 'Action overview' })).toBeTruthy();
+  expect(screen.getByRole('header', { name: 'Sync diagnostics' })).toBeTruthy();
   expect(screen.getByText('Outcome: Delivered')).toBeTruthy();
   expect(screen.getByText('Service date: 2026-07-24')).toBeTruthy();
   expect(screen.getByText('Route: Morning route (route-3) · Stop stop-9')).toBeTruthy();

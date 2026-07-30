@@ -32,6 +32,8 @@ it('shows immutable local and safe server facts with billing-safe vendor review 
 
   expect(screen.getByRole('header', { name: 'Vendor review required' })).toBeTruthy();
   expect(screen.getByText('Vendor review required. The vendor will decide whether a correction is appropriate.')).toBeTruthy();
+  expect(screen.getByRole('header', { name: 'Action overview' })).toBeTruthy();
+  expect(screen.getByRole('header', { name: 'Conflict details' })).toBeTruthy();
   expect(screen.getByText('Outcome: Delivered')).toBeTruthy();
   expect(screen.getByText('Household: Patel Home · H-100')).toBeTruthy();
   expect(screen.getByText('Conflict reference: conflict-4')).toBeTruthy();
