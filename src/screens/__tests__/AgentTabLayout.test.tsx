@@ -11,6 +11,7 @@ jest.mock('expo-router', () => {
   const MockTabs = Object.assign(jest.fn(() => null), { Screen: jest.fn(() => null) });
   return { Redirect: jest.fn(() => null), Tabs: MockTabs };
 });
+jest.mock('@react-native-vector-icons/material-design-icons', () => () => null, { virtual: true });
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -37,4 +38,12 @@ it('renders tabs only after a stored workspace is restored', async () => {
   await render(<TabLayout />);
   expect(Tabs).toHaveBeenCalled();
   expect(Redirect).not.toHaveBeenCalled();
+});
+
+it('assigns a visible label and vector icon to every agent tab', async () => {
+  await render(<TabLayout />);
+
+  const options = (Tabs as unknown as jest.Mock).mock.calls[0]?.[0]?.screenOptions({ route: { name: 'sync' } });
+  expect(options.tabBarShowLabel).toBe(true);
+  expect(options.tabBarIcon).toBeDefined();
 });
