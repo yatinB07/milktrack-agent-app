@@ -10,7 +10,7 @@ import {
 } from '@/offline/AgentSyncProvider';
 import { RouteScreen } from '../RouteScreen';
 
-jest.mock('expo-sqlite', () => ({ useSQLiteContext: jest.fn() }), { virtual: true });
+jest.mock('expo-sqlite', () => ({ useSQLiteContext: jest.fn() }));
 jest.mock('@/agent/useTodayRoute');
 jest.mock('@/agent/AgentWorkspaceProvider');
 jest.mock('@/auth/AuthProvider');
