@@ -17,7 +17,13 @@ const palettes = {
 
 export function StateMessage({ kind = 'empty', title, body, actionLabel, onAction }: Props) {
   const alert = kind === 'unavailable' || kind === 'restricted' || kind === 'failure';
-  return <View accessible={alert} accessibilityRole={alert ? 'alert' : undefined} style={[styles.panel, palettes[kind]]}><AppText variant="h2">{title}</AppText><AppText style={styles.body}>{body}</AppText>{actionLabel ? <Button label={actionLabel} variant="secondary" onPress={onAction} /> : null}</View>;
+  return <View style={[styles.panel, palettes[kind]]}>
+    <View accessible={alert} accessibilityRole={alert ? 'alert' : undefined} accessibilityLiveRegion={alert ? 'polite' : undefined} style={styles.message}>
+      <AppText variant="h2">{title}</AppText>
+      <AppText style={styles.body}>{body}</AppText>
+    </View>
+    {actionLabel ? <Button label={actionLabel} variant="secondary" onPress={onAction} /> : null}
+  </View>;
 }
 
-const styles = StyleSheet.create({ panel: { gap: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.panel, backgroundColor: colors.surface, padding: spacing.xl }, body: { color: colors.secondary } });
+const styles = StyleSheet.create({ panel: { gap: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.panel, backgroundColor: colors.surface, padding: spacing.xl }, message: { gap: spacing.sm }, body: { color: colors.secondary } });
